@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Basis</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#0B0E12;--pane:#11151B;--pane2:#161B22;--line:#1E252E;--line2:#2A323D;
+--fg:#DFE5EC;--fg2:#8792A0;--fg3:#59636F;
+--meme:#5B8DEF;--memebg:#16243C;--stock:#C9922E;--stockbg:#3A2E16;
+--up:#3FB27F;--down:#D9534F;
+--sans:'Instrument Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:13px;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:1px solid var(--meme);outline-offset:2px}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}
+.app{display:grid;grid-template-rows:46px 1fr 26px;height:100vh}
+.mid{display:grid;grid-template-columns:212px 1fr;overflow:hidden}
+.mid.rail3{grid-template-columns:212px 1fr 292px}
+.top{display:flex;align-items:center;gap:14px;padding:0 14px;border-bottom:1px solid var(--line);background:var(--pane)}
+.brand{font-family:var(--mono);font-size:14px;font-weight:600;padding-right:12px;border-right:1px solid var(--line2)}
+.brand b{color:var(--meme)}
+.search{flex:1;max-width:520px;display:flex;align-items:center;gap:9px;background:var(--bg);border:1px solid var(--line2);border-radius:5px;height:29px;padding:0 11px;color:var(--fg3)}
+.search input{flex:1;background:none;border:0;color:var(--fg);font-family:var(--mono);font-size:12px;outline:none}
+.search input::placeholder{color:var(--fg3)}
+.kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);border-radius:3px;padding:1px 5px;color:var(--fg3)}
+.topright{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:12px;color:var(--fg2)}
+.chainpill{display:flex;align-items:center;gap:7px;border:1px solid var(--line2);border-radius:4px;padding:4px 9px}
+.led{width:5px;height:5px;border-radius:50%;background:var(--up);box-shadow:0 0 6px var(--up)}
+.side{border-right:1px solid var(--line);background:var(--pane);overflow-y:auto}
+.navlbl{font-size:10px;letter-spacing:.09em;color:var(--fg3);padding:12px 14px 7px;text-transform:uppercase}
+.navitem{display:flex;align-items:center;gap:10px;padding:7px 14px;color:var(--fg2);border-left:2px solid transparent;cursor:pointer}
+.navitem:hover{background:var(--pane2);color:var(--fg)}
+.navitem.on{color:var(--fg);border-left-color:var(--meme);background:var(--pane2)}
+.navitem .ic{width:14px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--fg3)}
+.navitem.on .ic{color:var(--meme)}
+.tag{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--fg3)}
+.sect{border-top:1px solid var(--line)}
+.kvs{padding:4px 14px 12px}
+.kvs .row{display:flex;justify-content:space-between;padding:5px 0;font-size:11px}
+.kvs .row span:first-child{color:var(--fg3)}
+.kvs .row span:last-child{font-family:var(--mono)}
+.main{overflow-y:auto}
+.phead{display:flex;align-items:center;gap:22px;padding:0 18px;height:58px;border-bottom:1px solid var(--line);background:var(--pane);position:sticky;top:0;z-index:5;overflow-x:auto;white-space:nowrap}
+.phead h1{font-size:16px;font-weight:600}
+.phead .sub{font-size:12px;color:var(--fg3)}
+.stat .k{font-size:10px;color:var(--fg3)}
+.stat .v{font-family:var(--mono);font-size:13px;margin-top:2px}
+.act{margin-left:auto;display:flex;gap:7px}
+.btn{height:29px;padding:0 13px;background:var(--fg);color:var(--bg);border:0;border-radius:4px;font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer}
+.btn.ghost{background:none;color:var(--fg2);border:1px solid var(--line2)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.cell{background:var(--bg);padding:16px 18px}
+.cell.full{grid-column:1/-1}
+.ch{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:13px}
+.ch h2{font-size:12px;font-weight:500}
+.ch span{font-family:var(--mono);font-size:10px;color:var(--fg3)}
+table{width:100%;border-collapse:collapse}
+thead th{position:sticky;top:0;background:var(--pane);font-size:10px;font-weight:400;letter-spacing:.06em;color:var(--fg3);text-transform:uppercase;text-align:left;padding:7px 14px;border-bottom:1px solid var(--line);white-space:nowrap;z-index:2}
+thead th.r{text-align:right}
+tbody tr{border-bottom:1px solid var(--line)}
+tbody tr:hover{background:var(--pane)}
+tbody tr.on{background:var(--memebg)}
+td{padding:8px 14px;font-size:12px;white-space:nowrap}
+td.r{text-align:right;font-family:var(--mono)}
+.sym{font-family:var(--mono);font-weight:500}
+.qt{font-family:var(--mono);color:var(--stock);font-size:11px}
+.hot{color:var(--down)}
+.up{color:var(--up)}.down{color:var(--down)}
+.gt{height:8px;background:var(--pane2);border-radius:2px;overflow:hidden;width:120px}
+.gt i{display:block;height:100%;background:var(--down)}
+.mini{font-size:11px;color:var(--fg3);line-height:1.6}
+.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:12px}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--fg2)}
+.kv .v{font-family:var(--mono)}
+.sw{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:7px;vertical-align:-1px}
+.lg{display:flex;gap:18px;font-size:11px;color:var(--fg2);margin-top:11px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:3px;padding:2px 8px;font-family:var(--mono);font-size:10px;color:var(--fg2)}
+.status{display:flex;border-top:1px solid var(--line);background:var(--pane);font-family:var(--mono);font-size:10px;color:var(--fg3);overflow:hidden}
+.status div{padding:0 12px;border-right:1px solid var(--line);line-height:25px;white-space:nowrap}
+.status .push{margin-left:auto;border-right:0;border-left:1px solid var(--line)}
+@media(max-width:1180px){.mid.rail3{grid-template-columns:212px 1fr}.rail{display:none}}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}}
+@media(max-width:820px){.mid,.mid.rail3{grid-template-columns:1fr}.side{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top">
+  <a href="index.html" class="brand">ba<b>/</b>sis</a>
+  <div class="search"><span>&#9906;</span><input placeholder="Paste a contract, or search a ticker"><span class="kbd">&#8984;K</span></div>
+  <div class="topright"><div class="chainpill"><span class="led"></span>Robinhood Chain</div><span style="font-family:var(--mono)">block 4,912,338</span><span>Repo</span></div>
+</div>
+<div class="mid" id="mid">
+  <aside class="side">
+    <div class="navlbl">Views</div>
+    <a class="navitem" data-p="split" href="market.html"><span class="ic">&#9645;</span>Split board</a>
+    <a class="navitem" data-p="float" href="float.html"><span class="ic">&#9678;</span>Float grip<span class="tag">12</span></a>
+    <a class="navitem" data-p="hours" href="hours.html"><span class="ic">&#9203;</span>Market hours</a>
+    <a class="navitem" data-p="actions" href="actions.html"><span class="ic">&#9998;</span>Corporate actions<span class="tag">2</span></a>
+    <a class="navitem" data-p="method" href="method.html"><span class="ic">&#8721;</span>Method</a>
+    <div class="sect" id="sidextra"></div>
+  </aside>
+  <main class="main">
+<div class="phead">
+  <div><h1>Corporate actions</h1><div class="sub">Dividends and splits, read from the token multiplier before they take effect</div></div>
+  <div class="stat"><div class="k">Scheduled</div><div class="v">2</div></div>
+  <div class="stat"><div class="k">Since chain launch</div><div class="v">17</div></div>
+  <div class="stat"><div class="k">Pools exposed</div><div class="v">31</div></div>
+  <div class="act"><button class="btn ghost">Subscribe to feed</button></div>
+</div>
+
+<div class="grid">
+  <div class="cell">
+    <div class="ch"><h2>Scheduled</h2><span>read from newUIMultiplier and effectiveAt</span></div>
+    <div id="sch"></div>
+    <p class="mini" style="margin-top:12px">A dividend raises the multiplier, so each token represents slightly more stock. The pool holding that token does not know, and reprices only once someone arbitrages it.</p>
+  </div>
+  <div class="cell">
+    <div class="ch"><h2>Effect on a pool</h2><span>worked, not estimated</span></div>
+    <div class="kv"><span class="k">Dividend, multiplier +0.31%</span><span class="v">stock leg gains 0.31%</span></div>
+    <div class="kv"><span class="k">Pool response</span><span class="v">none until arbitraged</span></div>
+    <div class="kv"><span class="k">Value leaking to arbitrage</span><span class="v">$5.9K on a $4.1M pool</span></div>
+    <div class="kv"><span class="k">Split 4:1, multiplier &#215;4</span><span class="v">0.00%</span></div>
+    <p class="mini" style="margin-top:12px">Splits are neutral. The multiplier rises by the same factor the share price falls, so token value is unchanged and the pool never moves. Only dividends transfer value, and only by the dividend itself.</p>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="cell full" style="padding:0">
+    <div class="ch" style="padding:14px 18px 11px;margin:0;border-bottom:1px solid var(--line)"><h2>History</h2><span>every multiplier change on this chain</span></div>
+    <table>
+      <thead><tr>
+        <th>Date</th><th>Ticker</th><th>Type</th><th class="r">Old</th><th class="r">New</th>
+        <th class="r">Value change</th><th class="r">Pools hit</th><th class="r">Value at risk</th><th class="r">Arb closed in</th>
+      </tr></thead>
+      <tbody id="hs"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="cell full">
+    <div class="ch"><h2>Honest note on this page</h2></div>
+    <p class="mini">Seventeen actions in the chain's whole life is a thin stream, and most of them moved value by well under one percent. This page exists because the events are scheduled, readable in advance and nobody else surfaces them next to the pools they hit &#8212; not because it will fire every day. If you came here for a daily signal, the split board is the page you want.</p>
+  </div>
+</div>
+<script>
+window.PAGE='actions';
+window.STATUS=['rpc.mainnet.chain.robinhood.com','chain 4663','watching 108 tokens','UIMultiplierUpdated logs from genesis','2 scheduled'];
+window.SIDEEXTRA='<div class="navlbl">Scheduled</div><div class="kvs">'+
+'<div class="row"><span>MSFT div</span><span>in 3d</span></div>'+
+'<div class="row"><span>JNJ div</span><span>in 9d</span></div></div>';
+var sch=[['MSFT','Dividend','1.0021','12 Oct 20:00 UTC','in 3d 04h','4 pools','+0.21%'],
+['JNJ','Dividend','1.0094','18 Oct 20:00 UTC','in 9d 04h','1 pool','+0.94%']];
+document.getElementById('sch').innerHTML=sch.map(function(r){
+return '<div style="border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:9px">'+
+'<div style="display:flex;align-items:baseline;gap:9px;margin-bottom:8px"><span class="qt" style="font-size:14px">'+r[0]+'</span>'+
+'<span style="color:var(--fg2);font-size:12px">'+r[1]+'</span>'+
+'<span class="pill" style="margin-left:auto">'+r[4]+'</span></div>'+
+'<div class="kv" style="padding:4px 0;border:0"><span class="k">New multiplier</span><span class="v">'+r[2]+'</span></div>'+
+'<div class="kv" style="padding:4px 0;border:0"><span class="k">Effective</span><span class="v">'+r[3]+'</span></div>'+
+'<div class="kv" style="padding:4px 0;border:0"><span class="k">Exposure</span><span class="v">'+r[5]+' &#183; '+r[6]+'</span></div></div>';}).join('');
+var hs=[
+['05 Sep','NVDA','Dividend',1.0000,1.0031,0.31,19,'$11.4K','38m'],
+['28 Aug','HOOD','Dividend',1.0000,1.0012,0.12,6,'$1.2K','2h 10m'],
+['21 Aug','SPY','Dividend',1.0139,1.0287,1.46,8,'$6.8K','14m'],
+['14 Aug','AMZN','Split 20:1',1.0000,20.0000,0.00,2,'&#8212;','&#8212;'],
+['07 Aug','META','Dividend',1.0000,1.0009,0.09,2,'$0.3K','4h 02m'],
+['31 Jul','TSLA','Dividend',1.0000,1.0004,0.04,11,'$0.4K','6h 41m'],
+['24 Jul','COIN','Split 2:1',1.0000,2.0000,0.00,3,'&#8212;','&#8212;'],
+['17 Jul','PLTR','Dividend',1.0000,1.0017,0.17,4,'$0.6K','1h 22m'],
+['10 Jul','GME','Split 4:1',1.0000,4.0000,0.00,7,'&#8212;','&#8212;']];
+document.getElementById('hs').innerHTML=hs.map(function(r){
+return '<tr><td style="font-family:var(--mono);color:var(--fg3)">'+r[0]+'</td><td class="qt">'+r[1]+'</td>'+
+'<td style="color:'+(r[2].indexOf('Split')===0?'var(--fg3)':'var(--fg)')+'">'+r[2]+'</td>'+
+'<td class="r">'+r[3].toFixed(4)+'</td><td class="r">'+r[4].toFixed(4)+'</td>'+
+'<td class="r" style="color:'+(r[5]>0?'var(--stock)':'var(--fg3)')+'">'+(r[5]>0?'+'+r[5].toFixed(2)+'%':'0.00%')+'</td>'+
+'<td class="r">'+r[6]+'</td><td class="r">'+r[7]+'</td><td class="r" style="color:var(--fg3)">'+r[8]+'</td></tr>';}).join('');
+</script>
+  </main>
+</div>
+<div class="status" id="statusbar"></div>
+</div>
+<script>
+document.querySelectorAll('.navitem').forEach(function(a){if(a.dataset.p===window.PAGE)a.classList.add('on');});
+document.getElementById('statusbar').innerHTML=(window.STATUS||[]).map(function(s,i){
+  return '<div class="'+(i===(window.STATUS.length-1)?'push':'')+'">'+s+'</div>';}).join('');
+if(window.SIDEEXTRA)document.getElementById('sidextra').innerHTML=window.SIDEEXTRA;
+</script>
+</body>
+</html>

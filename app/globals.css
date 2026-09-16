@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-instrument-sans), system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), monospace;
+
+  --color-bg: var(--bg);
+  --color-pane: var(--pane);
+  --color-pane2: var(--pane2);
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-fg: var(--fg);
+  --color-fg2: var(--fg2);
+  --color-fg3: var(--fg3);
+  --color-meme: var(--meme);
+  --color-memebg: var(--memebg);
+  --color-stock: var(--stock);
+  --color-stockbg: var(--stockbg);
+  --color-up: var(--up);
+  --color-down: var(--down);
+}
+
+:root {
+  --bg: #0B0E12;
+  --pane: #11151B;
+  --pane2: #161B22;
+  --line: #1E252E;
+  --line2: #2A323D;
+  --fg: #DFE5EC;
+  --fg2: #8792A0;
+  --fg3: #59636F;
+  --meme: #5B8DEF;
+  --memebg: #16243C;
+  --stock: #C9922E;
+  --stockbg: #3A2E16;
+  --up: #3FB27F;
+  --down: #D9534F;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
