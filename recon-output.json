@@ -1,7 +1,131 @@
 {
-  "step1": {
-    "success": false,
-    "reason": "Stock Token API URL is not provided in the brief or references."
+  "verification": {
+    "bytecode": "OK",
+    "getSlot0": "OK",
+    "initializeEvent": "OK"
   },
-  "error": "Stock Token API URL is unknown."
+  "step3": {
+    "latestSqrtPriceX96": "2107843327467572573458569985996147",
+    "oldSqrtPriceX96": "2085094106709408499678995649071607"
+  },
+  "step4": {
+    "dataPointsEvaluated": 36,
+    "maxSilentPeriodSeconds": "187006",
+    "phaseChanged": false
+  },
+  "step5": {
+    "memeComponent": 0.021939846540531383,
+    "stockComponent": -0.05690819367833899,
+    "totalAttribution": -0.036216904174009246,
+    "debug": {
+      "latestPrice": "21303500813",
+      "oldestPrice": "22589000000"
+    }
+  },
+  "step6_errors": [
+    "eth_getLogs for CRM rejected.",
+    "eth_getLogs for P rejected.",
+    "eth_getLogs for CIEN rejected.",
+    "eth_getLogs for ON rejected.",
+    "eth_getLogs for APLD rejected.",
+    "eth_getLogs for AEHR rejected.",
+    "eth_getLogs for TEAM rejected.",
+    "eth_getLogs for QBTS rejected.",
+    "eth_getLogs for SATS rejected.",
+    "eth_getLogs for FIX rejected."
+  ],
+  "step6": {
+    "tokens": [
+      {
+        "symbol": "CRM",
+        "uiMultiplier": "1000000000000000000",
+        "newUIMultiplier": "1000000000000000000",
+        "effectiveAt": "0",
+        "rawTotalSupply": "353740000000000000000",
+        "rawBalanceOfPoolManager": "183215394196385770817",
+        "gripAmmPercent": 51.79380171775478
+      },
+      {
+        "symbol": "P",
+        "uiMultiplier": "1000000000000000000",
+        "newUIMultiplier": "1000000000000000000",
+        "effectiveAt": "0",
+        "rawTotalSupply": "382372000000000000000",
+        "rawBalanceOfPoolManager": "304346787962018038579",
+        "gripAmmPercent": 79.59442322189336
+      },
+      {
+        "symbol": "CIEN",
+        "uiMultiplier": "1000000000000000000",
+        "newUIMultiplier": "1000000000000000000",
+        "effectiveAt": "0",
+        "rawTotalSupply": "30501000000000000000",
+        "rawBalanceOfPoolManager": "25392784580628594922",
+        "gripAmmPercent": 83.25230182823053
+      },
+      {
+        "symbol": "ON",
+        "uiMultiplier": "1000000000000000000",
+        "newUIMultiplier": "1000000000000000000",
+        "effectiveAt": "0",
+        "rawTotalSupply": "713324000000000000000",
+        "rawBalanceOfPoolManager": "375011146752971577485",
+        "gripAmmPercent": 52.57234394930938
+      },
+      {
+        "symbol": "APLD",
+        "uiMultiplier": "1000000000000000000",
+        "newUIMultiplier": "1000000000000000000",
+        "effectiveAt": "0",
+        "rawTotalSupply": "1057237000000000000000",
+        "rawBalanceOfPoolManager": "630817068184251005670",
+        "gripAmmPercent": 59.666571278176136
+      },
+      {
+        "symbol": "AEHR",
+        "uiMultiplier": "1000000000000000000",
+        "newUIMultiplier": "1000000000000000000",
+        "effectiveAt": "0",
+        "rawTotalSupply": "186257000000000000000",
+        "rawBalanceOfPoolManager": "103416961583130402441",
+        "gripAmmPercent": 55.52379861327649
+      },
+      {
+        "symbol": "TEAM",
+        "uiMultiplier": "1000000000000000000",
+        "newUIMultiplier": "1000000000000000000",
+        "effectiveAt": "0",
+        "rawTotalSupply": "96342000000000000000",
+        "rawBalanceOfPoolManager": "94767047616874328527",
+        "gripAmmPercent": 98.36524840347339
+      },
+      {
+        "symbol": "QBTS",
+        "uiMultiplier": "1000000000000000000",
+        "newUIMultiplier": "1000000000000000000",
+        "effectiveAt": "0",
+        "rawTotalSupply": "1736782000000000000000",
+        "rawBalanceOfPoolManager": "969690709256677573700",
+        "gripAmmPercent": 55.83260934628972
+      },
+      {
+        "symbol": "SATS",
+        "uiMultiplier": "1000000000000000000",
+        "newUIMultiplier": "1000000000000000000",
+        "effectiveAt": "0",
+        "rawTotalSupply": "103000000000000000",
+        "rawBalanceOfPoolManager": "0",
+        "gripAmmPercent": 0
+      },
+      {
+        "symbol": "FIX",
+        "uiMultiplier": "1000000000000000000",
+        "newUIMultiplier": "1000000000000000000",
+        "effectiveAt": "0",
+        "rawTotalSupply": "21164000000000000000",
+        "rawBalanceOfPoolManager": "16342951070589711578",
+        "gripAmmPercent": 77.22052102905742
+      }
+    ]
+  }
 }
