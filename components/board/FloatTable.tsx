@@ -3,6 +3,8 @@
 import React from "react";
 import { DataTable, Column } from "@/components/primitives/DataTable";
 
+const Dash = () => <span className="text-fg3 select-none">—</span>;
+
 export function FloatTable({ rows }: { rows: any[] }) {
   const columns: Column<any>[] = [
     {
@@ -19,65 +21,64 @@ export function FloatTable({ rows }: { rows: any[] }) {
       label: "Float on chain",
       align: "right",
       render: (r) =>
-        r.floatOnChain.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+        r.floatOnChain != null ? (
+          r.floatOnChain.toLocaleString(undefined, { maximumFractionDigits: 0 })
+        ) : (
+          <Dash />
+        ),
     },
     {
       key: "lockedInPools",
       label: "Locked in pools",
       align: "right",
       render: (r) =>
-        r.lockedInPools.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+        r.lockedInPools != null ? (
+          r.lockedInPools.toLocaleString(undefined, {
+            maximumFractionDigits: 0,
+          })
+        ) : (
+          <Dash />
+        ),
     },
     {
       key: "shareGripped",
       label: "Share gripped",
-      render: (r) => (
-        <div className="h-[8px] bg-pane2 rounded-[2px] overflow-hidden w-[120px]">
-          <i
-            className="block h-full bg-down"
-            style={{ width: `${r.gripPct}%` }}
-          ></i>
-        </div>
-      ),
+      render: (r) =>
+        r.gripPct != null ? (
+          <div className="h-[8px] bg-pane2 rounded-[2px] overflow-hidden w-[120px]">
+            <i
+              className="block h-full bg-fg3"
+              style={{ width: `${Math.min(r.gripPct, 100)}%` }}
+            />
+          </div>
+        ) : (
+          <Dash />
+        ),
     },
     {
       key: "grip",
       label: "Grip",
       align: "right",
-      render: (r) => (
-        <span>
-          {r.gripPct.toFixed(1)}%
-        </span>
-      ),
+      render: (r) =>
+        r.gripPct != null ? (
+          <span className={r.gripPct >= 10 ? "text-down" : undefined}>
+            {r.gripPct.toFixed(1)}%
+          </span>
+        ) : (
+          <Dash />
+        ),
     },
     {
       key: "poolsCount",
       label: "Pools",
       align: "right",
-      render: (r) => r.poolsCount,
-    },
-    {
-      key: "largestHolder",
-      label: "Largest holder",
-      render: (r) => (
-        <span className="font-mono font-medium">{r.largestHolder}</span>
-      ),
-    },
-    {
-      key: "largestShare",
-      label: "Its share",
-      align: "right",
-      render: (r) => `${r.largestShare.toFixed(1)}%`,
+      render: (r) => r.poolsCount ?? <Dash />,
     },
     {
       key: "lpBurned",
       label: "LP burned",
       align: "right",
-      render: (r) => (
-        <span className={r.lpBurned ? "text-down" : "text-fg3"}>
-          {r.lpBurned ? "yes" : "no"}
-        </span>
-      ),
+      render: () => <span className="text-down font-mono">yes</span>,
     },
   ];
 
