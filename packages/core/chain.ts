@@ -26,3 +26,9 @@ export const publicClient = createPublicClient({
   chain: robinhoodChain,
   transport: http(RPC_URL),
 });
+
+// Addresses verified via recon from independent third-party sources
+export const V4_POOL_MANAGER = '0x8366a39CC670B4001A1121B8F6A443A643e40951';
+export const V4_STATE_VIEW = '0xF3334192D15450CdD385c8B70e03f9A6bD9E673b';
+export const V4_UNIVERSAL_ROUTER = '0x06AfBA43Fd06227fA663b0DAecF536f6EaA6bf99';
+export const V4_QUOTER = '0x8Dc178eFB8111BB0973Dd9d722ebeFF267c98F94';

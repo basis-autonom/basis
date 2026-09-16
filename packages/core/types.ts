@@ -1,5 +1,5 @@
 export type Address = `0x${string}`;
-export type Window = '24h' | '7d' | '30d';
+export type Window = "24h" | "7d" | "30d";
 
 export interface StockToken {
   address: Address;
@@ -7,7 +7,7 @@ export interface StockToken {
   name: string;
   feed: Address;
   multiplier: number;
-  totalSupply: bigint; // raw
+  totalSupply: string; // raw
 }
 
 export interface Pool {
@@ -23,7 +23,7 @@ export interface Pool {
 
 export interface FloatGrip {
   stock: StockToken;
-  lockedRaw: bigint;
+  lockedRaw: string;
   gripPct: number;
   poolCount: number;
   largestPool: { address: Address; symbol: string; pct: number };
@@ -38,11 +38,29 @@ export interface MarketState {
 
 export interface CorporateAction {
   stock: string;
-  kind: 'dividend' | 'split';
-  oldMultiplier: number;
-  newMultiplier: number;
-  effectiveAt: number;
-  valueChangePct: number;
-  poolsAffected: number;
-  valueAtRiskUsd: number;
+  type: string;
+  multiplier: number;
+  effect: number;
+  date: string;
+}
+
+export interface SplitResponse {
+  kind: "success" | "unknown_token" | "no_pool" | "no_feed" | "too_new";
+  data?: {
+    stock: StockToken;
+    pool: Pool;
+    window: Window;
+    prices: {
+      stockNow: number;
+      stockOld: number;
+      poolRatioNow: number;
+      poolRatioOld: number;
+    };
+    attribution: {
+      stockComponent: number;
+      memeComponent: number;
+      total: number;
+    };
+    grip: FloatGrip;
+  };
 }

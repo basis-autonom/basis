@@ -290,6 +290,23 @@ Saring `deployments[]` ke `chainId: 4663` saja. Satu aset bisa punya deployment 
 
 Daftar alamat juga tersedia di halaman Token Contracts pada dokumentasi Robinhood Chain, tapi API di atas lebih baik karena membawa `currentMultiplier` dan `pendingMultiplier` sekaligus.
 
+### 4.2b-2 Alamat feed Chainlink — TIDAK ada di API Robinhood
+
+Dikonfirmasi recon: respons `/rhj/assets` **tidak** memuat alamat feed, dan kontrak token tidak punya getter `oracle()` atau `feed()`.
+
+Alamat feed dipegang Chainlink, di direktori terpisah:
+`https://docs.chain.link/data-feeds/tokenized-equity-feeds/robinhood`
+
+Yang perlu diketahui tentang feed ini:
+
+- Feed melaporkan **Total Return Value** — harga saham dasar dikali `uiMultiplier()` token. Jadi dividen dan split **sudah termasuk** di harga feed. Jangan mengalikan multiplier lagi.
+- Antarmukanya `AggregatorV3Interface` standar: `latestRoundData()`, `getRoundData()`.
+- **Feed hanya ada sekitar 95, sementara token sahamnya 194.** Separuh token saham tidak punya harga onchain.
+
+Konsekuensi: pemetaan token ke feed harus dibuat sebagai tabel eksplisit di `packages/core/registry.ts`, diikat per alamat kontrak — bukan per simbol. Validasi tiap pasangan dengan memanggil `description()` dan `latestRoundData()` di feed dan memastikan hasilnya masuk akal.
+
+Token saham tanpa feed **bukan error**. Itu kondisi normal yang harus punya jawabannya sendiri di API — tambahkan varian `kind: 'no-feed'` ke `SplitResponse` di bagian 6.
+
 ### 4.2c Peringatan token palsu — WAJIB
 
 Token saham asli adalah BeaconProxy yang dideploy oleh satu StockFactory resmi. **Di chain ini ada token tiruan yang namanya dibuat mirip** — siapa pun bisa menamai kontraknya "Apple • Robinhood Token".
@@ -309,9 +326,88 @@ Blok di chain ini sekitar 100 ms, dan RPC publiknya dibatasi laju. Dua akibat:
 
 Recon (bagian 11) harus menjawab ini sebelum kode produk ditulis:
 
-1. DEX mana yang dipakai pool-pool ini? Indikasi awal dari sumber pihak ketiga menyebut **Uniswap v4**, dan ada UniversalRouter hasil fork dengan struct swap yang berbeda dari Uniswap standar. Recon harus mengonfirmasi ini langsung dari chain, bukan menerimanya begitu saja. Cara baca rasio berbeda total antar versi.
-2. Berapa range block maksimal yang diterima `eth_getLogs` di RPC publik?
-3. Seberapa rapat update Chainlink feed, dan bagaimana polanya saat pasar tutup?
+Sebagian sudah terjawab recon, lihat 4.4. Sisanya:
+
+1. Seberapa rapat update Chainlink feed, dan bagaimana polanya saat pasar tutup?
+2. Berapa banyak dari 194 token saham yang benar-benar punya feed, dan mana saja?
+3. Berapa range block maksimal yang diterima RPC berbayar yang dipilih?
+
+### 4.4 Hasil recon — fakta yang sudah pasti
+
+Jangan diuji ulang, ini sudah dikonfirmasi:
+
+| Temuan                                  | Nilai                    |
+| --------------------------------------- | ------------------------ |
+| Token saham di chain 4663               | 194                      |
+| Token dengan `pendingMultiplier` terisi | 0 saat recon             |
+| Feed Chainlink di API Robinhood         | tidak ada — lihat 4.2b-2 |
+| DEX                                     | **Uniswap v4**           |
+| Waktu blok                              | sekitar 100 ms           |
+| `eth_getLogs` 50.000 blok di RPC publik | **ditolak**              |
+
+### 4.5 Uniswap v4 mengubah dua hal mendasar
+
+Di Uniswap v4 **tidak ada kontrak pool terpisah.** Semua likuiditas semua pool berada di satu singleton PoolManager. Sebuah pool diidentifikasi dengan `poolId`, bukan alamat.
+
+Ini membatalkan dua hal yang tertulis di brief versi sebelumnya:
+
+**a. Rumus float grip lama tidak bisa dipakai.** `balanceOf(stockToken, poolAddress)` mustahil karena alamat pool tidak ada.
+
+Gantinya, untuk peluncuran: hitung di tingkat singleton.
+
+```
+grip_amm = balanceOf(stockToken, POOL_MANAGER) / totalSupply(stockToken)
+```
+
+Artinya: berapa persen dari seluruh suplai ticker itu di chain yang terkunci di dalam AMM. Angka ini sebenarnya lebih jujur dan tetap sama mengejutkannya. Rincian per pool memerlukan perhitungan likuiditas lewat `StateView` — tunda ke fase berikutnya, jangan dikerjakan dalam dua hari.
+
+Di UI, ubah labelnya jadi jelas: bukan "pool ini memegang X%", melainkan "X% dari seluruh NVDA di chain terkunci di AMM".
+
+**b. Rasio pool dibaca dari `sqrtPriceX96`.** Lewat `StateView.getSlot0(poolId)`, bukan dari `getReserves()` gaya v2.
+
+### 4.6 Jalan A, bukan Jalan B — rekomendasi 5.1 dibalik
+
+Brief versi sebelumnya menyuruh merekonstruksi rasio pool dari event Swap (Jalan B). **Itu salah untuk chain ini**, dan alasannya baru diketahui setelah recon: dengan blok 100 ms, jendela 7 hari berarti sekitar **6 juta blok**. Tidak ada RPC yang melayani pemindaian sebesar itu.
+
+Jalan A jauh lebih murah di sini: baca state di blok tertentu.
+
+| Kebutuhan              | Jalan A      | Jalan B      |
+| ---------------------- | ------------ | ------------ |
+| Rasio di 2 titik waktu | 2 panggilan  | puluhan ribu |
+| Deret 24 jam per jam   | 24 panggilan | puluhan ribu |
+
+Syaratnya satu: **RPC arsip berbayar** (QuickNode, Chainstack, atau Alchemy — ketiganya mendukung chain 4663). RPC publik tidak menyimpan state lama. Ini biaya yang harus dikeluarkan, bukan hambatan yang bisa diakali.
+
+### 4.6b Alamat kontrak Uniswap v4 di chain ini
+
+Ditemukan dari dua sumber pihak ketiga independen yang sepakat pada alamat PoolManager yang sama:
+
+| Kontrak         | Alamat                                       |
+| --------------- | -------------------------------------------- |
+| PoolManager     | `0x8366a39CC670B4001A1121B8F6A443A643e40951` |
+| StateView       | `0xF3334192D15450CdD385c8B70e03f9A6bD9E673b` |
+| UniversalRouter | `0x06AfBA43Fd06227fA663b0DAecF536f6EaA6bf99` |
+| Quoter          | `0x8Dc178eFB8111BB0973Dd9d722ebeFF267c98F94` |
+
+**Wajib diverifikasi onchain sebelum dipakai di kode produk, bukan diterima begitu saja:**
+
+1. Pastikan tiap alamat punya bytecode (`eth_getCode` tidak kosong).
+2. Panggil `StateView.getSlot0(poolId)` untuk salah satu `poolId` hasil langkah 2 recon (dari DexScreener). Kalau hasilnya `sqrtPriceX96` bukan nol dan tidak revert, alamatnya benar.
+3. Silang periksa: ambil satu event `Initialize` langsung dari `PoolManager` itu di rentang blok pendek, cocokkan `poolId`-nya dengan salah satu hasil DexScreener. Kalau cocok, kepercayaan alamat ini tinggi.
+
+Simpan keempat alamat ini di `packages/core/chain.ts` sebagai konstanta bernama, dengan komentar yang menyebut bahwa ini dari sumber pihak ketiga dan sudah diverifikasi lewat recon — supaya siapa pun yang baca kode tahu asal-usulnya.
+
+`UniversalRouter` di chain ini adalah fork dengan struct swap tambahan (`minHopPriceX36`). Jangan pakai calldata dari Uniswap SDK standar untuk router ini — hanya relevan kalau nanti ada fitur yang mengeksekusi swap. Produk kita read-only, jadi router ini kemungkinan besar tidak pernah dipanggil, hanya dicatat di sini untuk kelengkapan.
+
+### 4.7 Pencarian pool: pakai indexer, bukan scan log
+
+Alasan yang sama — mencari pool dengan memindai event `Initialize` dari genesis berarti memindai puluhan juta blok.
+
+Pakai indexer sebagai **direktori saja**: GeckoTerminal (network id `robinhood`) atau DexScreener (chainId `robinhood`) untuk mendapatkan daftar pool per token saham, beserta likuiditas dan volume.
+
+Batas tegasnya: indexer hanya dipakai untuk **menemukan pool mana yang ada**. Semua angka yang muncul di produk — rasio, harga, komponen meme, komponen saham, grip — tetap dibaca langsung dari chain. Angka yang kita klaim harus tetap bisa diverifikasi orang lain lewat explorer.
+
+Tulis pembagian ini apa adanya di halaman Method. Jangan disembunyikan.
 
 ---
 
@@ -393,14 +489,21 @@ grip = balanceOf(stockToken, poolAddress) / totalSupply(stockToken)
 
 **Peringatan ERC-8056.** Token saham Robinhood punya dua lapis angka: saldo mentah dan saldo terskala (sudah dikali `uiMultiplier`). `balanceOf` dan `totalSupply` mengembalikan angka mentah. Karena grip adalah rasio dua angka dari token yang sama, pengalinya saling menghapus dan hasilnya benar — **asalkan kedua sisi pakai jenis yang sama**. Jangan campur saldo mentah dengan suplai terskala. Kesalahan ini tidak memunculkan error, cuma angka yang salah diam-diam.
 
-Ambang warna, tetap dan diumumkan di UI:
+### 5.2b Koreksi setelah recon — premis halaman ini berubah
 
-| Grip        | Status                |
-| ----------- | --------------------- |
-| di bawah 5% | normal                |
-| 5–10%       | watch                 |
-| 10% ke atas | ditandai merah        |
-| 50% ke atas | pool adalah float-nya |
+Recon menemukan bahwa `totalSupply` token saham di chain ini sangat kecil (puluhan sampai ratusan lembar), karena token dicetak 1:1 saat aset menyeberang, bukan dicetak di muka. Hampir seluruh suplai itu masuk ke AMM.
+
+Akibatnya **grip 50–98% adalah kondisi normal untuk hampir semua ticker**, bukan tanda bahaya. Tabel ambang warna lama dibatalkan — menandai merah semua yang di atas 10% berarti seluruh tabel merah dan tidak memberi informasi apa pun.
+
+Yang menggantikannya, dua angka yang tetap bermakna:
+
+**a. Suplai absolut di chain.** Berapa lembar saham ticker itu yang benar-benar ada di Robinhood Chain. Ini angka yang jauh lebih kuat daripada persentase: "seluruh chain ini cuma punya 187 lembar NVDA" adalah kalimat yang orang kutip. Tampilkan ini sebagai kolom utama.
+
+**b. Grip relatif, bukan absolut.** Bandingkan grip sebuah ticker terhadap median semua ticker. Yang menarik adalah yang menyimpang dari kebiasaan, bukan yang tinggi — karena semuanya tinggi.
+
+Tetap tampilkan persentase grip, tapi sebagai konteks, bukan sebagai peringatan. Jangan ada warna merah di halaman ini kecuali angkanya benar-benar menyimpang dari median.
+
+Tulis di halaman itu, satu kalimat, bahwa suplai onchain memang kecil karena desain chain-nya. Kalau tidak, pembaca akan salah mengira ini temuan mengerikan.
 
 ### 5.3 Jam pasar — `hours.ts`
 
