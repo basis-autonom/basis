@@ -1,6 +1,7 @@
-import { Address } from './types';
-import { createPublicClient, http, parseAbi } from 'viem';
-import { robinhoodChain } from './chain';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Address } from "./types";
+import { createPublicClient, http, parseAbi } from "viem";
+import { robinhoodChain } from "./chain";
 
 const client = createPublicClient({
   chain: robinhoodChain,
@@ -8,26 +9,26 @@ const client = createPublicClient({
 });
 
 const clAbi = parseAbi([
-  'function latestRoundData() view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)',
-  'function getRoundData(uint80 roundId) view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)'
+  "function latestRoundData() view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)",
+  "function getRoundData(uint80 roundId) view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)",
 ]);
 
 function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function getPrices(feedAddress: Address, targetMs: number) {
   const targetTs = BigInt(Math.floor(targetMs / 1000));
-  
+
   const latest = await client.readContract({
     address: feedAddress,
     abi: clAbi,
-    functionName: 'latestRoundData',
+    functionName: "latestRoundData",
   });
 
-  const latestPrice = Number(latest[1]);
+  const latestPrice = Number(latest[1]) / 1e8;
   const lastUpdatedAt = latest[3];
-  
+
   // If the target is newer than our latest data, return latest for both
   if (targetTs >= lastUpdatedAt) {
     return { latestPrice, oldPrice: latestPrice };
@@ -36,37 +37,61 @@ export async function getPrices(feedAddress: Address, targetMs: number) {
   let roundId = latest[0];
   const initialPhase = roundId >> BigInt(64);
   let oldestPrice = latestPrice;
-  
+
   while (true) {
     if (roundId < BigInt(0)) break;
-    try {
-      await delay(100); // 100ms delay to prevent 429 errors
-      const data = await client.readContract({
+
+    // Batch 10 rounds to reduce RPC calls and avoid 429
+    const batchSize = 10n;
+    const calls = [];
+    for (let i = 0n; i < batchSize; i++) {
+      if (roundId - i < BigInt(0)) break;
+      calls.push({
         address: feedAddress,
         abi: clAbi,
-        functionName: 'getRoundData',
-        args: [roundId],
+        functionName: "getRoundData",
+        args: [roundId - i],
       });
-      
-      const currentPhase = roundId >> BigInt(64);
-      // Note: if phase changed, we'd need more complex logic. 
-      // But recon showed phase hasn't changed in 7 days.
-      // So we just iterate.
-      
-      oldestPrice = Number(data[1]);
-      if (data[3] < targetTs) {
-        break; // found the price just before our target timestamp
+    }
+
+    if (calls.length === 0) break;
+
+    try {
+      const results = await client.multicall({ contracts: calls });
+      let found = false;
+
+      for (let i = 0; i < results.length; i++) {
+        const res = results[i];
+        if (res.status !== "success") continue;
+
+        const data = res.result as any;
+        const rId = data[0];
+        const rPrice = Number(data[1]);
+        const rStartedAt = data[2];
+        const rUpdatedAt = data[3];
+
+        const currentPhase = rId >> BigInt(64);
+        if (currentPhase !== initialPhase) {
+          // Phase changed, assume oldest is what we had
+          found = true;
+          break;
+        }
+
+        oldestPrice = rPrice / 1e8;
+        if (targetTs >= rStartedAt) {
+          found = true;
+          break; // Found the target
+        }
       }
-      
-      roundId--;
+
+      if (found) break;
+      roundId -= batchSize;
     } catch (e: any) {
-      if (e.message.includes('No data present')) {
-        // We reached the beginning of this phase.
-        // We should move to the previous phase's last round, but we don't know its ID without complex scanning.
-        // For our scope, we break and use the oldest we got.
-        break;
+      if (e.message?.includes("No data present")) {
+        break; // Reached end of phase data
       }
-      throw e;
+      // If rate limit, wait and retry
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }
 

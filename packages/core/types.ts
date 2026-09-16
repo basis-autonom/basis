@@ -47,19 +47,22 @@ export interface CorporateAction {
 export interface SplitResponse {
   kind: "success" | "unknown_token" | "no_pool" | "no_feed" | "too_new";
   data?: {
+    coinSymbol: string;
+    coinName: string;
     stock: StockToken;
     pool: Pool;
     window: Window;
+    priceUsd: number | null;
     prices: {
-      stockNow: number;
-      stockOld: number;
-      poolRatioNow: number;
-      poolRatioOld: number;
+      stockNow: number | null;
+      stockOld: number | null;
+      poolRatioNow: number | null;
+      poolRatioOld: number | null;
     };
     attribution: {
-      stockComponent: number;
-      memeComponent: number;
-      total: number;
+      stockComponent: number | null;
+      memeComponent: number | null;
+      total: number | null;
     };
     grip: FloatGrip;
   };
