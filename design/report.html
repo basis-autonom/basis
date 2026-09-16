@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>$AI / NVDA — Basis</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#0B0E12;--pane:#11151B;--pane2:#161B22;--line:#1E252E;--line2:#2A323D;
+--fg:#DFE5EC;--fg2:#8792A0;--fg3:#59636F;
+--meme:#5B8DEF;--memebg:#16243C;--stock:#C9922E;--stockbg:#3A2E16;
+--up:#3FB27F;--down:#D9534F;
+--sans:'Instrument Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:13px;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:1px solid var(--meme);outline-offset:2px}
+::-webkit-scrollbar{width:9px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}
+.app{display:grid;grid-template-rows:46px 1fr 26px;height:100vh}
+.mid{display:grid;grid-template-columns:212px 1fr;overflow:hidden}
+.top{display:flex;align-items:center;gap:14px;padding:0 14px;border-bottom:1px solid var(--line);background:var(--pane)}
+.brand{font-family:var(--mono);font-size:14px;font-weight:600;padding-right:12px;border-right:1px solid var(--line2)}
+.brand b{color:var(--meme)}
+.search{flex:1;max-width:520px;display:flex;align-items:center;gap:9px;background:var(--bg);border:1px solid var(--line2);border-radius:5px;height:29px;padding:0 11px;color:var(--fg3)}
+.search input{flex:1;background:none;border:0;color:var(--fg);font-family:var(--mono);font-size:12px;outline:none}
+.kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);border-radius:3px;padding:1px 5px;color:var(--fg3)}
+.topright{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:12px;color:var(--fg2)}
+.chainpill{display:flex;align-items:center;gap:7px;border:1px solid var(--line2);border-radius:4px;padding:4px 9px}
+.led{width:5px;height:5px;border-radius:50%;background:var(--up);box-shadow:0 0 6px var(--up)}
+.side{border-right:1px solid var(--line);background:var(--pane);overflow-y:auto}
+.navlbl{font-size:10px;letter-spacing:.09em;color:var(--fg3);padding:12px 14px 7px;text-transform:uppercase}
+.navitem{display:flex;align-items:center;gap:10px;padding:7px 14px;color:var(--fg2);cursor:pointer;border-left:2px solid transparent}
+.navitem.on{color:var(--fg);border-left-color:var(--meme);background:var(--pane2)}
+.navitem .ic{width:14px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--fg3)}
+.navitem.on .ic{color:var(--meme)}
+.side .sect{border-top:1px solid var(--line)}
+.kvs{padding:4px 14px 12px}
+.kvs .row{display:flex;justify-content:space-between;padding:5px 0;font-size:11px}
+.kvs .row span:first-child{color:var(--fg3)}
+.kvs .row span:last-child{font-family:var(--mono)}
+.main{overflow-y:auto}
+.hdr{display:flex;align-items:center;gap:22px;padding:0 18px;height:58px;border-bottom:1px solid var(--line);background:var(--pane);position:sticky;top:0;z-index:5;overflow-x:auto;white-space:nowrap}
+.pairid{display:flex;align-items:baseline;gap:8px}
+.pairid .a{font-family:var(--mono);font-size:17px;font-weight:600}
+.pairid .b{font-size:11px;color:var(--fg3)}
+.pairid .c{font-family:var(--mono);font-size:14px;color:var(--stock)}
+.px{font-family:var(--mono);font-size:22px}
+.stat .k{font-size:10px;color:var(--fg3)}
+.stat .v{font-family:var(--mono);font-size:12px;margin-top:2px}
+.act{margin-left:auto;display:flex;gap:7px}
+.btn{height:29px;padding:0 13px;background:var(--fg);color:var(--bg);border:0;border-radius:4px;font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer}
+.btn.ghost{background:none;color:var(--fg2);border:1px solid var(--line2)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.cell{background:var(--bg);padding:16px 18px}
+.cell.full{grid-column:1/-1}
+.ch{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:13px}
+.ch h2{font-size:12px;font-weight:500}
+.ch span{font-family:var(--mono);font-size:10px;color:var(--fg3)}
+.verdict{font-size:26px;line-height:1.28;font-weight:500;letter-spacing:-.02em;max-width:22ch}
+.verdict em{font-style:normal;color:var(--fg2);font-weight:400}
+.bigsplit{display:flex;height:40px;border-radius:3px;overflow:hidden;margin:20px 0 8px}
+.bigsplit div{display:flex;align-items:center;padding:0 13px;font-family:var(--mono);font-size:12px}
+.bigsplit .m{background:var(--memebg);color:#9BBDF7;border-left:2px solid var(--meme)}
+.bigsplit .s{background:var(--stockbg);color:#E0BC7C;justify-content:flex-end;border-right:2px solid var(--stock)}
+.splitnums{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px}
+.splitnums span:first-child{color:var(--meme)}
+.splitnums span:last-child{color:var(--stock)}
+.tf{font-family:var(--mono);font-size:11px;color:var(--fg3);padding:3px 9px;border-radius:3px;cursor:pointer}
+.tf.on{background:var(--pane2);color:var(--fg)}
+.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:12px}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--fg2)}
+.kv .v{font-family:var(--mono)}
+.gauge{height:8px;background:var(--pane2);border-radius:2px;overflow:hidden;margin:10px 0 7px}
+.gauge i{display:block;height:100%;background:var(--down)}
+.mini{font-size:11px;color:var(--fg3);line-height:1.6}
+.hot{color:var(--down)}
+.drift{display:flex;gap:2px;margin-top:12px}
+.drift i{flex:1;height:30px;border-radius:2px}
+.dax{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--fg3);margin-top:6px}
+#hours{width:100%;height:150px;display:block}
+.lg{display:flex;gap:16px;font-size:11px;color:var(--fg2);margin-top:10px}
+.sw{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:-1px}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--fg3);text-align:left;padding:6px 0;border-bottom:1px solid var(--line)}
+th.r{text-align:right}
+td{padding:7px 0;font-size:12px;border-bottom:1px solid var(--line)}
+td.r{text-align:right;font-family:var(--mono)}
+tr:last-child td{border-bottom:0}
+.math{font-family:var(--mono);font-size:11.5px;line-height:2;color:var(--fg2)}
+.math b{color:var(--meme);font-weight:400}
+.math u{color:var(--stock);text-decoration:none}
+.status{display:flex;border-top:1px solid var(--line);background:var(--pane);font-family:var(--mono);font-size:10px;color:var(--fg3)}
+.status div{padding:0 12px;border-right:1px solid var(--line);line-height:25px;white-space:nowrap}
+.status .push{margin-left:auto;border-right:0;border-left:1px solid var(--line)}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}}
+@media(max-width:820px){.mid{grid-template-columns:1fr}.side{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="top">
+  <a href="market.html" class="brand">ba<b>/</b>sis</a>
+  <div class="search"><span>&#9906;</span><input value="0x4f2a9c7e1d84bb03e5f7a2c61903de88b4c0c19b"><span class="kbd">&#8984;K</span></div>
+  <div class="topright"><div class="chainpill"><span class="led"></span>Robinhood Chain</div><span style="font-family:var(--mono)">block 4,912,338</span><span>Repo</span></div>
+</div>
+
+<div class="mid">
+  <aside class="side">
+    <div class="navlbl">Views</div>
+    <div class="navitem"><span class="ic">&#9645;</span><a href="market.html">Split board</a></div>
+    <div class="navitem on"><span class="ic">&#9673;</span>Report</div>
+    <div class="navitem"><span class="ic">&#9678;</span>Float grip</div>
+    <div class="navitem"><span class="ic">&#9203;</span>Market hours</div>
+    <div class="sect"><div class="navlbl">Contract</div>
+      <div class="kvs">
+        <div class="row"><span>Token</span><span>0x4f2a&#8230;c19b</span></div>
+        <div class="row"><span>Pool</span><span>0x91d3&#8230;77ae</span></div>
+        <div class="row"><span>Quote</span><span style="color:var(--stock)">NVDA</span></div>
+        <div class="row"><span>Venue</span><span>Uniswap v4</span></div>
+        <div class="row"><span>Age</span><span>38d</span></div>
+        <div class="row"><span>LP</span><span>burned</span></div>
+      </div>
+    </div>
+    <div class="sect"><div class="navlbl">Other pools on NVDA</div>
+      <div class="kvs">
+        <div class="row"><span>$NVDACAT</span><span>$0.9M</span></div>
+        <div class="row"><span>$GREENLIGHT</span><span>$0.4M</span></div>
+        <div class="row"><span>$JENSEN</span><span>$0.2M</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="hdr">
+      <div class="pairid"><span class="a">$AI</span><span class="b">quoted in</span><span class="c">NVDA</span></div>
+      <span class="px">$0.0412</span>
+      <span style="font-family:var(--mono);color:var(--down)">&#9660; 2.75%</span>
+      <div class="stat"><div class="k">Beta</div><div class="v">0.71</div></div>
+      <div class="stat"><div class="k">Grip</div><div class="v hot">16.2%</div></div>
+      <div class="stat"><div class="k">Liquidity</div><div class="v">$4.10M</div></div>
+      <div class="act"><button class="btn">Copy split card</button><button class="btn ghost">Share</button></div>
+    </div>
+
+    <div class="grid">
+      <div class="cell">
+        <div class="ch"><h2>Attribution</h2><div><span class="tf">24h</span><span class="tf on">7d</span><span class="tf">30d</span></div></div>
+        <div class="verdict">Up 40.1%. <em>The meme did 11.8 of it. Nvidia did the rest.</em></div>
+        <div class="bigsplit"><div class="m" style="width:29%">meme</div><div class="s" style="width:71%">NVDA</div></div>
+        <div class="splitnums"><span>+11.8%</span><span>+25.4%</span></div>
+        <div class="mini" style="margin-top:14px">Nvidia rose from $173.84 to $218.00 over the window. Holding the pool ratio flat, that alone lifts this token 25.4%.</div>
+      </div>
+
+      <div class="cell">
+        <div class="ch"><h2>Hourly contribution</h2><span>last 24h</span></div>
+        <svg id="hours" viewBox="0 0 520 150" preserveAspectRatio="none" role="img" aria-label="Hourly contribution split"></svg>
+        <div class="lg"><span><span class="sw" style="background:var(--meme)"></span>meme</span><span><span class="sw" style="background:var(--stock)"></span>stock</span><span style="margin-left:auto;color:var(--fg3)">gap = Nasdaq closed</span></div>
+      </div>
+
+      <div class="cell">
+        <div class="ch"><h2>Float grip</h2><span>NVDA supply on chain</span></div>
+        <div class="kv"><span class="k">In this pool</span><span class="v">8,783</span></div>
+        <div class="kv"><span class="k">Total on chain</span><span class="v">54,216</span></div>
+        <div class="kv"><span class="k">Share</span><span class="v hot">16.2%</span></div>
+        <div class="gauge"><i style="width:16.2%"></i></div>
+        <div class="mini">Supply is fixed &#8212; only the licensed minter can create more. With LP burned, these tokens cannot be withdrawn, so the float stays locked for as long as the pool exists.</div>
+      </div>
+
+      <div class="cell">
+        <div class="ch"><h2>30-day drift</h2><span>meme component per day</span></div>
+        <div class="drift" id="drift"></div>
+        <div class="dax"><span>30d ago</span><span>today</span></div>
+        <div class="mini" style="margin-top:12px">The meme component closed red on 11 of 30 days while the token itself closed green. On those days every dollar of gain came from Nvidia.</div>
+      </div>
+
+      <div class="cell">
+        <div class="ch"><h2>Pool composition</h2><span>Uniswap v4</span></div>
+        <table>
+          <thead><tr><th>Side</th><th class="r">Amount</th><th class="r">Value</th><th class="r">Weight</th></tr></thead>
+          <tbody>
+            <tr><td style="font-family:var(--mono)">NVDA</td><td class="r">8,783</td><td class="r">$1.91M</td><td class="r">46.6%</td></tr>
+            <tr><td style="font-family:var(--mono)">$AI</td><td class="r">53.1M</td><td class="r">$2.19M</td><td class="r">53.4%</td></tr>
+          </tbody>
+        </table>
+        <div class="mini" style="margin-top:12px">A pool this lopsided means the stock leg is the scarce side. Buying pressure drains NVDA out first.</div>
+      </div>
+
+      <div class="cell">
+        <div class="ch"><h2>Corporate actions</h2><span>NVDA multiplier</span></div>
+        <table>
+          <thead><tr><th>Date</th><th>Type</th><th class="r">Multiplier</th><th class="r">Effect here</th></tr></thead>
+          <tbody>
+            <tr><td style="font-family:var(--mono)">05 Aug</td><td>Dividend</td><td class="r">1.0031</td><td class="r">+0.31%</td></tr>
+            <tr><td style="font-family:var(--mono)">12 Jun</td><td>Split 4:1</td><td class="r">4.0000</td><td class="r">0.00%</td></tr>
+          </tbody>
+        </table>
+        <div class="mini" style="margin-top:12px">Splits are neutral &#8212; the multiplier rises and the share price falls by the same factor. Only dividends move value, and only by the dividend.</div>
+      </div>
+
+      <div class="cell full">
+        <div class="ch"><h2>How these numbers were produced</h2><span>read it, then run it</span></div>
+        <div class="math">
+          price_usd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= pool_ratio &#215; stock_price<br>
+          <u>stock_component</u> = stock_price(t) &#247; stock_price(t&#8722;n) &#8722; 1 &nbsp;&nbsp;&#8594;&nbsp; 218.00 &#247; 173.84 &#8722; 1 = <u>+25.4%</u><br>
+          <b>meme_component</b>&nbsp;&nbsp;= pool_ratio(t) &#247; pool_ratio(t&#8722;n) &#8722; 1 &nbsp;&nbsp;&#8594;&nbsp; 0.000189 &#247; 0.000169 &#8722; 1 = <b>+11.8%</b><br>
+          total&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (1 + <b>0.118</b>) &#215; (1 + <u>0.254</u>) &#8722; 1 = <span style="color:var(--fg)">+40.1%</span>
+        </div>
+        <div class="mini" style="margin-top:14px">Pool ratio comes from Swap events on this pool. Stock price comes from the NVDA token's Chainlink feed, which already carries the corporate-action multiplier. No model, no weighting, nothing else.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="status">
+  <div>rpc.mainnet.chain.robinhood.com</div><div>chain 4663</div>
+  <div>pool 0x91d3&#8230;77ae</div><div>3,412 swaps read</div>
+  <div>Nasdaq closed &#183; stock leg frozen 6h 12m</div>
+  <div class="push">computed 0.9s ago</div>
+</div>
+</div>
+
+<script>
+(function(){
+  var W=520,H=150,n=24,d=[];
+  for(var i=0;i<n;i++){var open=(i>7&&i<18);d.push([16+((i*29)%17),open?(10+((i*13)%26)):0]);}
+  var max=0;d.forEach(function(p){max=Math.max(max,p[0]+p[1]);});
+  var bw=W/n,s='';
+  for(var g=1;g<4;g++){var gy=g*(H/4);s+='<line x1="0" y1="'+gy+'" x2="'+W+'" y2="'+gy+'" stroke="var(--line)"/>';}
+  d.forEach(function(p,i){
+    var x=i*bw+1.5,w=bw-3;
+    var hm=(p[0]/max)*(H-6),hs=(p[1]/max)*(H-6);
+    s+='<rect x="'+x+'" y="'+(H-hm)+'" width="'+w+'" height="'+hm+'" fill="var(--memebg)" stroke="var(--meme)" stroke-width="1"/>';
+    if(hs>0)s+='<rect x="'+x+'" y="'+(H-hm-hs)+'" width="'+w+'" height="'+hs+'" fill="var(--stockbg)" stroke="var(--stock)" stroke-width="1"/>';
+  });
+  document.getElementById('hours').innerHTML=s;
+})();
+var dr=[1,1,0,1,0,0,1,1,1,0,1,1,0,1,1,1,0,0,1,1,1,0,1,1,0,1,1,1,1,1];
+document.getElementById('drift').innerHTML=dr.map(function(v){
+  return '<i style="background:'+(v?'var(--memebg)':'#3A1A1A')+';border-top:2px solid '+(v?'var(--meme)':'var(--down)')+'"></i>';
+}).join('');
+document.querySelectorAll('.tf').forEach(function(t){t.onclick=function(){document.querySelectorAll('.tf').forEach(function(x){x.classList.remove('on')});t.classList.add('on')}});
+</script>
+</body>
+</html>

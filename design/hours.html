@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Basis</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#0B0E12;--pane:#11151B;--pane2:#161B22;--line:#1E252E;--line2:#2A323D;
+--fg:#DFE5EC;--fg2:#8792A0;--fg3:#59636F;
+--meme:#5B8DEF;--memebg:#16243C;--stock:#C9922E;--stockbg:#3A2E16;
+--up:#3FB27F;--down:#D9534F;
+--sans:'Instrument Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:13px;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:1px solid var(--meme);outline-offset:2px}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}
+.app{display:grid;grid-template-rows:46px 1fr 26px;height:100vh}
+.mid{display:grid;grid-template-columns:212px 1fr;overflow:hidden}
+.mid.rail3{grid-template-columns:212px 1fr 292px}
+.top{display:flex;align-items:center;gap:14px;padding:0 14px;border-bottom:1px solid var(--line);background:var(--pane)}
+.brand{font-family:var(--mono);font-size:14px;font-weight:600;padding-right:12px;border-right:1px solid var(--line2)}
+.brand b{color:var(--meme)}
+.search{flex:1;max-width:520px;display:flex;align-items:center;gap:9px;background:var(--bg);border:1px solid var(--line2);border-radius:5px;height:29px;padding:0 11px;color:var(--fg3)}
+.search input{flex:1;background:none;border:0;color:var(--fg);font-family:var(--mono);font-size:12px;outline:none}
+.search input::placeholder{color:var(--fg3)}
+.kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);border-radius:3px;padding:1px 5px;color:var(--fg3)}
+.topright{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:12px;color:var(--fg2)}
+.chainpill{display:flex;align-items:center;gap:7px;border:1px solid var(--line2);border-radius:4px;padding:4px 9px}
+.led{width:5px;height:5px;border-radius:50%;background:var(--up);box-shadow:0 0 6px var(--up)}
+.side{border-right:1px solid var(--line);background:var(--pane);overflow-y:auto}
+.navlbl{font-size:10px;letter-spacing:.09em;color:var(--fg3);padding:12px 14px 7px;text-transform:uppercase}
+.navitem{display:flex;align-items:center;gap:10px;padding:7px 14px;color:var(--fg2);border-left:2px solid transparent;cursor:pointer}
+.navitem:hover{background:var(--pane2);color:var(--fg)}
+.navitem.on{color:var(--fg);border-left-color:var(--meme);background:var(--pane2)}
+.navitem .ic{width:14px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--fg3)}
+.navitem.on .ic{color:var(--meme)}
+.tag{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--fg3)}
+.sect{border-top:1px solid var(--line)}
+.kvs{padding:4px 14px 12px}
+.kvs .row{display:flex;justify-content:space-between;padding:5px 0;font-size:11px}
+.kvs .row span:first-child{color:var(--fg3)}
+.kvs .row span:last-child{font-family:var(--mono)}
+.main{overflow-y:auto}
+.phead{display:flex;align-items:center;gap:22px;padding:0 18px;height:58px;border-bottom:1px solid var(--line);background:var(--pane);position:sticky;top:0;z-index:5;overflow-x:auto;white-space:nowrap}
+.phead h1{font-size:16px;font-weight:600}
+.phead .sub{font-size:12px;color:var(--fg3)}
+.stat .k{font-size:10px;color:var(--fg3)}
+.stat .v{font-family:var(--mono);font-size:13px;margin-top:2px}
+.act{margin-left:auto;display:flex;gap:7px}
+.btn{height:29px;padding:0 13px;background:var(--fg);color:var(--bg);border:0;border-radius:4px;font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer}
+.btn.ghost{background:none;color:var(--fg2);border:1px solid var(--line2)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.cell{background:var(--bg);padding:16px 18px}
+.cell.full{grid-column:1/-1}
+.ch{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:13px}
+.ch h2{font-size:12px;font-weight:500}
+.ch span{font-family:var(--mono);font-size:10px;color:var(--fg3)}
+table{width:100%;border-collapse:collapse}
+thead th{position:sticky;top:0;background:var(--pane);font-size:10px;font-weight:400;letter-spacing:.06em;color:var(--fg3);text-transform:uppercase;text-align:left;padding:7px 14px;border-bottom:1px solid var(--line);white-space:nowrap;z-index:2}
+thead th.r{text-align:right}
+tbody tr{border-bottom:1px solid var(--line)}
+tbody tr:hover{background:var(--pane)}
+tbody tr.on{background:var(--memebg)}
+td{padding:8px 14px;font-size:12px;white-space:nowrap}
+td.r{text-align:right;font-family:var(--mono)}
+.sym{font-family:var(--mono);font-weight:500}
+.qt{font-family:var(--mono);color:var(--stock);font-size:11px}
+.hot{color:var(--down)}
+.up{color:var(--up)}.down{color:var(--down)}
+.gt{height:8px;background:var(--pane2);border-radius:2px;overflow:hidden;width:120px}
+.gt i{display:block;height:100%;background:var(--down)}
+.mini{font-size:11px;color:var(--fg3);line-height:1.6}
+.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:12px}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--fg2)}
+.kv .v{font-family:var(--mono)}
+.sw{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:7px;vertical-align:-1px}
+.lg{display:flex;gap:18px;font-size:11px;color:var(--fg2);margin-top:11px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:3px;padding:2px 8px;font-family:var(--mono);font-size:10px;color:var(--fg2)}
+.status{display:flex;border-top:1px solid var(--line);background:var(--pane);font-family:var(--mono);font-size:10px;color:var(--fg3);overflow:hidden}
+.status div{padding:0 12px;border-right:1px solid var(--line);line-height:25px;white-space:nowrap}
+.status .push{margin-left:auto;border-right:0;border-left:1px solid var(--line)}
+@media(max-width:1180px){.mid.rail3{grid-template-columns:212px 1fr}.rail{display:none}}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}}
+@media(max-width:820px){.mid,.mid.rail3{grid-template-columns:1fr}.side{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top">
+  <a href="index.html" class="brand">ba<b>/</b>sis</a>
+  <div class="search"><span>&#9906;</span><input placeholder="Paste a contract, or search a ticker"><span class="kbd">&#8984;K</span></div>
+  <div class="topright"><div class="chainpill"><span class="led"></span>Robinhood Chain</div><span style="font-family:var(--mono)">block 4,912,338</span><span>Repo</span></div>
+</div>
+<div class="mid" id="mid">
+  <aside class="side">
+    <div class="navlbl">Views</div>
+    <a class="navitem" data-p="split" href="market.html"><span class="ic">&#9645;</span>Split board</a>
+    <a class="navitem" data-p="float" href="float.html"><span class="ic">&#9678;</span>Float grip<span class="tag">12</span></a>
+    <a class="navitem" data-p="hours" href="hours.html"><span class="ic">&#9203;</span>Market hours</a>
+    <a class="navitem" data-p="actions" href="actions.html"><span class="ic">&#9998;</span>Corporate actions<span class="tag">2</span></a>
+    <a class="navitem" data-p="method" href="method.html"><span class="ic">&#8721;</span>Method</a>
+    <div class="sect" id="sidextra"></div>
+  </aside>
+  <main class="main">
+<div class="phead">
+  <div><h1>Market hours</h1><div class="sub">When the stock leg can reprice, and what the meme did while it could not</div></div>
+  <div class="stat"><div class="k">Now</div><div class="v hot">frozen</div></div>
+  <div class="stat"><div class="k">Frozen for</div><div class="v">6h 12m</div></div>
+  <div class="stat"><div class="k">Opens in</div><div class="v">11h 18m</div></div>
+  <div class="stat"><div class="k">Frozen per week</div><div class="v">128h of 168h</div></div>
+  <div class="act"><button class="btn ghost">Add to calendar</button></div>
+</div>
+
+<div class="grid">
+  <div class="cell full">
+    <div class="ch"><h2>This week</h2><span>times in UTC &#183; Nasdaq 09:30&#8211;16:00 ET</span></div>
+    <svg id="wk" viewBox="0 0 1200 210" preserveAspectRatio="none" style="width:100%;height:210px;display:block" role="img" aria-label="Weekly view of when the stock leg reprices"></svg>
+    <div class="lg">
+      <span><span class="sw" style="background:var(--stock)"></span>Stock leg repricing</span>
+      <span><span class="sw" style="background:var(--line2)"></span>Frozen</span>
+      <span><span class="sw" style="background:var(--meme)"></span>Meme leg, always live</span>
+      <span style="margin-left:auto;color:var(--fg3)">76% of the week the anchor cannot move</span>
+    </div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="cell full" style="padding:0">
+    <div class="ch" style="padding:14px 18px 11px;margin:0;border-bottom:1px solid var(--line)"><h2>Freeze log</h2><span>what each pool did while its stock was shut</span></div>
+    <table>
+      <thead><tr>
+        <th>Window</th><th>Coin</th><th>Quote</th><th class="r">Length</th>
+        <th class="r">Meme drift</th><th class="r">Implied stock</th><th class="r">Real open</th>
+        <th class="r">Gap</th><th class="r">Closed in</th>
+      </tr></thead>
+      <tbody id="lg"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="cell">
+    <div class="ch"><h2>What a gap means</h2></div>
+    <p class="mini">While the stock is shut its price is held at the last print. The memecoin side keeps trading, so the pool ratio moves. That gives an implied stock price the pool is quietly quoting &#8212; which can sit well away from where the stock actually opens.</p>
+    <p class="mini" style="margin-top:11px">At the bell the real price snaps in and the pool is instantly mispriced. The gap column is how far off the pool was. The last column is how long it took arbitrage to close it.</p>
+  </div>
+  <div class="cell">
+    <div class="ch"><h2>Reading the board</h2><span>plain rules</span></div>
+    <div class="kv"><span class="k">Meme drift</span><span class="v">pool ratio move while frozen</span></div>
+    <div class="kv"><span class="k">Implied stock</span><span class="v">what the pool was quoting</span></div>
+    <div class="kv"><span class="k">Gap</span><span class="v">implied minus real, at the bell</span></div>
+    <div class="kv"><span class="k">Closed in</span><span class="v">time until the pool matched again</span></div>
+    <p class="mini" style="margin-top:12px">Every figure comes from Swap events and the Chainlink feed. Nothing is estimated.</p>
+  </div>
+</div>
+<script>
+window.PAGE='hours';
+window.STATUS=['rpc.mainnet.chain.robinhood.com','chain 4663','Nasdaq closed','next open 14:30 UTC','clock from chain timestamps'];
+window.SIDEEXTRA='<div class="navlbl">Next events</div><div class="kvs">'+
+'<div class="row"><span>Open</span><span>11h 18m</span></div>'+
+'<div class="row"><span>Close</span><span>17h 48m</span></div>'+
+'<div class="row"><span>Weekend freeze</span><span>Fri 21:00</span></div>'+
+'<div class="row"><span>Longest freeze</span><span>65h</span></div></div>';
+(function(){
+var W=1200,H=210,days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],cw=W/7,s='';
+days.forEach(function(d,i){
+  var x=i*cw;
+  if(i%2)s+='<rect x="'+x+'" y="0" width="'+cw+'" height="'+H+'" fill="#0E1217"/>';
+  s+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="'+H+'" stroke="var(--line)"/>';
+  s+='<text x="'+(x+11)+'" y="19" fill="var(--fg3)" font-family="IBM Plex Mono" font-size="11">'+d+'</text>';
+  if(i<5){
+    var oy=H*0.27,oh=H*0.40;
+    s+='<rect x="'+(x+9)+'" y="'+oy+'" width="'+(cw-18)+'" height="'+oh+'" fill="var(--stockbg)" stroke="var(--stock)"/>';
+    s+='<text x="'+(x+17)+'" y="'+(oy+19)+'" fill="var(--stock)" font-family="IBM Plex Mono" font-size="10">13:30</text>';
+    s+='<text x="'+(x+17)+'" y="'+(oy+oh-9)+'" fill="var(--stock)" font-family="IBM Plex Mono" font-size="10">20:00</text>';
+  }else{
+    s+='<text x="'+(x+13)+'" y="'+(H*0.50)+'" fill="var(--fg3)" font-family="IBM Plex Mono" font-size="10">frozen all day</text>';
+  }
+});
+s+='<rect x="0" y="'+(H-30)+'" width="'+W+'" height="30" fill="var(--memebg)" stroke="var(--meme)"/>';
+s+='<text x="13" y="'+(H-11)+'" fill="#9BBDF7" font-family="IBM Plex Mono" font-size="10">meme leg &#8212; live 168h a week</text>';
+var nx=cw*1.78;
+s+='<line x1="'+nx+'" y1="0" x2="'+nx+'" y2="'+(H-30)+'" stroke="var(--down)" stroke-width="1.5"/>';
+s+='<rect x="'+(nx+4)+'" y="4" width="34" height="15" fill="var(--down)" rx="2"/>';
+s+='<text x="'+(nx+9)+'" y="15" fill="#0B0E12" font-family="IBM Plex Mono" font-size="10">now</text>';
+document.getElementById('wk').innerHTML=s;
+})();
+var lg=[
+['Fri 20:00 &#8594; Mon 13:30','$AI','NVDA','65h 30m',4.8,228.44,218.00,4.8,'42m'],
+['Fri 20:00 &#8594; Mon 13:30','$BONER','HIMS','65h 30m',-2.1,41.18,42.06,-2.1,'1h 14m'],
+['Fri 20:00 &#8594; Mon 13:30','$WSB','GME','65h 30m',11.4,29.90,26.84,11.4,'3h 06m'],
+['Tue 20:00 &#8594; Wed 13:30','$TENDIE','AMC','17h 30m',-0.6,7.88,7.93,-0.6,'19m'],
+['Tue 20:00 &#8594; Wed 13:30','$AI','NVDA','17h 30m',1.2,220.60,218.00,1.2,'27m'],
+['Mon 20:00 &#8594; Tue 13:30','$HOODRAT','HOOD','17h 30m',6.9,88.42,82.71,6.9,'2h 41m'],
+['Mon 20:00 &#8594; Tue 13:30','$SPACEHOOD','SPCX','17h 30m',-0.3,15.02,15.07,-0.3,'11m']];
+document.getElementById('lg').innerHTML=lg.map(function(r){
+return '<tr><td style="font-family:var(--mono);color:var(--fg3);font-size:11px">'+r[0]+'</td>'+
+'<td class="sym">'+r[1]+'</td><td class="qt">'+r[2]+'</td><td class="r">'+r[3]+'</td>'+
+'<td class="r '+(r[4]>=0?'up':'down')+'">'+(r[4]>=0?'+':'')+r[4].toFixed(1)+'%</td>'+
+'<td class="r">$'+r[5].toFixed(2)+'</td><td class="r">$'+r[6].toFixed(2)+'</td>'+
+'<td class="r '+(Math.abs(r[7])>=4?'hot':'')+'">'+(r[7]>=0?'+':'')+r[7].toFixed(1)+'%</td>'+
+'<td class="r" style="color:var(--fg3)">'+r[8]+'</td></tr>';}).join('');
+</script>
+  </main>
+</div>
+<div class="status" id="statusbar"></div>
+</div>
+<script>
+document.querySelectorAll('.navitem').forEach(function(a){if(a.dataset.p===window.PAGE)a.classList.add('on');});
+document.getElementById('statusbar').innerHTML=(window.STATUS||[]).map(function(s,i){
+  return '<div class="'+(i===(window.STATUS.length-1)?'push':'')+'">'+s+'</div>';}).join('');
+if(window.SIDEEXTRA)document.getElementById('sidextra').innerHTML=window.SIDEEXTRA;
+</script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Basis Terminal</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#0B0E12;--pane:#11151B;--pane2:#161B22;--line:#1E252E;--line2:#2A323D;
+--fg:#DFE5EC;--fg2:#8792A0;--fg3:#59636F;
+--meme:#5B8DEF;--memebg:#16243C;--stock:#C9922E;--stockbg:#3A2E16;
+--up:#3FB27F;--down:#D9534F;
+--sans:'Instrument Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:13px;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:1px solid var(--meme);outline-offset:2px}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}
+::-webkit-scrollbar-track{background:transparent}
+
+.app{display:grid;grid-template-rows:46px 1fr 26px;height:100vh}
+.mid{display:grid;grid-template-columns:212px 1fr 292px;overflow:hidden}
+
+.top{display:flex;align-items:center;gap:14px;padding:0 14px;border-bottom:1px solid var(--line);background:var(--pane)}
+.brand{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:-.02em;padding-right:12px;border-right:1px solid var(--line2)}
+.brand b{color:var(--meme);font-weight:600}
+.search{flex:1;max-width:520px;display:flex;align-items:center;gap:9px;background:var(--bg);border:1px solid var(--line2);border-radius:5px;height:29px;padding:0 11px;color:var(--fg3)}
+.search input{flex:1;background:none;border:0;color:var(--fg);font-family:var(--mono);font-size:12px;outline:none}
+.search input::placeholder{color:var(--fg3)}
+.kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);border-radius:3px;padding:1px 5px;color:var(--fg3)}
+.topright{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:12px;color:var(--fg2)}
+.chainpill{display:flex;align-items:center;gap:7px;border:1px solid var(--line2);border-radius:4px;padding:4px 9px}
+.led{width:5px;height:5px;border-radius:50%;background:var(--up);box-shadow:0 0 6px var(--up)}
+
+.side{border-right:1px solid var(--line);background:var(--pane);display:flex;flex-direction:column;overflow:hidden}
+.navsec{padding:9px 0;border-bottom:1px solid var(--line)}
+.navlbl{font-size:10px;letter-spacing:.09em;color:var(--fg3);padding:0 14px 7px;text-transform:uppercase}
+.navitem{display:flex;align-items:center;gap:10px;padding:7px 14px;color:var(--fg2);cursor:pointer;border-left:2px solid transparent}
+.navitem:hover{background:var(--pane2);color:var(--fg)}
+.navitem.on{color:var(--fg);border-left-color:var(--meme);background:var(--pane2)}
+.navitem .ic{width:14px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--fg3)}
+.navitem.on .ic{color:var(--meme)}
+.tag{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--fg3)}
+
+.watch{flex:1;overflow-y:auto}
+.wrow{display:grid;grid-template-columns:1fr auto;gap:4px;padding:8px 14px;border-bottom:1px solid var(--line);cursor:pointer;align-items:center}
+.wrow:hover{background:var(--pane2)}
+.wrow.on{background:var(--memebg)}
+.wsym{font-family:var(--mono);font-size:12px;font-weight:500}
+.wsub{font-size:10px;color:var(--fg3);font-family:var(--mono);margin-top:2px}
+.wpx{font-family:var(--mono);font-size:12px;text-align:right}
+.wchg{font-family:var(--mono);font-size:10px;text-align:right;margin-top:2px}
+.up{color:var(--up)}.down{color:var(--down)}
+
+.center{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.pairbar{display:flex;align-items:center;gap:22px;padding:0 16px;height:54px;border-bottom:1px solid var(--line);background:var(--pane);overflow-x:auto;white-space:nowrap}
+.pairid{display:flex;align-items:baseline;gap:8px}
+.pairid .a{font-family:var(--mono);font-size:16px;font-weight:600}
+.pairid .b{font-size:11px;color:var(--fg3)}
+.pairid .c{font-family:var(--mono);font-size:13px;color:var(--stock)}
+.px{font-family:var(--mono);font-size:21px;font-weight:500}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .k{font-size:10px;color:var(--fg3)}
+.stat .v{font-family:var(--mono);font-size:12px}
+
+.chartpane{flex:0 0 auto;border-bottom:1px solid var(--line);display:flex;flex-direction:column}
+.chartbar{display:flex;align-items:center;gap:6px;padding:7px 14px;border-bottom:1px solid var(--line)}
+.tf{font-family:var(--mono);font-size:11px;color:var(--fg3);padding:3px 9px;border-radius:3px;cursor:pointer}
+.tf.on{background:var(--pane2);color:var(--fg)}
+.chartlegend{margin-left:auto;display:flex;gap:16px;font-size:11px;color:var(--fg2);align-items:center}
+.sw{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:-1px}
+#chart{height:216px;width:100%;display:block}
+
+.tabsrow{display:flex;align-items:center;border-bottom:1px solid var(--line);background:var(--pane);padding:0 14px;gap:2px}
+.tb{font-size:12px;color:var(--fg3);padding:9px 12px;cursor:pointer;border-bottom:2px solid transparent}
+.tb.on{color:var(--fg);border-bottom-color:var(--meme)}
+.tbcount{font-family:var(--mono);font-size:10px;color:var(--fg3);margin-left:5px}
+.filters{margin-left:auto;display:flex;gap:6px;align-items:center;font-size:11px;color:var(--fg3)}
+.chip{border:1px solid var(--line2);border-radius:3px;padding:3px 8px;cursor:pointer}
+.chip.on{border-color:var(--meme);color:var(--meme)}
+
+.tablearea{flex:1;overflow-y:auto}
+table{width:100%;border-collapse:collapse}
+thead th{position:sticky;top:0;background:var(--pane);font-size:10px;font-weight:400;letter-spacing:.06em;color:var(--fg3);text-transform:uppercase;text-align:left;padding:7px 12px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;z-index:2}
+thead th.r{text-align:right}
+thead th:hover{color:var(--fg2)}
+tbody tr{border-bottom:1px solid var(--line);cursor:pointer}
+tbody tr:hover{background:var(--pane)}
+tbody tr.on{background:var(--memebg)}
+td{padding:8px 12px;font-size:12px;white-space:nowrap}
+td.r{text-align:right;font-family:var(--mono)}
+.sym{font-family:var(--mono);font-size:12px;font-weight:500}
+.qt{font-family:var(--mono);color:var(--stock);font-size:11px}
+.sbar{display:flex;height:11px;width:112px;border-radius:2px;overflow:hidden}
+.sbar i{display:block;height:100%}
+.sbar .m{background:var(--meme)}
+.sbar .s{background:var(--stock)}
+.spk{width:64px;height:20px;display:block}
+.hot{color:var(--down)}
+
+.rail{border-left:1px solid var(--line);background:var(--pane);overflow-y:auto}
+.rhead{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.rhead h2{font-size:12px;font-weight:500}
+.rhead span{font-family:var(--mono);font-size:10px;color:var(--fg3)}
+.rsec{padding:14px;border-bottom:1px solid var(--line)}
+.verdict{font-size:15px;line-height:1.45;font-weight:500}
+.verdict em{font-style:normal;color:var(--fg2);font-weight:400}
+.bigsplit{display:flex;height:34px;border-radius:3px;overflow:hidden;margin:14px 0 7px}
+.bigsplit div{display:flex;align-items:center;padding:0 10px;font-family:var(--mono);font-size:11px}
+.bigsplit .m{background:var(--memebg);color:#9BBDF7;border-left:2px solid var(--meme)}
+.bigsplit .s{background:var(--stockbg);color:#E0BC7C;justify-content:flex-end;border-right:2px solid var(--stock)}
+.splitnums{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px}
+.splitnums span:first-child{color:var(--meme)}
+.splitnums span:last-child{color:var(--stock)}
+.kv{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;font-size:12px}
+.kv .k{color:var(--fg2)}
+.kv .v{font-family:var(--mono)}
+.gauge{height:7px;background:var(--pane2);border-radius:2px;overflow:hidden;margin:8px 0 5px}
+.gauge i{display:block;height:100%;background:var(--down)}
+.mini{font-size:10px;color:var(--fg3);line-height:1.5}
+.btn{width:100%;height:33px;background:var(--fg);color:var(--bg);border:0;border-radius:4px;font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer;margin-top:4px}
+.btn.ghost{background:none;color:var(--fg2);border:1px solid var(--line2);margin-top:7px}
+.feedrow{display:grid;grid-template-columns:44px 1fr auto;gap:8px;padding:5px 0;font-family:var(--mono);font-size:10px;color:var(--fg3);border-bottom:1px solid var(--line)}
+.feedrow:last-child{border-bottom:0}
+
+.status{display:flex;align-items:center;gap:0;border-top:1px solid var(--line);background:var(--pane);font-family:var(--mono);font-size:10px;color:var(--fg3);overflow:hidden}
+.status div{padding:0 12px;border-right:1px solid var(--line);line-height:25px;white-space:nowrap}
+.status .push{margin-left:auto;border-right:0;border-left:1px solid var(--line)}
+
+@media(max-width:1180px){.mid{grid-template-columns:180px 1fr}.rail{display:none}}
+@media(max-width:820px){.mid{grid-template-columns:1fr}.side{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="top">
+  <span class="brand">ba<b>/</b>sis</span>
+  <div class="search"><span class="num">&#9906;</span><input placeholder="Paste a contract, or search a ticker"><span class="kbd">&#8984;K</span></div>
+  <div class="topright">
+    <div class="chainpill"><span class="led"></span>Robinhood Chain</div>
+    <span class="num">block 4,912,338</span>
+    <span>Repo</span>
+  </div>
+</div>
+
+<div class="mid">
+
+  <aside class="side">
+    <div class="navsec">
+      <div class="navlbl">Views</div>
+      <div class="navitem on"><span class="ic">&#9645;</span>Split board</div>
+      <div class="navitem"><span class="ic">&#9678;</span>Float grip<span class="tag">12</span></div>
+      <div class="navitem"><span class="ic">&#9203;</span>Market hours</div>
+      <div class="navitem"><span class="ic">&#9998;</span>Corporate actions<span class="tag">2</span></div>
+      <div class="navitem"><span class="ic">&#8721;</span>Method</div>
+    </div>
+    <div class="navsec" style="border-bottom:0;padding-bottom:0">
+      <div class="navlbl">Watchlist</div>
+    </div>
+    <div class="watch" id="watch"></div>
+  </aside>
+
+  <main class="center">
+    <div class="pairbar">
+      <div class="pairid"><span class="a" id="p-sym">$AI</span><span class="b">quoted in</span><span class="c" id="p-qt">NVDA</span></div>
+      <span class="px" id="p-px">$0.0412</span>
+      <span class="num down" id="p-chg">&#9660; 2.75%</span>
+      <div class="stat"><span class="k">Meme 7d</span><span class="v" style="color:var(--meme)" id="p-m">+11.8%</span></div>
+      <div class="stat"><span class="k">Stock 7d</span><span class="v" style="color:var(--stock)" id="p-s">+25.4%</span></div>
+      <div class="stat"><span class="k">Float grip</span><span class="v hot" id="p-g">16.2%</span></div>
+      <div class="stat"><span class="k">Liquidity</span><span class="v" id="p-l">$4.10M</span></div>
+      <div class="stat"><span class="k">24h vol</span><span class="v" id="p-v">$12.4M</span></div>
+      <div class="stat"><span class="k">Stock leg</span><span class="v" style="color:var(--fg3)">frozen 6h 12m</span></div>
+    </div>
+
+    <div class="chartpane">
+      <div class="chartbar">
+        <span class="tf">1h</span><span class="tf">4h</span><span class="tf on">24h</span><span class="tf">7d</span><span class="tf">30d</span>
+        <div class="chartlegend">
+          <span><span class="sw" style="background:var(--meme)"></span>meme component</span>
+          <span><span class="sw" style="background:var(--stock)"></span>stock component</span>
+        </div>
+      </div>
+      <svg id="chart" viewBox="0 0 1000 216" preserveAspectRatio="none" role="img" aria-label="Stacked contribution of meme and stock components over 24 hours"></svg>
+    </div>
+
+    <div class="tabsrow">
+      <span class="tb on">Stock-paired pools<span class="tbcount">432</span></span>
+      <span class="tb">Green on stock alone<span class="tbcount">7</span></span>
+      <span class="tb">Grip over 10%<span class="tbcount">12</span></span>
+      <div class="filters"><span class="chip on">Liq &gt; $10K</span><span class="chip">Hide LP live</span></div>
+    </div>
+
+    <div class="tablearea">
+      <table>
+        <thead><tr>
+          <th>Coin</th><th>Quote</th><th class="r">Price</th><th class="r">24h</th>
+          <th>Meme / stock</th><th class="r">Meme</th><th class="r">Stock</th>
+          <th>7d</th><th class="r">Grip</th><th class="r">Liquidity</th><th class="r">Vol 24h</th>
+        </tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <aside class="rail">
+    <div class="rhead"><h2>Split inspector</h2><span>$AI / NVDA</span></div>
+
+    <div class="rsec">
+      <div class="verdict">Up 40.1%. <em>The meme did 11.8 of it. Nvidia did the rest.</em></div>
+      <div class="bigsplit"><div class="m" style="width:29%">meme</div><div class="s" style="width:71%">NVDA</div></div>
+      <div class="splitnums"><span>+11.8%</span><span>+25.4%</span></div>
+    </div>
+
+    <div class="rsec">
+      <div class="kv"><span class="k">Price in NVDA</span><span class="v">0.000189</span></div>
+      <div class="kv"><span class="k">Price in dollars</span><span class="v">$0.0412</span></div>
+      <div class="kv"><span class="k">Stock beta</span><span class="v">0.71</span></div>
+      <div class="kv"><span class="k">Days meme was red</span><span class="v">11 / 30</span></div>
+    </div>
+
+    <div class="rsec">
+      <div class="kv"><span class="k">Float grip</span><span class="v hot">16.2%</span></div>
+      <div class="gauge"><i style="width:16.2%"></i></div>
+      <div class="mini">8,783 of the 54,216 NVDA tokens on this chain sit in this one pool. LP is burned, so they cannot leave.</div>
+    </div>
+
+    <div class="rsec">
+      <div class="kv"><span class="k">Next corporate action</span><span class="v">none</span></div>
+      <div class="mini">Last NVDA multiplier change was 41 days ago. A dividend would reprice this pool without a single trade.</div>
+    </div>
+
+    <div class="rsec">
+      <div class="rhead" style="padding:0 0 9px;border:0"><h2>Recent swaps</h2><span>live</span></div>
+      <div id="feed"></div>
+    </div>
+
+    <div class="rsec" style="border-bottom:0">
+      <button class="btn">Copy split card</button>
+      <button class="btn ghost">Open full report</button>
+    </div>
+  </aside>
+
+</div>
+
+<div class="status">
+  <div>rpc.mainnet.chain.robinhood.com</div>
+  <div>chain 4663</div>
+  <div>432 pools indexed</div>
+  <div>Nasdaq closed &#183; stock legs frozen</div>
+  <div class="push">last update 0.8s ago</div>
+</div>
+
+</div>
+
+<script>
+var rows=[
+['$AI','NVDA',0.0412,-2.75,29,11.8,25.4,16.2,4.10,12.4],
+['$BONER','HIMS',0.0088,4.10,12,2.1,16.0,53.4,2.80,9.1],
+['$SPACEHOOD','SPCX',0.1940,-0.42,71,6.6,2.4,7.1,1.90,6.6],
+['$WSB','GME',0.0031,12.60,88,54.9,4.6,4.4,1.20,5.9],
+['$TENDIE','AMC',0.0007,-6.20,41,-3.4,7.9,9.8,0.94,4.2],
+['$COINBRO','COIN',0.0225,1.80,22,0.9,6.2,3.2,0.72,3.8],
+['$MUSKRAT','TSLA',0.0154,-1.10,64,4.8,2.9,5.6,0.61,3.1],
+['$SPYDOG','SPY',0.0009,0.30,35,0.6,1.4,1.8,0.43,2.4],
+['$HOODRAT','HOOD',0.0062,8.90,18,1.9,11.2,11.4,0.39,2.1],
+['$PALANTIRO','PLTR',0.0341,-3.40,57,-2.1,-1.6,2.9,0.31,1.7],
+['$METABOY','META',0.0117,2.20,44,1.1,1.5,1.2,0.28,1.4],
+['$QQQINU','QQQ',0.0004,-0.80,73,-0.6,-0.2,0.9,0.22,1.1],
+['$BRKDOG','BRK.B',0.0028,0.90,31,0.3,0.8,0.7,0.19,0.9],
+['$AMZNCAT','AMZN',0.0071,5.40,26,1.5,4.2,2.2,0.17,0.8]
+];
+
+function spark(seed){
+  var p='',n=14,v=50;
+  for(var i=0;i<n;i++){v+=((seed*(i+3))%11)-5;p+=(i===0?'M':'L')+(i*(64/(n-1))).toFixed(1)+','+Math.max(2,Math.min(18,v/5)).toFixed(1)+' ';}
+  return '<svg class="spk" viewBox="0 0 64 20"><path d="'+p+'" fill="none" stroke="var(--fg3)" stroke-width="1.2"/></svg>';
+}
+function paint(){
+  document.getElementById('tb').innerHTML=rows.map(function(r,i){
+    return '<tr class="'+(i===0?'on':'')+'">'+
+    '<td class="sym">'+r[0]+'</td>'+
+    '<td class="qt">'+r[1]+'</td>'+
+    '<td class="r">$'+r[2].toFixed(4)+'</td>'+
+    '<td class="r '+(r[3]>=0?'up':'down')+'">'+(r[3]>=0?'+':'')+r[3].toFixed(2)+'%</td>'+
+    '<td><div class="sbar"><i class="m" style="width:'+r[4]+'%"></i><i class="s" style="width:'+(100-r[4])+'%"></i></div></td>'+
+    '<td class="r" style="color:var(--meme)">'+(r[5]>=0?'+':'')+r[5].toFixed(1)+'%</td>'+
+    '<td class="r" style="color:var(--stock)">'+(r[6]>=0?'+':'')+r[6].toFixed(1)+'%</td>'+
+    '<td>'+spark(r[0].length+i*3)+'</td>'+
+    '<td class="r '+(r[7]>=10?'hot':'')+'">'+r[7].toFixed(1)+'%</td>'+
+    '<td class="r">$'+r[8].toFixed(2)+'M</td>'+
+    '<td class="r">$'+r[9].toFixed(1)+'M</td></tr>';
+  }).join('');
+}
+paint();
+
+document.getElementById('watch').innerHTML=rows.slice(0,9).map(function(r,i){
+  return '<div class="wrow '+(i===0?'on':'')+'"><div><div class="wsym">'+r[0]+'</div><div class="wsub">'+r[1]+'</div></div>'+
+  '<div><div class="wpx">$'+r[2].toFixed(4)+'</div><div class="wchg '+(r[3]>=0?'up':'down')+'">'+(r[3]>=0?'+':'')+r[3].toFixed(2)+'%</div></div></div>';
+}).join('');
+
+(function(){
+  var W=1000,H=216,n=48,pts=[];
+  for(var i=0;i<n;i++){
+    var open=(i>14&&i<34);
+    var meme=26+Math.sin(i/3.1)*13+((i*37)%9);
+    var stock=open?(30+Math.sin(i/4.4)*20+((i*17)%11)):0;
+    pts.push([meme,stock]);
+  }
+  var max=0;pts.forEach(function(p){max=Math.max(max,p[0]+p[1]);});
+  function y(v){return H-8-(v/max)*(H-26);}
+  function area(idx){
+    var top='',bot='';
+    for(var i=0;i<n;i++){
+      var x=(i/(n-1))*W;
+      var base=idx===0?0:pts[i][0];
+      var t=base+pts[i][idx];
+      top+=(i===0?'M':'L')+x.toFixed(1)+','+y(t).toFixed(1)+' ';
+      bot=('L'+x.toFixed(1)+','+y(base).toFixed(1)+' ')+bot;
+    }
+    return top+bot+'Z';
+  }
+  var grid='';
+  for(var g=1;g<4;g++){var gy=8+g*((H-26)/4);grid+='<line x1="0" y1="'+gy+'" x2="'+W+'" y2="'+gy+'" stroke="var(--line)" stroke-width="1"/>';}
+  var mark='<line x1="'+(14/(n-1)*W)+'" y1="0" x2="'+(14/(n-1)*W)+'" y2="'+H+'" stroke="var(--stock)" stroke-width="1" stroke-dasharray="3 3" opacity=".5"/>'+
+           '<line x1="'+(34/(n-1)*W)+'" y1="0" x2="'+(34/(n-1)*W)+'" y2="'+H+'" stroke="var(--stock)" stroke-width="1" stroke-dasharray="3 3" opacity=".5"/>';
+  document.getElementById('chart').innerHTML=grid+
+    '<path d="'+area(0)+'" fill="var(--memebg)" stroke="var(--meme)" stroke-width="1.4"/>'+
+    '<path d="'+area(1)+'" fill="var(--stockbg)" stroke="var(--stock)" stroke-width="1.4"/>'+mark;
+})();
+
+var acts=['buy','sell'],feed=[];
+function tick(){
+  var r=rows[Math.floor(Math.random()*6)];
+  feed.unshift([new Date().toLocaleTimeString('en-GB',{hour12:false}),acts[Math.random()<.5?0:1],r[0],(Math.random()*9+.4).toFixed(2)]);
+  if(feed.length>7)feed.pop();
+  document.getElementById('feed').innerHTML=feed.map(function(f){
+    return '<div class="feedrow"><span>'+f[0].slice(3)+'</span><span style="color:'+(f[1]==='buy'?'var(--up)':'var(--down)')+'">'+f[1]+' '+f[2]+'</span><span>$'+f[3]+'K</span></div>';
+  }).join('');
+}
+tick();setInterval(tick,2600);
+
+document.querySelectorAll('.tf').forEach(function(t){t.onclick=function(){document.querySelectorAll('.tf').forEach(function(x){x.classList.remove('on')});t.classList.add('on')}});
+document.querySelectorAll('.tb').forEach(function(t){t.onclick=function(){document.querySelectorAll('.tb').forEach(function(x){x.classList.remove('on')});t.classList.add('on')}});
+</script>
+</body>
+</html>

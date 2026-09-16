@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Basis — who actually moved your memecoin</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#0B0E12;--pane:#11151B;--pane2:#161B22;--line:#1E252E;--line2:#2A323D;
+--fg:#DFE5EC;--fg2:#8792A0;--fg3:#59636F;
+--meme:#5B8DEF;--memebg:#16243C;--stock:#C9922E;--stockbg:#3A2E16;
+--up:#3FB27F;--down:#D9534F;
+--sans:'Instrument Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace;}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:1px solid var(--meme);outline-offset:3px}
+.wrap{max-width:1140px;margin:0 auto;padding:0 26px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+nav{border-bottom:1px solid var(--line);background:rgba(11,14,18,.92);backdrop-filter:blur(10px);position:sticky;top:0;z-index:30}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:52px}
+.brand{font-family:var(--mono);font-size:14px;font-weight:600}
+.brand b{color:var(--meme)}
+.nlinks{display:flex;gap:24px;font-size:13px;color:var(--fg2)}
+.nlinks a:hover{color:var(--fg)}
+.nbtn{border:1px solid var(--line2);border-radius:4px;padding:5px 12px;font-size:12px}
+
+.tape{border-bottom:1px solid var(--line);background:var(--pane);overflow:hidden;height:30px;display:flex;align-items:center}
+.tapetrack{display:flex;gap:26px;white-space:nowrap;font-family:var(--mono);font-size:11px;color:var(--fg2);animation:slide 42s linear infinite;padding-left:26px}
+.tapetrack i{font-style:normal;color:var(--fg3)}
+@keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.tapetrack{animation:none}}
+
+.hero{padding:74px 0 0}
+.h1{font-size:clamp(32px,4.6vw,52px);line-height:1.1;font-weight:500;letter-spacing:-.03em;max-width:17ch}
+.h1 .t{font-family:var(--mono);font-weight:600}
+.lede{font-size:17px;color:var(--fg2);max-width:52ch;margin-top:20px}
+.pastebox{display:flex;gap:9px;margin-top:30px;max-width:540px}
+.pastebox input{flex:1;height:46px;background:var(--pane);border:1px solid var(--line2);border-radius:5px;padding:0 15px;color:var(--fg);font-family:var(--mono);font-size:13px}
+.pastebox input::placeholder{color:var(--fg3)}
+.pastebox input:focus{border-color:var(--meme);outline:none}
+.pastebox button{height:46px;padding:0 24px;background:var(--fg);color:var(--bg);border:0;border-radius:5px;font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer}
+.tryline{font-size:12px;color:var(--fg3);margin-top:11px;font-family:var(--mono)}
+.tryline a{color:var(--meme);border-bottom:1px solid var(--memebg)}
+
+.shot{margin-top:52px;border:1px solid var(--line2);border-radius:9px 9px 0 0;border-bottom:0;background:var(--pane);overflow:hidden}
+.shotbar{display:flex;align-items:center;gap:10px;height:34px;padding:0 12px;border-bottom:1px solid var(--line)}
+.dots{display:flex;gap:5px}.dots i{width:9px;height:9px;border-radius:50%;background:var(--line2);display:block}
+.shoturl{font-family:var(--mono);font-size:11px;color:var(--fg3)}
+.shotgrid{display:grid;grid-template-columns:150px 1fr 208px;min-height:326px}
+.sp{border-right:1px solid var(--line);padding:10px 0}
+.sp:last-child{border-right:0}
+.slbl{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--fg3);padding:0 12px 6px}
+.snav{padding:5px 12px;font-size:12px;color:var(--fg2);border-left:2px solid transparent}
+.snav.on{color:var(--fg);border-left-color:var(--meme);background:var(--pane2)}
+.wrow{display:flex;justify-content:space-between;padding:6px 12px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px}
+.wrow span:last-child{color:var(--fg2)}
+.sptop{display:flex;align-items:center;gap:16px;padding:9px 14px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--fg3)}
+.sptop b{font-size:14px;color:var(--fg);font-weight:600}
+table.st{width:100%;border-collapse:collapse}
+table.st th{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg3);font-weight:400;text-align:left;padding:6px 14px;border-bottom:1px solid var(--line)}
+table.st th.r{text-align:right}
+table.st td{padding:6px 14px;font-size:11px;font-family:var(--mono);border-bottom:1px solid var(--line)}
+table.st td.r{text-align:right}
+.sb{display:flex;height:9px;width:74px;border-radius:2px;overflow:hidden}
+.sb i{display:block;height:100%}
+.sb .m{background:var(--meme)}.sb .s{background:var(--stock)}
+.rsec{padding:12px 14px;border-bottom:1px solid var(--line)}
+.rv{font-size:13px;line-height:1.45;font-weight:500}
+.rv em{font-style:normal;color:var(--fg2);font-weight:400}
+.rsplit{display:flex;height:26px;border-radius:3px;overflow:hidden;margin:11px 0 6px}
+.rsplit div{display:flex;align-items:center;padding:0 9px;font-family:var(--mono);font-size:10px}
+.rsplit .m{background:var(--memebg);color:#9BBDF7;border-left:2px solid var(--meme)}
+.rsplit .s{background:var(--stockbg);color:#E0BC7C;justify-content:flex-end;border-right:2px solid var(--stock)}
+.rn{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px}
+.rn span:first-child{color:var(--meme)}.rn span:last-child{color:var(--stock)}
+.rkv{display:flex;justify-content:space-between;font-size:11px;padding:4px 0}
+.rkv span:first-child{color:var(--fg3)}
+.rkv span:last-child{font-family:var(--mono)}
+
+.band{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--pane)}
+.band .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+.bcell{padding:22px 0 22px 22px;border-left:1px solid var(--line)}
+.bcell:first-child{border-left:0;padding-left:0}
+.bcell .v{font-family:var(--mono);font-size:24px}
+.bcell .k{font-size:13px;color:var(--fg2);margin-top:5px;line-height:1.45}
+
+section{padding:84px 0;border-bottom:1px solid var(--line)}
+.shead{max-width:58ch;margin-bottom:34px}
+.shead h2{font-size:27px;font-weight:500;letter-spacing:-.02em;line-height:1.25}
+.shead p{color:var(--fg2);margin-top:11px;font-size:15px}
+
+.lab{border:1px solid var(--line);border-radius:8px;background:var(--pane);display:grid;grid-template-columns:1fr 1fr}
+.lab > div{padding:22px}
+.lab > div:first-child{border-right:1px solid var(--line)}
+.ctl label{display:block;font-size:12px;color:var(--fg3);margin-bottom:12px}
+input[type=range]{width:100%;-webkit-appearance:none;background:transparent;height:20px}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--line2)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--stock);margin-top:-7px;cursor:grab}
+input[type=range]::-moz-range-track{height:2px;background:var(--line2)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border:0;border-radius:50%;background:var(--stock)}
+.ro{display:flex;justify-content:space-between;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
+.ro:last-child{border-bottom:0}
+.ro span:first-child{color:var(--fg2)}
+.ro span:last-child{font-family:var(--mono);font-size:17px}
+
+.griprow{display:grid;grid-template-columns:150px 1fr 74px;gap:18px;align-items:center;padding:15px 0;border-bottom:1px solid var(--line)}
+.griprow:first-of-type{border-top:1px solid var(--line)}
+.gw{font-family:var(--mono);font-size:14px}
+.gw em{display:block;font-style:normal;font-size:11px;color:var(--fg3);margin-top:2px}
+.gt{height:9px;background:var(--pane2);border-radius:2px;overflow:hidden}
+.gt i{display:block;height:100%;background:var(--down)}
+.gp{font-family:var(--mono);font-size:15px;text-align:right;color:var(--down)}
+
+#weekchart{width:100%;height:190px;display:block;border:1px solid var(--line);border-radius:8px;background:var(--pane)}
+.lg{display:flex;gap:20px;font-size:12px;color:var(--fg2);margin-top:14px}
+.sw{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:7px;vertical-align:-1px}
+
+.mathbox{border:1px solid var(--line);border-radius:8px;background:var(--pane);padding:24px;font-family:var(--mono);font-size:13px;line-height:2.1;color:var(--fg2);overflow-x:auto}
+.mathbox b{color:var(--meme);font-weight:400}
+.mathbox u{color:var(--stock);text-decoration:none}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
+.note{font-size:13px;color:var(--fg3);line-height:1.7}
+
+.cta{padding:76px 0}
+.cta h2{font-size:26px;font-weight:500;letter-spacing:-.02em;margin-bottom:20px}
+footer{border-top:1px solid var(--line);padding:26px 0;font-size:12px;color:var(--fg3);font-family:var(--mono)}
+footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+@media(max-width:940px){.shotgrid{grid-template-columns:1fr}.sp:not(:nth-child(2)){display:none}.lab{grid-template-columns:1fr}.lab>div:first-child{border-right:0;border-bottom:1px solid var(--line)}.two{grid-template-columns:1fr}.band .wrap{grid-template-columns:1fr 1fr}.bcell{border-left:0;padding-left:0;border-top:1px solid var(--line)}}
+@media(max-width:620px){.pastebox{flex-direction:column}.band .wrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <span class="brand">ba<b>/</b>sis</span>
+  <div class="nlinks">
+    <a href="market.html">Terminal</a><a href="#hours">Market hours</a><a href="#method">Method</a>
+    <a href="#" class="nbtn">Repo</a>
+  </div>
+</div></nav>
+
+<div class="tape"><div class="tapetrack" id="tape"></div></div>
+
+<header class="hero"><div class="wrap">
+  <h1 class="h1"><span class="t" id="hk">$AI</span> is up <span class="mono" id="ht">40.1%</span>. Its meme did <span class="mono" id="hm">11.8</span>.</h1>
+  <p class="lede">On Robinhood Chain a memecoin is often quoted in a tokenized stock. When that stock moves, the coin reprices on its own &#8212; no buyers, no volume, no one doing anything. Basis tells you which half was real.</p>
+  <div class="pastebox">
+    <input placeholder="0x&#8230; contract address" aria-label="Contract address">
+    <button>Split it</button>
+  </div>
+  <div class="tryline">try <a href="report.html">$AI / NVDA</a> &#183; <a href="report.html">$BONER / HIMS</a> &#183; <a href="report.html">$WSB / GME</a></div>
+
+  <div class="shot">
+    <div class="shotbar"><div class="dots"><i></i><i></i><i></i></div><span class="shoturl">basis.tools/terminal</span></div>
+    <div class="shotgrid">
+      <div class="sp">
+        <div class="slbl">Views</div>
+        <div class="snav on">Split board</div><div class="snav">Float grip</div><div class="snav">Market hours</div><div class="snav">Corporate actions</div>
+        <div class="slbl" style="padding-top:14px">Watchlist</div>
+        <div class="wrow"><span>$AI</span><span>0.0412</span></div>
+        <div class="wrow"><span>$BONER</span><span>0.0088</span></div>
+        <div class="wrow"><span>$WSB</span><span>0.0031</span></div>
+        <div class="wrow"><span>$TENDIE</span><span>0.0007</span></div>
+      </div>
+      <div class="sp">
+        <div class="sptop"><b>$AI</b><span>quoted in</span><span style="color:var(--stock)">NVDA</span><span style="margin-left:auto">grip 16.2%</span></div>
+        <table class="st">
+          <thead><tr><th>Coin</th><th>Quote</th><th class="r">Price</th><th>Meme / stock</th><th class="r">Grip</th></tr></thead>
+          <tbody id="shotrows"></tbody>
+        </table>
+      </div>
+      <div class="sp">
+        <div class="rsec">
+          <div class="rv">Up 40.1%. <em>The meme did 11.8 of it.</em></div>
+          <div class="rsplit"><div class="m" style="width:29%">meme</div><div class="s" style="width:71%">NVDA</div></div>
+          <div class="rn"><span>+11.8%</span><span>+25.4%</span></div>
+        </div>
+        <div class="rsec">
+          <div class="rkv"><span>Stock beta</span><span>0.71</span></div>
+          <div class="rkv"><span>Float grip</span><span style="color:var(--down)">16.2%</span></div>
+          <div class="rkv"><span>Liquidity</span><span>$4.10M</span></div>
+          <div class="rkv"><span>Stock leg</span><span>frozen</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></header>
+
+<div class="band"><div class="wrap">
+  <div class="bcell"><div class="v">432</div><div class="k">pools quoted in a stock, not a stablecoin</div></div>
+  <div class="bcell"><div class="v">7</div><div class="k">green right now on their stock alone</div></div>
+  <div class="bcell"><div class="v">53.4%</div><div class="k">largest share of one stock's float held by a single pool</div></div>
+  <div class="bcell"><div class="v">128h</div><div class="k">per week the stock leg is frozen and cannot correct</div></div>
+</div></div>
+
+<section><div class="wrap">
+  <div class="shead">
+    <h2>Move the stock. The coin follows on its own.</h2>
+    <p>Nothing below is a trade. Drag Nvidia's share price and watch the memecoin reprice with zero volume, because the pool quotes it in NVDA rather than dollars.</p>
+  </div>
+  <div class="lab">
+    <div class="ctl">
+      <label for="sl">Nvidia share price</label>
+      <input type="range" id="sl" min="170" max="265" value="218">
+      <div class="ro"><span>NVDA</span><span id="o1">$218.00</span></div>
+      <div class="ro"><span>Swaps executed</span><span>0</span></div>
+      <div class="ro"><span>Buyers involved</span><span>0</span></div>
+    </div>
+    <div>
+      <div class="ro"><span>$AI in NVDA terms</span><span>0.000189</span></div>
+      <div class="ro"><span>$AI in dollars</span><span id="o2">$0.0412</span></div>
+      <div class="ro"><span>Move caused by this alone</span><span id="o3" style="color:var(--stock)">0.0%</span></div>
+      <p class="note" style="margin-top:16px">The pool ratio never changed. Every cent of that move came from the other side of the pair.</p>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="shead">
+    <h2>One pool can hold half a company's on-chain float</h2>
+    <p>Stock token supply is fixed and only a licensed party can mint more. Once a memecoin pool locks a large share of it and burns the LP, those shares are out of circulation for good.</p>
+  </div>
+  <div id="grips"></div>
+</div></section>
+
+<section id="hours"><div class="wrap">
+  <div class="shead">
+    <h2>Open five days. Trading seven.</h2>
+    <p>The stock leg only reprices while its market is open. Outside those windows the anchor is frozen, so every move is the meme &#8212; and every mispricing has to wait for the opening bell.</p>
+  </div>
+  <svg id="weekchart" viewBox="0 0 1000 190" preserveAspectRatio="none" role="img" aria-label="A week showing when the stock leg reprices and when it is frozen"></svg>
+  <div class="lg">
+    <span><span class="sw" style="background:var(--stock)"></span>Stock leg repricing</span>
+    <span><span class="sw" style="background:var(--line2)"></span>Frozen &#8212; meme only</span>
+  </div>
+</div></section>
+
+<section id="method"><div class="wrap">
+  <div class="shead">
+    <h2>Four lines. That is the entire method.</h2>
+    <p>No model, no score, no weighting. Read the pool, read the oracle, subtract. Every number on this site comes from these four lines, and the repo runs them against live chain data so you can check any of it yourself.</p>
+  </div>
+  <div class="two">
+    <div class="mathbox">
+price_usd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= pool_ratio &#215; stock_price<br>
+<u>stock_component</u> = stock_price(t) &#247; stock_price(t&#8722;n) &#8722; 1<br>
+<b>meme_component</b>&nbsp;&nbsp;= pool_ratio(t) &#247; pool_ratio(t&#8722;n) &#8722; 1<br>
+total&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (1 + <b>meme</b>) &#215; (1 + <u>stock</u>) &#8722; 1
+    </div>
+    <div>
+      <p class="note">Pool ratio comes from Swap events on the pool itself. Stock price comes from the token's Chainlink feed, which already carries the corporate-action multiplier, so dividends and splits are handled without a special case.</p>
+      <p class="note" style="margin-top:14px">Basis holds nothing, routes nothing and executes nothing. It reads Robinhood Chain over a public RPC and does arithmetic. There is no contract to audit because there is no contract.</p>
+    </div>
+  </div>
+</div></section>
+
+<div class="cta"><div class="wrap">
+  <h2>Paste a contract.</h2>
+  <div class="pastebox">
+    <input placeholder="0x&#8230; contract address" aria-label="Contract address">
+    <button>Split it</button>
+  </div>
+</div></div>
+
+<footer><div class="wrap">
+  <span>chain 4663 &#183; read-only &#183; MIT</span>
+  <span>basis.tools</span>
+</div></footer>
+
+<script>
+var tape=[['$AI','NVDA','+40.1%','29'],['$BONER','HIMS','+18.4%','12'],['$WSB','GME','+62.0%','88'],['$TENDIE','AMC','-6.2%','41'],['$SPACEHOOD','SPCX','+9.2%','71'],['$COINBRO','COIN','+7.1%','22'],['$MUSKRAT','TSLA','+1.8%','64'],['$HOODRAT','HOOD','+13.1%','18']];
+var t=tape.map(function(r){return r[0]+' <i>/</i> '+r[1]+' '+r[2]+' <i>meme '+r[3]+'%</i>';}).join('');
+document.getElementById('tape').innerHTML=t+t;
+
+var rows=[['$AI','NVDA','0.0412',29,'16.2'],['$BONER','HIMS','0.0088',12,'53.4'],['$SPACEHOOD','SPCX','0.1940',71,'7.1'],['$WSB','GME','0.0031',88,'4.4'],['$TENDIE','AMC','0.0007',41,'9.8'],['$COINBRO','COIN','0.0225',22,'3.2'],['$MUSKRAT','TSLA','0.0154',64,'5.6']];
+document.getElementById('shotrows').innerHTML=rows.map(function(r){
+return '<tr><td>'+r[0]+'</td><td style="color:var(--stock)">'+r[1]+'</td><td class="r">$'+r[2]+'</td>'+
+'<td><div class="sb"><i class="m" style="width:'+r[3]+'%"></i><i class="s" style="width:'+(100-r[3])+'%"></i></div></td>'+
+'<td class="r" style="color:'+(+r[4]>=10?'var(--down)':'var(--fg)')+'">'+r[4]+'%</td></tr>';}).join('');
+
+var coins=[['$AI',40.1,11.8],['$BONER',18.4,2.1],['$WSB',62.0,54.9],['$SPACEHOOD',9.2,6.6]],ci=0;
+setInterval(function(){ci=(ci+1)%coins.length;var c=coins[ci];
+document.getElementById('hk').textContent=c[0];
+document.getElementById('ht').textContent=c[1].toFixed(1)+'%';
+document.getElementById('hm').textContent=c[2].toFixed(1);},4000);
+
+var sl=document.getElementById('sl');
+sl.oninput=function(){var p=+sl.value;
+document.getElementById('o1').textContent='$'+p.toFixed(2);
+document.getElementById('o2').textContent='$'+(p*0.000189).toFixed(4);
+var d=(p/218-1)*100;
+document.getElementById('o3').textContent=(d>=0?'+':'')+d.toFixed(1)+'%';};
+
+var g=[['$BONER','HIMS',53.4],['$AI','NVDA',16.2],['$HOODRAT','HOOD',11.4],['$TENDIE','AMC',9.8],['$SPACEHOOD','SPCX',7.1]];
+document.getElementById('grips').innerHTML=g.map(function(x){
+return '<div class="griprow"><div class="gw">'+x[0]+'<em>quoted in '+x[1]+'</em></div>'+
+'<div class="gt"><i style="width:'+x[2]+'%"></i></div><div class="gp">'+x[2].toFixed(1)+'%</div></div>';}).join('');
+
+(function(){
+var W=1000,H=190,days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],s='',cw=W/7;
+days.forEach(function(d,i){
+  var x=i*cw;
+  s+='<rect x="'+x+'" y="0" width="'+cw+'" height="'+H+'" fill="'+(i%2?'#0E1217':'transparent')+'"/>';
+  s+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="'+H+'" stroke="var(--line)"/>';
+  s+='<text x="'+(x+10)+'" y="20" fill="var(--fg3)" font-family="IBM Plex Mono" font-size="11">'+d+'</text>';
+  if(i<5){
+    var oy=H*0.30,oh=H*0.42;
+    s+='<rect x="'+(x+8)+'" y="'+oy+'" width="'+(cw-16)+'" height="'+oh+'" fill="var(--stockbg)" stroke="var(--stock)"/>';
+    s+='<text x="'+(x+16)+'" y="'+(oy+oh/2+4)+'" fill="var(--stock)" font-family="IBM Plex Mono" font-size="10">09:30&#8211;16:00</text>';
+  }else{
+    s+='<text x="'+(x+12)+'" y="'+(H*0.55)+'" fill="var(--fg3)" font-family="IBM Plex Mono" font-size="10">frozen</text>';
+  }
+});
+s+='<rect x="0" y="'+(H-26)+'" width="'+W+'" height="26" fill="var(--memebg)" stroke="var(--meme)"/>';
+s+='<text x="12" y="'+(H-9)+'" fill="#9BBDF7" font-family="IBM Plex Mono" font-size="10">meme leg &#8212; always live, 168h a week</text>';
+document.getElementById('weekchart').innerHTML=s;
+})();
+</script>
+</body>
+</html>
