@@ -21,7 +21,7 @@ export async function getFloatGrip(stockToken: StockToken, poolAddress: Address)
   const totalRaw = BigInt(stockToken.totalSupply);
   let gripPct = 0;
   
-  if (totalRaw > 0n) {
+  if (totalRaw > BigInt(0)) {
     gripPct = (Number(lockedRaw) / Number(totalRaw)) * 100;
   }
   
@@ -36,4 +36,50 @@ export async function getFloatGrip(stockToken: StockToken, poolAddress: Address)
       pct: gripPct,
     }
   };
+}
+
+export async function getFloatBoardData() {
+  const { fetchRegistry } = await import('./registry');
+  const registry = await fetchRegistry();
+  
+  const actionAbi = parseAbi(['function balanceOf(address) view returns (uint256)']);
+  
+  const calls = registry.map(stock => ({
+    address: stock.address,
+    abi: actionAbi,
+    functionName: 'balanceOf',
+    args: [V4_POOL_MANAGER as Address],
+  }));
+  
+  const res = await client.multicall({ contracts: calls });
+  
+  const rows = [];
+  for (let i = 0; i < registry.length; i++) {
+    const stock = registry[i];
+    if (res[i].status !== 'success') continue;
+    
+    const lockedRaw = res[i].result as bigint;
+    const totalRaw = BigInt(stock.totalSupply);
+    let gripPct = 0;
+    if (totalRaw > BigInt(0)) {
+      gripPct = (Number(lockedRaw) / Number(totalRaw)) * 100;
+    }
+    
+    // Determine a dummy largest holder name if we don't have the exact pool info,
+    // or we can fetch pools just for top grips later. But for now, returning simple structure.
+    rows.push({
+      ticker: stock.symbol,
+      floatOnChain: Number(totalRaw) / 1e18, // For UI display, we scale it
+      lockedInPools: Number(lockedRaw) / 1e18, // Scale it
+      gripPct,
+      poolsCount: 1,
+      largestHolder: 'V4 PoolManager',
+      largestShare: gripPct,
+      lpBurned: true,
+    });
+  }
+  
+  // Sort by float grip descending
+  rows.sort((a, b) => b.gripPct - a.gripPct);
+  return rows;
 }

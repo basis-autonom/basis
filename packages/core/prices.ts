@@ -12,6 +12,10 @@ const clAbi = parseAbi([
   'function getRoundData(uint80 roundId) view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)'
 ]);
 
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export async function getPrices(feedAddress: Address, targetMs: number) {
   const targetTs = BigInt(Math.floor(targetMs / 1000));
   
@@ -30,11 +34,13 @@ export async function getPrices(feedAddress: Address, targetMs: number) {
   }
 
   let roundId = latest[0];
+  const initialPhase = roundId >> BigInt(64);
   let oldestPrice = latestPrice;
-  const initialPhase = roundId >> 64n;
   
   while (true) {
+    if (roundId < BigInt(0)) break;
     try {
+      await delay(100); // 100ms delay to prevent 429 errors
       const data = await client.readContract({
         address: feedAddress,
         abi: clAbi,
@@ -42,7 +48,7 @@ export async function getPrices(feedAddress: Address, targetMs: number) {
         args: [roundId],
       });
       
-      const currentPhase = roundId >> 64n;
+      const currentPhase = roundId >> BigInt(64);
       // Note: if phase changed, we'd need more complex logic. 
       // But recon showed phase hasn't changed in 7 days.
       // So we just iterate.

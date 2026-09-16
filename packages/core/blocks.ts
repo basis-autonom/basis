@@ -16,7 +16,7 @@ export async function getBlockByTimestamp(targetMs: number): Promise<bigint> {
   }
 
   const targetTs = BigInt(Math.floor(targetMs / 1000));
-  let low = 0n;
+  let low = BigInt(0);
   let high = await client.getBlockNumber();
   let best = high;
   

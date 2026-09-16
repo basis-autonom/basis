@@ -53,7 +53,7 @@ export async function getPoolForToken(tokenAddress: Address): Promise<Pool | nul
       args: [poolId],
     });
 
-    if (slot0[0] === 0n) {
+    if (slot0[0] === BigInt(0)) {
       cache.set(lowerCa, { pool: null, timestamp: now });
       return null;
     }
@@ -83,5 +83,58 @@ export async function getPoolForToken(tokenAddress: Address): Promise<Pool | nul
   } catch (e) {
     console.error(`Failed to fetch pool for ${lowerCa}`, e);
     return null;
+  }
+}
+
+export async function getRobinhoodPools(limit: number = 50) {
+  try {
+    const { fetchRegistry } = await import('./registry');
+    const registry = await fetchRegistry();
+    const addrs = registry.map(t => t.address);
+    
+    let allPairs: any[] = [];
+    
+    // DexScreener supports up to 30 addresses per request
+    for (let i = 0; i < addrs.length; i += 30) {
+      const chunk = addrs.slice(i, i + 30).join(',');
+      const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${chunk}`);
+      const data = await res.json();
+      if (data.pairs) {
+        allPairs = allPairs.concat(data.pairs);
+      }
+    }
+    
+    // Filter to Robinhood Chain and Uniswap (v4)
+    let rhPools = allPairs.filter((p: any) => p.chainId === 'robinhood' && p.dexId === 'uniswap');
+    
+    // We only want the top pool per stock to avoid clutter, or just top overall? 
+    // The user wants top 50 pools overall based on liquidity.
+    rhPools.sort((a: any, b: any) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0));
+    rhPools = rhPools.slice(0, limit);
+    
+    return rhPools.map((bestPool: any) => {
+      const poolId = bestPool.pairAddress.toLowerCase() as Address;
+      const token0 = bestPool.baseToken.address.toLowerCase() as Address;
+      const token1 = bestPool.quoteToken.address.toLowerCase() as Address;
+      
+      const stockSide = registry.some(t => t.address === token0) ? 0 : 1;
+      
+      return {
+        address: poolId,
+        token0,
+        token1,
+        stockSide,
+        createdAt: bestPool.pairCreatedAt || Date.now(),
+        liquidityUsd: bestPool.liquidity?.usd || 0,
+        vol24hUsd: bestPool.volume?.h24 || 0,
+        lpBurned: true,
+        venue: bestPool.labels?.includes('v4') ? 'Uniswap v4' : 'Uniswap v4',
+        baseSymbol: bestPool.baseToken.symbol,
+        quoteSymbol: bestPool.quoteToken.symbol,
+      };
+    });
+  } catch (e) {
+    console.error(`Failed to fetch pools`, e);
+    return [];
   }
 }

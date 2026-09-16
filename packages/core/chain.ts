@@ -20,6 +20,12 @@ export const robinhoodChain = defineChain({
   blockExplorers: {
     default: { name: 'Blockscout', url: EXPLORER_URL },
   },
+  contracts: {
+    multicall3: {
+      address: '0xcA11bde05977b3631167028862bE2a173976CA11',
+      blockCreated: 1, // Or whatever block it was deployed at, 1 is safe for general use
+    },
+  },
 });
 
 export const publicClient = createPublicClient({
