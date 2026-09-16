@@ -7,6 +7,13 @@ import { createPublicClient, http } from 'viem';
 export function StatusBar() {
   const pathname = usePathname();
   const meta = pageMetaMap[pathname] || { statusText: [] };
+  const defaultStatus = [
+    'rpc.mainnet.chain.robinhood.com',
+    'chain 4663',
+    'Uniswap v4 state read',
+    'Nasdaq closed · stock leg frozen',
+  ];
+  const statusItems = meta.statusText?.length ? meta.statusText : defaultStatus;
   const [blockHeight, setBlockHeight] = useState<string>('syncing...');
   
   useEffect(() => {
@@ -34,23 +41,23 @@ export function StatusBar() {
 
   return (
     <div className="flex items-center gap-0 border-t border-line bg-pane font-mono text-[10px] text-fg3 overflow-hidden flex-shrink-0">
-      {meta.statusText.map((status, i) => {
+      {statusItems.map((status, i) => {
         // Special case: if the status is "chain 4663", we'll append the live block height after it
         if (status === 'chain 4663') {
           return (
             <React.Fragment key={i}>
-              <div className="px-[12px] border-r border-line leading-[25px] whitespace-nowrap">{status}</div>
-              <div className="px-[12px] border-r border-line leading-[25px] whitespace-nowrap">{blockHeight}</div>
+              <div style={{ padding: "0 12px", borderRight: "1px solid var(--color-line)" }} className="leading-[25px] whitespace-nowrap">{status}</div>
+              <div style={{ padding: "0 12px", borderRight: "1px solid var(--color-line)" }} className="leading-[25px] whitespace-nowrap">{blockHeight}</div>
             </React.Fragment>
           );
         }
         return (
-          <div key={i} className="px-[12px] border-r border-line leading-[25px] whitespace-nowrap">
+          <div key={i} style={{ padding: "0 12px", borderRight: "1px solid var(--color-line)" }} className="leading-[25px] whitespace-nowrap">
             {status}
           </div>
         );
       })}
-      <div className="px-[12px] leading-[25px] whitespace-nowrap ml-auto border-l border-line">
+      <div style={{ padding: "0 12px", borderLeft: "1px solid var(--color-line)" }} className="leading-[25px] whitespace-nowrap ml-auto">
         live
       </div>
     </div>
