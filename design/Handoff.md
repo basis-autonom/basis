@@ -55,12 +55,12 @@ Basis mengukur seberapa besar pergerakan harga memecoin di Robinhood Chain beras
 
 ### Status deployment autonomous
 
-- `DATABASE_URL` belum tersedia di `.env`; migrasi belum diterapkan ke Neon/Supabase.
-- Setelah mendapat connection string Postgres, jalankan `bun run db:migrate`.
-- `CRON_SECRET` harus dibuat random, minimal 16 karakter, lalu dipasang di Vercel dan GitHub dengan nilai sama.
-- `vercel.json` sebelumnya berisi cron 15 menit. Jika deploy memakai Vercel Hobby, jangan gunakan konfigurasi itu untuk jadwal 15 menit karena Hobby hanya mengizinkan jadwal harian.
-- Scheduler yang direkomendasikan: GitHub Actions YAML memanggil URL production `/api/cron/watch`. GitHub schedule menggunakan UTC dan dapat terlambat ketika load tinggi.
-- Belum ada `.github/workflows/watcher.yml`; jangan membuatnya sebelum keputusan scheduler ini dikonfirmasi.
+- `DATABASE_URL` sudah tersedia di `.env`; `bun run db:migrate` berhasil dan query langsung mengonfirmasi `public.findings` di Neon.
+- `CRON_SECRET` sudah tersedia lokal; untuk deployment, pasang nilai yang sama di Vercel dan GitHub.
+- `vercel.json` tetap ada sebagai fallback harian pada `0 0 * * *`; tidak dipakai sebagai scheduler 15 menit di Vercel Hobby.
+- `.github/workflows/watcher.yml` sudah dibuat. Workflow memanggil URL production `/api/cron/watch` setiap 15 menit dengan `Authorization: Bearer $CRON_SECRET`.
+- GitHub secret yang dibutuhkan: `CRON_SECRET` dan `BASIS_PRODUCTION_URL`.
+- GitHub schedule menggunakan UTC dan dapat terlambat beberapa menit; ini diterima untuk watcher.
 
 ### Fakta chain yang sudah terbukti
 
@@ -113,22 +113,28 @@ Urutan yang direncanakan:
 
 1. **Tampilan** — dua masalah di atas
 2. **Framing** — `design/FRAMING.md` bagian 5, 6, 7. Kolom Exposure di board, urutan ulang panel report, tab "Real performance". Tidak mengubah `packages/core`.
-3. **Scheduler autonomous** — pasang secret, migrasikan Postgres, lalu buat `.github/workflows/watcher.yml` jika GitHub Actions disetujui.
+3. **Deployment scheduler autonomous** — masukkan `CRON_SECRET` dan `BASIS_PRODUCTION_URL` ke GitHub Secrets; masukkan `CRON_SECRET` dan `DATABASE_URL` ke Vercel Environment Variables.
 4. **UI autonomous** — agent UI menghubungkan Findings panel/chart ke endpoint yang sudah tersedia.
 5. **Landing** — `app/page.tsx` dari `design/index.html`, dipecah per section ke `components/landing/`
 6. **Halaman `/hours` dan `/actions`** — masih EmptyState berlabel soon
 
 ## Hasil watcher manual terakhir
 
-Perintah: `bun run watcher`
+Perintah: `bun run watcher` dengan ambang asli
 
 Output apa adanya:
 
+`scanned=13`, `detected=2`, `stored=2`, `duplicates=0`.
+
+Query langsung ke Neon sesudahnya mengembalikan `count=2`. Salah satu baris apa adanya:
+
 ```json
-{"enabled":true,"scanned":0,"detected":0,"stored":0,"duplicates":0,"findings":[]}
+{"id":1,"detected_at":"2026-09-17T18:39:25.784Z","reported_on":"2026-09-17T00:00:00.000Z","token_address":"0x3b7729edcd5e899f5a0688cc6ff91c503acd324f","symbol":"SPOON","stock_pair":"SLV","price_movement":"3.4925260860","meme_component":"-0.0210281312","stock_component":"3.5142932074","liquidity":"45196.5300000000"}
 ```
 
-Tidak ada temuan yang dipaksa masuk. Pada lingkungan pengembangan saat itu, registry upstream Robinhood/Chainlink tidak dapat diakses sehingga board yang terbaca berjumlah 0. Ini bukan bukti bahwa chain selalu tidak punya temuan.
+Run verifikasi sementara dengan harga >= 1% dan meme <= 5% menghasilkan `scanned=13`, `detected=2`, `stored=0`, `duplicates=2` karena dua coin itu sudah tersimpan pada hari yang sama. Ambang kode sudah dikembalikan dan diverifikasi: harga >= 3%, meme absolut <= 1%, likuiditas >= $10.000.
+
+Run sebelumnya memang menghasilkan 0 karena registry upstream tidak dapat diakses dari sandbox. Run dengan network access berhasil membaca registry dan menyimpan dua temuan nyata.
 
 ## Larangan tetap
 

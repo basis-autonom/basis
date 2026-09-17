@@ -1,0 +1,25 @@
+name: Basis watcher
+
+on:
+  schedule:
+    # GitHub Actions schedules use UTC and can be delayed by a few minutes;
+    # that is acceptable for this watcher.
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger production watcher
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          PRODUCTION_URL: ${{ secrets.BASIS_PRODUCTION_URL }}
+        run: |
+          test -n "$CRON_SECRET"
+          test -n "$PRODUCTION_URL"
+          curl --fail-with-body --silent --show-error --retry 2 \
+            --request GET \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            "${PRODUCTION_URL%/}/api/cron/watch"

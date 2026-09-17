@@ -3,6 +3,7 @@ import React, { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useBlockHeight } from "./useBlockHeight";
 import { SearchCommandPalette } from "./SearchCommandPalette";
+import styles from "./Topbar.module.css";
 
 function subscribeToPlatform(onChange: () => void) {
   const timer = window.setTimeout(onChange, 0);
@@ -53,14 +54,14 @@ export function Topbar() {
   return (
     <>
       <header
-        className="top flex items-center border-b border-line bg-pane flex-shrink-0"
+        className={`top ${styles.topbar} flex items-center border-b border-line bg-pane flex-shrink-0`}
         style={{ gap: 14, padding: "0 14px" }}
       >
         {/* brand */}
         <Link
           href="/"
-          className="font-mono text-[14px] font-semibold tracking-[-0.02em] text-fg border-r border-line2 flex-shrink-0"
-          style={{ paddingRight: 12, lineHeight: "46px" }}
+          className="font-mono text-[14px] font-semibold tracking-[-0.02em] text-fg flex-shrink-0"
+          style={{ lineHeight: "46px" }}
         >
           ba<b className="text-meme font-semibold">/</b>sis
         </Link>
@@ -77,8 +78,8 @@ export function Topbar() {
           aria-keyshortcuts={
             isMobile ? undefined : isMac ? "Meta+K" : "Control+K"
           }
-          className="flex min-w-0 flex-1 items-center rounded-[5px] border border-line2 bg-bg text-left text-fg3 transition-colors hover:border-fg3 hover:text-fg focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-meme"
-          style={{ maxWidth: 520, height: 31, gap: 10, padding: "0 11px" }}
+          className={`${styles.searchTrigger} flex min-w-0 flex-1 items-center border border-line2 bg-bg text-left text-fg3 transition-colors hover:border-fg3 hover:text-fg focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-meme`}
+          style={{ height: 31, gap: 10, padding: "0 13px" }}
         >
           <svg
             aria-hidden="true"
@@ -106,18 +107,15 @@ export function Topbar() {
           <span className="min-w-0 flex-1 truncate font-mono text-[12px] sm:hidden">
             Search or paste a contract
           </span>
-          <kbd
-            className="hidden flex-shrink-0 items-center gap-[4px] rounded-[3px] border border-line2 font-mono text-[10px] text-fg2 sm:flex"
-            style={{ padding: "1px 8px" }}
-          >
+          <kbd className="hidden flex-shrink-0 items-center gap-[5px] font-mono text-[10px] text-fg2 sm:flex">
             {isMac ? (
-              <span aria-hidden="true" className="text-sm">
+              <span aria-hidden="true" className="text-[15px]">
                 ⌘
               </span>
             ) : (
-              <span>Ctrl</span>
+              <span className="text-xs">Ctrl</span>
             )}
-            <span>K</span>
+            <span className="text-xs">K</span>
           </kbd>
         </button>
 

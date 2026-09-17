@@ -16,6 +16,38 @@ function formatPrice(price: number | null | undefined) {
   return `$${price.toExponential(2)}`;
 }
 
+type SidebarIconName = 'board' | 'report' | 'float' | 'hours' | 'actions' | 'method';
+
+function SidebarIcon({ name, className }: { name: SidebarIconName; className: string }) {
+  const common = {
+    className,
+    viewBox: '0 0 20 20',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.7,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true,
+  };
+
+  if (name === 'board') {
+    return <svg {...common}><path d="M3.5 14.5 7.5 10.5l2.8 2.6 5.7-6" /><path d="M13 7h3v3" /></svg>;
+  }
+  if (name === 'report') {
+    return <svg {...common}><circle cx="10" cy="10" r="5.5" /><circle cx="10" cy="10" r="1.4" fill="currentColor" stroke="none" /></svg>;
+  }
+  if (name === 'float') {
+    return <svg {...common}><circle cx="10" cy="10" r="5.8" /><path d="M10 6.7v3.5l2.5 1.6" /></svg>;
+  }
+  if (name === 'hours') {
+    return <svg {...common}><path d="M5 3.5h10M5 16.5h10M6.5 3.5c0 4.2 7 3.8 7 8.8 0 .8-.2 1.6-.7 2.4M13.5 3.5c0 4.2-7 3.8-7 8.8 0 .8.2 1.6.7 2.4" /></svg>;
+  }
+  if (name === 'actions') {
+    return <svg {...common}><path d="m5 15 1.2-3.7L14 3.5l2.5 2.5-7.8 7.8L5 15Z" /><path d="m12.5 5 2.5 2.5" /></svg>;
+  }
+  return <svg {...common}><path d="M15.5 3.5H6.2l5 6.5-5 6.5h9.3" /></svg>;
+}
+
 export function Sidebar() {
   const { rows: watchlist, setSelectedCa } = useTerminalRows();
   const { isCollapsed, toggleSidebar } = useSidebarLayout();
@@ -36,7 +68,7 @@ export function Sidebar() {
 
   const getIconClass = (path: string) => {
     const isActive = !isReport && pathname === path;
-    return `w-[14px] text-center font-mono text-[12px] ${isActive ? 'text-meme' : 'text-fg3'}`;
+    return `h-[14px] w-[14px] ${isActive ? 'text-meme' : 'text-fg3'} ${styles.navIcon}`;
   };
 
   return (
@@ -69,8 +101,8 @@ export function Sidebar() {
         </div>
         
         <Link href="/terminal" className={`${getNavClass('/terminal')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Split board">
-          <span className={`${getIconClass('/terminal')} ${styles.navIcon}`}>▱</span>
-          <span className={styles.navItemLabel}>Split board</span>
+          <SidebarIcon name="board" className={getIconClass('/terminal')} />
+          <span className={styles.navItemLabel} data-collapsed-label="Board">Split board</span>
         </Link>
 
         {isReport && (
@@ -79,31 +111,31 @@ export function Sidebar() {
             style={{ padding: '7px 14px' }}
             title="Report"
           >
-            <span className={`w-[14px] text-center font-mono text-[12px] text-meme ${styles.navIcon}`}>◉</span>
-            <span className={styles.navItemLabel}>Report</span>
+            <SidebarIcon name="report" className={`h-[14px] w-[14px] text-meme ${styles.navIcon}`} />
+            <span className={styles.navItemLabel} data-collapsed-label="Report">Report</span>
           </div>
         )}
         
         <Link href="/float" className={`${getNavClass('/float')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Float grip">
-          <span className={`${getIconClass('/float')} ${styles.navIcon}`}>◎</span>
-          <span className={styles.navItemLabel}>Float grip</span>
+          <SidebarIcon name="float" className={getIconClass('/float')} />
+          <span className={styles.navItemLabel} data-collapsed-label="Float">Float grip</span>
           <span className={`font-mono text-[10px] text-fg3 ${styles.navCount}`} style={{ marginLeft: "auto" }}>12</span>
         </Link>
         
         <Link href="/hours" className={`${getNavClass('/hours')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Market hours">
-          <span className={`${getIconClass('/hours')} ${styles.navIcon}`}>⏳</span>
-          <span className={styles.navItemLabel}>Market hours</span>
+          <SidebarIcon name="hours" className={getIconClass('/hours')} />
+          <span className={styles.navItemLabel} data-collapsed-label="Hours">Market hours</span>
         </Link>
         
         <Link href="/actions" className={`${getNavClass('/actions')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Corporate actions">
-          <span className={`${getIconClass('/actions')} ${styles.navIcon}`}>✎</span>
-          <span className={styles.navItemLabel}>Corporate actions</span>
+          <SidebarIcon name="actions" className={getIconClass('/actions')} />
+          <span className={styles.navItemLabel} data-collapsed-label="Actions">Corporate actions</span>
           <span className={`font-mono text-[10px] text-fg3 ${styles.navCount}`} style={{ marginLeft: "auto" }}>2</span>
         </Link>
         
         <Link href="/method" className={`${getNavClass('/method')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Method">
-          <span className={`${getIconClass('/method')} ${styles.navIcon}`}>∑</span>
-          <span className={styles.navItemLabel}>Method</span>
+          <SidebarIcon name="method" className={getIconClass('/method')} />
+          <span className={styles.navItemLabel} data-collapsed-label="Method">Method</span>
         </Link>
       </div>
 

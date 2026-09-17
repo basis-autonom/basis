@@ -6,6 +6,7 @@ import { PairSummary } from "./PairSummary";
 import { TerminalChart } from "./TerminalChart";
 import { SplitInspector } from "./SplitInspector";
 import { TerminalControls } from "./TerminalControls";
+import { FindingsPanel } from "@/components/findings/FindingsPanel";
 import { Group, Panel, Separator } from "react-resizable-panels";
 
 type ActiveTab = "all" | "greenStock" | "highGrip";
@@ -77,6 +78,7 @@ export function TerminalView() {
           </Panel>
           <Separator className="h-[12px] bg-transparent hover:bg-meme/30 active:bg-meme/50 cursor-row-resize transition-colors z-10 -my-[6px] relative" />
           <Panel defaultSize="50%" minSize="20%" className="flex flex-col min-h-0">
+            <FindingsPanel poolCount={rows.length} />
             <TerminalControls
               activeTab={activeTab}
               filterLiq10k={filterLiq10k}

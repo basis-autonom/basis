@@ -1,0 +1,18 @@
+.topbar {
+  position: relative;
+}
+
+.searchTrigger {
+  max-width: 520px;
+  border-radius: 999px;
+}
+
+@media (min-width: 1280px) {
+  .searchTrigger {
+    position: absolute;
+    left: 50%;
+    width: min(560px, calc(100% - 520px));
+    max-width: none;
+    transform: translateX(-50%);
+  }
+}

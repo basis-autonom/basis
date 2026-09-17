@@ -31,3 +31,10 @@ export function getDb(): Database {
 
   return globalForBasisDb.__basisDb;
 }
+
+export async function closeDb() {
+  const sql = globalForBasisDb.__basisSql;
+  globalForBasisDb.__basisDb = undefined;
+  globalForBasisDb.__basisSql = undefined;
+  if (sql) await sql.end({ timeout: 5 });
+}

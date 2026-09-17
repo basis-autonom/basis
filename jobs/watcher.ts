@@ -1,4 +1,5 @@
 import { getBoardData } from "../packages/core/board";
+import { closeDb } from "../packages/db/client";
 import { insertFindingIfNew } from "../packages/db/findings";
 import type { Finding } from "../packages/db/schema";
 import { fileURLToPath } from "node:url";
@@ -126,5 +127,9 @@ async function main() {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  await main();
+  try {
+    await main();
+  } finally {
+    await closeDb();
+  }
 }

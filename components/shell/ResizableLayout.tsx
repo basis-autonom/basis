@@ -8,7 +8,7 @@ type SidebarLayoutContextValue = {
 };
 
 const SidebarLayoutContext = createContext<SidebarLayoutContextValue | null>(null);
-const SIDEBAR_COLLAPSED_SIZE = 72;
+const SIDEBAR_COLLAPSED_SIZE = 48;
 const SIDEBAR_STORAGE_KEY = 'basis.sidebar.collapsed';
 
 export function useSidebarLayout() {
@@ -57,9 +57,9 @@ export function ResizableLayout({
         <Panel
           id="terminal-sidebar"
           panelRef={sidebarPanelRef}
-          defaultSize="15%"
-          minSize="10%"
-          maxSize="25%"
+          defaultSize={212}
+          minSize={212}
+          maxSize={212}
           collapsible
           collapsedSize={SIDEBAR_COLLAPSED_SIZE}
           onResize={(size) => {
