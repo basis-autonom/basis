@@ -8,6 +8,7 @@ import { LandingBoardRow } from '@/components/landing/types';
 import { MarketHours } from '@/components/landing/MarketHours';
 import { MethodBlock } from '@/components/landing/MethodBlock';
 import { LenisWrapper } from '@/components/landing/LenisWrapper';
+import { ScrollReveal } from '@/components/landing/ScrollReveal';
 import { SplitLab } from '@/components/landing/SplitLab';
 import { StatBand } from '@/components/landing/StatBand';
 import { TickerTape } from '@/components/landing/TickerTape';
@@ -39,18 +40,32 @@ export default async function LandingPage() {
       <div className="landing-page">
         <LandingNav />
         <TickerTape rows={board} />
-        <Hero rows={board} />
-        <StatBand poolCount={board.length} greenStock={greenStock} largestGrip={largestGrip} />
-        <SplitLab />
-        <GripBoard grips={grips} />
-        <MarketHours />
-        <MethodBlock />
-        <div className="landing-cta">
-          <div className="landing-frame">
-            <h2>Paste a contract.</h2>
-            <ContractForm />
+        <ScrollReveal className="landing-reveal-hero">
+          <Hero rows={board} />
+        </ScrollReveal>
+        <ScrollReveal>
+          <StatBand poolCount={board.length} greenStock={greenStock} largestGrip={largestGrip} />
+        </ScrollReveal>
+        <ScrollReveal>
+          <SplitLab featured={board[0]} />
+        </ScrollReveal>
+        <ScrollReveal>
+          <GripBoard grips={grips} />
+        </ScrollReveal>
+        <ScrollReveal>
+          <MarketHours />
+        </ScrollReveal>
+        <ScrollReveal>
+          <MethodBlock />
+        </ScrollReveal>
+        <ScrollReveal>
+          <div className="landing-cta">
+            <div className="landing-frame">
+              <h2>Paste a contract.</h2>
+              <ContractForm />
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
         <footer className="landing-footer">
           <div className="landing-frame landing-footer-inner">
             <span>chain 4663 · read-only · MIT</span>

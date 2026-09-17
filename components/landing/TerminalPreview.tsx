@@ -70,10 +70,10 @@ export function TerminalPreview({ rows, featured }: { rows: LandingBoardRow[]; f
             </>}
           </div>
           <div className="landing-shot-rail-section">
-            <div className="landing-kv"><span>Stock beta</span><span>—</span></div>
+            <div className="landing-kv"><span>Stock share of 7d move</span><span>{stockPct == null ? '—' : `${stockPct.toFixed(1)}%`}</span></div>
             <div className="landing-kv"><span>Float grip</span><span style={{ color: 'var(--color-down)' }}>{featured?.grip == null ? '—' : `${featured.grip.toFixed(1)}%`}</span></div>
             <div className="landing-kv"><span>Liquidity</span><span>{liquidity}</span></div>
-            <div className="landing-kv"><span>Stock leg</span><span>frozen</span></div>
+            <div className="landing-kv"><span>Window</span><span>{featured?.windowLabel || '—'}</span></div>
           </div>
         </div>
       </div>

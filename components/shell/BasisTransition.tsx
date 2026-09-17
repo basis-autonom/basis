@@ -1,7 +1,10 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+
+const LightPillar = dynamic(() => import('@/components/LightPillar'), { ssr: false });
 
 const STATUS_LINES = [
   'resolving contract',
@@ -96,9 +99,25 @@ export function BasisTransition() {
       aria-live="polite"
       aria-label="Loading Basis"
     >
+      <div className="basis-transition__light" aria-hidden="true">
+        <LightPillar
+          topColor="#0061ff"
+          bottomColor="#EAB308"
+          intensity={0.72}
+          rotationSpeed={0.2}
+          glowAmount={0.002}
+          pillarWidth={3}
+          pillarHeight={0.4}
+          noiseIntensity={0.5}
+          pillarRotation={25}
+          interactive={false}
+          mixBlendMode="screen"
+          quality="medium"
+        />
+      </div>
       <div className="basis-transition__content">
         <div className="basis-transition__mark" aria-hidden="true">
-          ba<b>/</b>sis
+          ba<b className="basis-transition__slash">/</b>sis
         </div>
         <div className="basis-transition__bar" aria-hidden="true">
           <i className="basis-transition__meme" />

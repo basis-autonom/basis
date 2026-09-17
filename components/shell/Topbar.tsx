@@ -4,31 +4,50 @@ import Link from "next/link";
 export function Topbar() {
   return (
     <header
-      className="top flex items-center gap-[14px] border-b border-line bg-pane flex-shrink-0 h-[46px] px-[14px]"
-      style={{ paddingLeft: "14px", paddingRight: "14px" }}
+      className="top flex items-center border-b border-line bg-pane flex-shrink-0"
+      style={{ gap: 14, padding: "0 14px" }}
     >
+      {/* brand */}
       <Link
         href="/"
-        className="brand font-mono text-[14px] font-semibold tracking-[-0.02em] border-r border-line2 pr-[12px]"
-        style={{ paddingRight: "12px" }}
+        className="font-mono text-[14px] font-semibold tracking-[-0.02em] text-fg border-r border-line2 flex-shrink-0"
+        style={{ paddingRight: 12, lineHeight: "46px" }}
       >
         ba<b className="text-meme font-semibold">/</b>sis
       </Link>
 
-      <div className="flex-1 max-w-[520px] flex items-center gap-[9px] bg-bg border border-line2 rounded-[5px] h-[29px] px-[11px] text-fg3">
+      {/* search */}
+      <div
+        className="flex flex-1 items-center bg-bg border border-line2 rounded-[5px] text-fg3"
+        style={{ maxWidth: 520, height: 29, gap: 9, padding: "0 11px" }}
+      >
         <span className="font-mono text-[13px]">&#9906;</span>
         <input
           placeholder="Paste a contract, or search a ticker"
           className="flex-1 bg-transparent border-0 text-fg font-mono text-[12px] outline-none placeholder:text-fg3"
         />
-        <span className="font-mono text-[10px] border border-line2 rounded-[3px] py-[1px] px-[5px] text-fg3">
+        <span
+          className="font-mono text-[10px] border border-line2 rounded-[3px] text-fg3"
+          style={{ padding: "1px 5px" }}
+        >
           &#8984;K
         </span>
       </div>
 
-      <div className="ml-auto flex items-center gap-[16px] text-[12px] text-fg2 hidden sm:flex">
-        <div className="flex items-center gap-[7px] border border-line2 rounded-[4px] py-[4px] px-[9px]">
-          <span className="w-[5px] h-[5px] rounded-full bg-up shadow-[0_0_6px_var(--up)]"></span>
+      {/* topright — always visible, no hidden class */}
+      <div
+        className="flex items-center text-[12px] text-fg2 flex-shrink-0"
+        style={{ marginLeft: "auto", gap: 16 }}
+      >
+        {/* chainpill */}
+        <div
+          className="flex items-center border border-line2 rounded-[4px]"
+          style={{ gap: 7, padding: "4px 9px" }}
+        >
+          <span
+            className="block rounded-full bg-up flex-shrink-0"
+            style={{ width: 5, height: 5, boxShadow: "0 0 6px var(--color-up)" }}
+          />
           Robinhood Chain
         </div>
         <span className="font-mono">block 4,912,338</span>

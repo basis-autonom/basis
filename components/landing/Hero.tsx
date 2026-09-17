@@ -4,25 +4,24 @@ import { ContractForm } from './ContractForm';
 import { TerminalPreview } from './TerminalPreview';
 import { LandingBoardRow, displaySymbol } from './types';
 
-function totalMove(row: LandingBoardRow | undefined) {
-  if (!row || row.meme7d == null || row.stock7d == null) return null;
-  return ((1 + row.meme7d / 100) * (1 + row.stock7d / 100) - 1) * 100;
-}
-
 export function Hero({ rows }: { rows: LandingBoardRow[] }) {
   const featured = rows[0];
-  const total = totalMove(featured);
   const sampleRows = rows.slice(0, 3);
+  const stockExposure = featured?.memeRatioPct == null ? null : 100 - featured.memeRatioPct;
+  const quote = featured?.quote || '—';
 
   return (
     <header className="landing-hero">
       <div className="landing-frame">
         <h1 className="landing-h1">
-          <span className="landing-mono">{displaySymbol(featured?.coin)}</span> is up{' '}
-          <span className="landing-mono">{total == null ? '—' : `${total.toFixed(1)}%`}</span>. Its meme did{' '}
-          <span className="landing-mono">{featured?.meme7d == null ? '—' : featured.meme7d.toFixed(1)}</span>.
+          You bought a memecoin.<br />
+          You are holding <span className="landing-mono">{quote}</span>.
         </h1>
-        <p className="landing-lede">On Robinhood Chain a memecoin is often quoted in a tokenized stock. When that stock moves, the coin reprices on its own — no buyers, no volume, no one doing anything. Basis tells you which half was real.</p>
+        <p className="landing-lede">On Robinhood Chain, memecoins can be quoted in tokenized stocks instead of dollars. That makes every holder a stock holder, whether they know it or not. Paste a contract to see what you are actually exposed to.</p>
+        <div className="landing-exposure">
+          <span>stock share of 7d move</span>
+          <strong>{stockExposure == null ? '—' : `${stockExposure.toFixed(1)}% ${quote}`}</strong>
+        </div>
         <ContractForm />
         <div className="landing-tryline">
           try{' '}

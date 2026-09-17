@@ -5,7 +5,7 @@ export function LandingNav() {
   return (
     <nav className="landing-nav">
       <div className="landing-frame landing-nav-inner">
-        <Link href="/" className="landing-brand">ba<b>/</b>sis</Link>
+        <Link href="/" className="landing-brand">ba<b className="landing-brand-slash">/</b>sis</Link>
         <div className="landing-nav-links">
           <Link href="/terminal">Terminal</Link>
           <Link href="#hours">Market hours</Link>
