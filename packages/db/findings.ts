@@ -33,3 +33,14 @@ export async function listFindingsForToken(
     .where(eq(findings.tokenAddress, tokenAddress.toLowerCase()))
     .orderBy(desc(findings.detectedAt), desc(findings.id));
 }
+
+export async function deleteFindingsForReportedDay(
+  reportedOn: string,
+): Promise<number> {
+  const deleted = await getDb()
+    .delete(findings)
+    .where(eq(findings.reportedOn, reportedOn))
+    .returning({ id: findings.id });
+
+  return deleted.length;
+}

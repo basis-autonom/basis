@@ -51,6 +51,8 @@ Basis mengukur seberapa besar pergerakan harga memecoin di Robinhood Chain beras
 - `app/api/findings/route.ts` — `GET /api/findings?limit=20` untuk temuan terbaru.
 - `app/api/findings/[ca]/route.ts` — `GET /api/findings/[ca]` untuk riwayat coin dan `totalDetections`.
 - Bentuk respons kedua endpoint sudah ditulis di komentar route untuk agent UI.
+- `components/findings/FindingsPanel.tsx` — panel Findings di atas board table `/terminal`, fetch `/api/findings?limit=20`, row clickable ke `/c/[tokenAddress]`, dan empty/error state yang jujur.
+- Screenshot produksi lokal sudah memverifikasi panel menampilkan SPOON dan SILVERBACK serta kedua link report.
 - `.env.example` berisi `DATABASE_URL`, `CRON_SECRET`, `WATCHER_ENABLED=true`, dan `WATCHER_POST_X=false`.
 
 ### Status deployment autonomous
@@ -114,7 +116,7 @@ Urutan yang direncanakan:
 1. **Tampilan** — dua masalah di atas
 2. **Framing** — `design/FRAMING.md` bagian 5, 6, 7. Kolom Exposure di board, urutan ulang panel report, tab "Real performance". Tidak mengubah `packages/core`.
 3. **Deployment scheduler autonomous** — masukkan `CRON_SECRET` dan `BASIS_PRODUCTION_URL` ke GitHub Secrets; masukkan `CRON_SECRET` dan `DATABASE_URL` ke Vercel Environment Variables.
-4. **UI autonomous** — agent UI menghubungkan Findings panel/chart ke endpoint yang sudah tersedia.
+4. **UI autonomous** — panel Findings sudah terhubung ke endpoint; chart historis tetap tidak dibuat.
 5. **Landing** — `app/page.tsx` dari `design/index.html`, dipecah per section ke `components/landing/`
 6. **Halaman `/hours` dan `/actions`** — masih EmptyState berlabel soon
 

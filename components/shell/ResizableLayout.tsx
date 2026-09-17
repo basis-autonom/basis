@@ -70,7 +70,9 @@ export function ResizableLayout({
         >
           {sidebar}
         </Panel>
-        <Separator className="w-[12px] bg-transparent hover:bg-meme/30 active:bg-meme/50 cursor-col-resize transition-colors z-30 -mx-[6px] relative" />
+        <Separator
+          className="relative z-30 w-px flex-shrink-0 cursor-col-resize bg-line transition-colors hover:bg-meme active:bg-meme after:absolute after:-inset-x-[6px] after:inset-y-0 after:content-['']"
+        />
         <Panel defaultSize="85%" minSize="50%" className="flex min-w-0 flex-1 flex-col overflow-hidden bg-bg relative z-10">
           {children}
         </Panel>

@@ -22,7 +22,10 @@ export function TerminalChart({ seed, timeframe, onTimeframeChange }: TerminalCh
 
   return (
     <div className="flex flex-col border-b border-line bg-bg min-h-0 flex-1 relative h-full">
-      <div className="flex justify-between items-center px-[14px] pt-[9px] pb-[4px]">
+      <div
+        className="flex items-center justify-between"
+        style={{ padding: "9px 16px 4px" }}
+      >
         <div className="flex gap-[16px] font-mono text-[11px] text-fg3">
           {(['1h', '4h', '24h', '7d', '30d'] as Timeframe[]).map((tf) => (
             <span

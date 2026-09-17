@@ -418,7 +418,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
         </div>
 
         {/* Cell 7: How these numbers were produced (full width) */}
-        <div className="cell full bg-bg min-[1000px]:col-span-2 flex flex-col justify-between" style={{ padding: "16px 18px" }}>
+        <div className="cell full col-span-full bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
             <div className={`ch flex items-baseline justify-between ${styles.sectionHeader}`}>
               <h2 className="text-[12px] font-medium text-fg">How these numbers were produced</h2>

@@ -76,7 +76,9 @@ export function TerminalView() {
               onTimeframeChange={setTimeframe}
             />
           </Panel>
-          <Separator className="h-[12px] bg-transparent hover:bg-meme/30 active:bg-meme/50 cursor-row-resize transition-colors z-10 -my-[6px] relative" />
+          <Separator
+            className="relative z-10 h-px flex-shrink-0 cursor-row-resize bg-line transition-colors hover:bg-meme active:bg-meme after:absolute after:-inset-y-[6px] after:inset-x-0 after:content-['']"
+          />
           <Panel defaultSize="50%" minSize="20%" className="flex flex-col min-h-0">
             <FindingsPanel poolCount={rows.length} />
             <TerminalControls
@@ -98,7 +100,9 @@ export function TerminalView() {
           </Panel>
         </Group>
       </Panel>
-      <Separator className="w-[12px] bg-transparent hover:bg-meme/30 active:bg-meme/50 cursor-col-resize transition-colors z-10 -mx-[6px] relative" />
+      <Separator
+        className="relative z-10 w-px flex-shrink-0 cursor-col-resize bg-line transition-colors hover:bg-meme active:bg-meme after:absolute after:-inset-x-[6px] after:inset-y-0 after:content-['']"
+      />
       <Panel defaultSize="25%" minSize="15%" maxSize="40%" className="flex flex-col min-h-0 border-l border-line">
         <SplitInspector row={selectedRow} copied={copied} onCopy={handleCopy} />
       </Panel>

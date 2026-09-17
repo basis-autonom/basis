@@ -32,7 +32,13 @@ function formatTime(value: string) {
 
 function formatPercent(value: number | null) {
   if (value == null) return "—";
-  return value.toFixed(Math.abs(value) < 0.1 ? 2 : 1);
+  const formatted = value.toFixed(Math.abs(value) < 0.1 ? 2 : 1);
+  return value > 0 ? `+${formatted}` : formatted;
+}
+
+function movementClass(value: number | null) {
+  if (value == null || value === 0) return "text-fg2";
+  return value > 0 ? "text-up" : "text-down";
 }
 
 export function FindingsPanel({ poolCount }: { poolCount: number }) {
@@ -79,9 +85,9 @@ export function FindingsPanel({ poolCount }: { poolCount: number }) {
   return (
     <section
       aria-labelledby="findings-heading"
-      className="border-b border-line bg-pane"
+      className="flex min-h-[42px] min-w-0 border-b border-line bg-pane"
     >
-      <div className="flex items-center justify-between border-b border-line px-[14px] py-[8px]">
+      <div className="flex w-[116px] flex-shrink-0 items-center justify-between border-r border-line px-[14px]">
         <h2
           id="findings-heading"
           className="font-mono text-[10px] uppercase tracking-[0.09em] text-fg3"
@@ -94,39 +100,46 @@ export function FindingsPanel({ poolCount }: { poolCount: number }) {
       </div>
 
       {state.status === "error" ? (
-        <p className="px-[14px] py-[10px] font-mono text-[10px] text-fg3">
+        <p className="flex min-w-0 items-center px-[14px] font-mono text-[10px] text-fg3">
           Findings unavailable right now.
         </p>
       ) : state.status === "ready" && state.findings.length === 0 ? (
-        <p className="px-[14px] py-[10px] font-mono text-[10px] text-fg3">
+        <p className="flex min-w-0 items-center px-[14px] font-mono text-[10px] text-fg3">
           Watching {poolCount} stock-paired pools. Nothing moving on its stock right now.
         </p>
       ) : state.status === "loading" ? (
-        <p className="px-[14px] py-[10px] font-mono text-[10px] text-fg3">
+        <p className="flex min-w-0 items-center px-[14px] font-mono text-[10px] text-fg3">
           Reading latest findings…
         </p>
       ) : (
-        <ul aria-label="Latest findings" className="divide-y divide-line/70">
+        <ul
+          aria-label="Latest findings"
+          className="flex min-w-0 flex-1 overflow-x-auto"
+        >
           {state.findings.map((finding) => (
-            <li key={finding.id}>
+            <li key={finding.id} className="flex flex-shrink-0 border-r border-line last:border-r-0">
               <Link
                 href={`/c/${finding.tokenAddress}`}
-                className="grid grid-cols-[42px_minmax(0,1fr)] gap-[10px] px-[14px] py-[8px] transition-colors hover:bg-pane2 focus-visible:bg-pane2"
+                className="flex items-center gap-[12px] px-[14px] py-[8px] font-mono text-[11px] transition-colors hover:bg-pane2 focus-visible:bg-pane2"
               >
                 <time
                   dateTime={finding.detectedAt}
-                  className="font-mono text-[10px] tabular-nums text-fg3"
+                  className="flex-shrink-0 text-[10px] tabular-nums text-fg3"
                 >
                   {formatTime(finding.detectedAt)}
                 </time>
-                <span className="min-w-0 font-mono text-[11px] leading-[1.45] text-fg2">
-                  <span className="text-fg">${finding.symbol ?? "—"}</span>{" "}
-                  moved {formatPercent(finding.priceMovement)}%. Its meme did{" "}
-                  <span className="text-meme">
-                    {formatPercent(finding.memeComponent)}
-                  </span>
-                  %. The rest is{" "}
-                  <span className="text-stock">{finding.stockPair ?? "—"}</span>.
+                <span className="flex-shrink-0 text-fg">
+                  ${finding.symbol ?? "—"}
+                  <span className="ml-[5px] text-stock">/ {finding.stockPair ?? "—"}</span>
+                </span>
+                <span className={movementClass(finding.priceMovement)}>
+                  price {formatPercent(finding.priceMovement)}%
+                </span>
+                <span className="text-meme">
+                  meme {formatPercent(finding.memeComponent)}%
+                </span>
+                <span className="text-stock">
+                  stock {formatPercent(finding.stockComponent)}%
                 </span>
               </Link>
             </li>
