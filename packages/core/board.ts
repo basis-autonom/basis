@@ -226,6 +226,7 @@ const EXCLUDED_ADDRS = new Set([
         ]);
         stockPrices.set(addr, {
           latest: p24h.latestPrice,
+          latestUpdatedAt: p24h.latestUpdatedAt,
           old24h: p24h.oldPrice,
           old7d: p7d.oldPrice,
           stock,
@@ -281,13 +282,15 @@ const EXCLUDED_ADDRS = new Set([
 
     // ── 24h change ──
     let chg24h: number | null = null;
+    let meme24h: number | null = null;
+    let stock24h: number | null = null;
     if (prices && res24h[i]?.status === "success") {
       const slot024h = res24h[i].result as any;
       if (slot024h && slot024h[0] && slot024h[0] !== BigInt(0)) {
         const ratio24h = getRatio(slot024h[0]);
         if (ratio24h != null && ratio24h > 0) {
-          const meme24h = ratioNow / ratio24h - 1;
-          const stock24h = prices.latest / prices.old24h - 1;
+          meme24h = ratioNow / ratio24h - 1;
+          stock24h = prices.latest / prices.old24h - 1;
           chg24h = ((1 + meme24h) * (1 + stock24h) - 1) * 100;
         }
       }
@@ -360,8 +363,11 @@ const EXCLUDED_ADDRS = new Set([
       poolRatio: ratioNow,
       stockPrice: prices?.latest ?? null,
       stockPrice7d: prices?.old7d ?? null,
+      stockFeedUpdatedAt: prices?.latestUpdatedAt ?? null,
       priceUsd,
       chg24h,
+      meme24h: meme24h == null ? null : meme24h * 100,
+      stock24h: stock24h == null ? null : stock24h * 100,
       memeRatioPct,
       meme7d,
       stock7d,

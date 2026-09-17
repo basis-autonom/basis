@@ -6,6 +6,7 @@ import { PairSummary } from "./PairSummary";
 import { TerminalChart } from "./TerminalChart";
 import { SplitInspector } from "./SplitInspector";
 import { TerminalControls } from "./TerminalControls";
+import { Group, Panel, Separator } from "react-resizable-panels";
 
 type ActiveTab = "all" | "greenStock" | "highGrip";
 
@@ -63,34 +64,42 @@ export function TerminalView() {
   };
 
   return (
-    <div className="flex min-w-0 flex-1 overflow-hidden">
-      <section className="flex min-w-0 flex-1 flex-col overflow-hidden bg-bg">
-        {selectedRow && <PairSummary row={selectedRow} />}
-
-        <TerminalChart
-          seed={selectedCa}
-          timeframe={timeframe}
-          onTimeframeChange={setTimeframe}
-        />
-        <TerminalControls
-          activeTab={activeTab}
-          filterLiq10k={filterLiq10k}
-          rowCount={(rows || []).length}
-          greenStockCount={greenStockCount}
-          highGripCount={highGripCount}
-          onTabChange={setActiveTab}
-          onLiquidityToggle={() => setFilterLiq10k((value) => !value)}
-        />
-
-        <div className="min-h-0 flex-1 overflow-auto bg-bg">
-          <BoardTable
-            rows={filteredRows}
-            selectedCa={selectedRow?.ca || selectedRow?.poolId}
-            onSelectRow={(row) => setSelectedCa(row.ca || row.poolId)}
-          />
-        </div>
-      </section>
-      <SplitInspector row={selectedRow} copied={copied} onCopy={handleCopy} />
-    </div>
+    <Group orientation="horizontal" className="flex min-w-0 flex-1 overflow-hidden">
+      <Panel defaultSize="75%" minSize="50%" className="flex min-w-0 flex-1 flex-col overflow-hidden bg-bg">
+        <Group orientation="vertical">
+          <Panel defaultSize="50%" minSize="20%" className="flex flex-col min-h-0 relative">
+            {selectedRow && <PairSummary row={selectedRow} />}
+            <TerminalChart
+              seed={selectedCa}
+              timeframe={timeframe}
+              onTimeframeChange={setTimeframe}
+            />
+          </Panel>
+          <Separator className="h-[12px] bg-transparent hover:bg-meme/30 active:bg-meme/50 cursor-row-resize transition-colors z-10 -my-[6px] relative" />
+          <Panel defaultSize="50%" minSize="20%" className="flex flex-col min-h-0">
+            <TerminalControls
+              activeTab={activeTab}
+              filterLiq10k={filterLiq10k}
+              rowCount={(rows || []).length}
+              greenStockCount={greenStockCount}
+              highGripCount={highGripCount}
+              onTabChange={setActiveTab}
+              onLiquidityToggle={() => setFilterLiq10k((value) => !value)}
+            />
+            <div className="min-h-0 flex-1 overflow-auto bg-bg">
+              <BoardTable
+                rows={filteredRows}
+                selectedCa={selectedRow?.ca || selectedRow?.poolId}
+                onSelectRow={(row) => setSelectedCa(row.ca || row.poolId)}
+              />
+            </div>
+          </Panel>
+        </Group>
+      </Panel>
+      <Separator className="w-[12px] bg-transparent hover:bg-meme/30 active:bg-meme/50 cursor-col-resize transition-colors z-10 -mx-[6px] relative" />
+      <Panel defaultSize="25%" minSize="15%" maxSize="40%" className="flex flex-col min-h-0 border-l border-line">
+        <SplitInspector row={selectedRow} copied={copied} onCopy={handleCopy} />
+      </Panel>
+    </Group>
   );
 }

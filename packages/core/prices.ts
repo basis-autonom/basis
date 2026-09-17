@@ -20,18 +20,27 @@ function delay(ms: number) {
 export async function getPrices(feedAddress: Address, targetMs: number) {
   const targetTs = BigInt(Math.floor(targetMs / 1000));
 
-  const latest = await client.readContract({
+  let latest: any = null;
+  try {
+    latest = await client.readContract({
     address: feedAddress,
     abi: clAbi,
     functionName: "latestRoundData",
   });
 
+  } catch (e) {
+    return { latestPrice: 0, oldPrice: 0, latestUpdatedAt: 0 };
+  }
   const latestPrice = Number(latest[1]) / 1e8;
   const lastUpdatedAt = latest[3];
 
   // If the target is newer than our latest data, return latest for both
   if (targetTs >= lastUpdatedAt) {
-    return { latestPrice, oldPrice: latestPrice };
+    return {
+      latestPrice,
+      oldPrice: latestPrice,
+      latestUpdatedAt: Number(lastUpdatedAt) * 1000,
+    };
   }
 
   let roundId = latest[0];
@@ -95,5 +104,9 @@ export async function getPrices(feedAddress: Address, targetMs: number) {
     }
   }
 
-  return { latestPrice, oldPrice: oldestPrice };
+  return {
+    latestPrice,
+    oldPrice: oldestPrice,
+    latestUpdatedAt: Number(lastUpdatedAt) * 1000,
+  };
 }

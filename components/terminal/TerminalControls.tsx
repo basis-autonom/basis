@@ -30,34 +30,63 @@ export function TerminalControls({
   const counts = { rowCount, greenStockCount, highGripCount };
 
   return (
-    <div className="flex min-h-[38px] flex-shrink-0 items-center gap-[12px] overflow-x-auto whitespace-nowrap border-b border-line bg-pane px-[14px]">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          type="button"
-          onClick={() => onTabChange(tab.id)}
-          className={`border-b-2 bg-transparent px-[6px] py-[9px] text-[12px] transition-colors ${
-            activeTab === tab.id ? 'border-meme font-medium text-fg' : 'border-transparent text-fg3 hover:text-fg2'
-          }`}
-        >
-          {tab.label}
-          <span className="ml-[5px] font-mono text-[10px] text-fg3">{counts[tab.countKey]}</span>
-        </button>
-      ))}
+    <div className="flex items-center overflow-x-auto whitespace-nowrap border-b border-line bg-pane" style={{ padding: '0 14px' }}>
+      <div className="flex" style={{ gap: '0' }}>
+        {tabs.map((tab) => {
+          const isOn = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => onTabChange(tab.id)}
+              className="tb"
+              style={{
+                fontSize: '12px',
+                padding: '9px 12px',
+                cursor: 'pointer',
+                borderBottom: '2px solid',
+                borderBottomColor: isOn ? 'var(--color-meme)' : 'transparent',
+                color: isOn ? 'var(--color-fg)' : 'var(--color-fg3)',
+                background: 'transparent',
+              }}
+            >
+              {tab.label}
+              <span className="tbcount font-mono" style={{ fontSize: '10px', color: 'var(--color-fg3)', marginLeft: '5px' }}>
+                {counts[tab.countKey]}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
-      <div className="ml-auto flex items-center gap-[6px] pl-[8px] text-[11px] text-fg3">
+      <div className="filters" style={{ marginLeft: 'auto', display: 'flex', gap: '6px', alignItems: 'center', fontSize: '11px', color: 'var(--color-fg3)' }}>
         <button
           type="button"
           onClick={onLiquidityToggle}
-          className={`rounded-[3px] border px-[8px] py-[3px] transition-colors ${
-            filterLiq10k ? 'border-meme text-meme' : 'border-line2 text-fg3 hover:text-fg2'
-          }`}
+          className="chip"
+          style={{
+            border: '1px solid',
+            borderColor: filterLiq10k ? 'var(--color-meme)' : 'var(--color-line2)',
+            color: filterLiq10k ? 'var(--color-meme)' : 'var(--color-fg3)',
+            borderRadius: '3px',
+            padding: '3px 8px',
+            cursor: 'pointer',
+            background: 'transparent',
+          }}
         >
           Liq &gt; $10K
         </button>
         <button
           type="button"
-          className="rounded-[3px] border border-line2 px-[8px] py-[3px] text-fg3 transition-colors hover:text-fg2"
+          className="chip"
+          style={{
+            border: '1px solid var(--color-line2)',
+            color: 'var(--color-fg3)',
+            borderRadius: '3px',
+            padding: '3px 8px',
+            cursor: 'pointer',
+            background: 'transparent',
+          }}
         >
           Hide LP live
         </button>

@@ -42,7 +42,7 @@ export function SplitInspector({ row, copied, onCopy }: SplitInspectorProps) {
     /* rail: border-left, bg-pane, overflow-y: auto — hidden below 1180px per design */
     <aside
       className="hidden lg:flex flex-shrink-0 flex-col overflow-y-auto border-l border-line bg-pane"
-      style={{ width: 292 }}
+      style={{ width: "100%", height: "100%" }}
     >
       {/* rhead */}
       <div

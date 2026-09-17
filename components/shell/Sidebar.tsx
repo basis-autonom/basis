@@ -3,6 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTerminalRows } from './TerminalDataProvider';
+import { startBasisRouteTransition } from './routeTransition';
 
 function formatPrice(price: number | null | undefined) {
   if (price == null) return '—';
@@ -34,8 +35,8 @@ export function Sidebar() {
 
   return (
     <aside
-      className="side border-r border-line bg-pane flex flex-col overflow-hidden flex-shrink-0 hidden md:flex"
-      style={{ width: 212, minWidth: 212, maxWidth: 212 }}
+      className="side border-r border-line bg-pane flex flex-col overflow-hidden w-full h-full"
+      style={{ width: "100%", height: "100%" }}
     >
       <div className="navsec py-[9px] border-b border-line">
         <div
@@ -118,7 +119,13 @@ export function Sidebar() {
           </div>
           <div className="flex min-w-0 flex-col">
             {watchlist.map((item, idx) => (
-              <div onClick={() => { setSelectedCa(item.ca || item.poolId); if (pathname !== "/terminal") router.push('/terminal'); }}
+              <div onClick={() => {
+                setSelectedCa(item.ca || item.poolId);
+                if (pathname !== "/terminal") {
+                  startBasisRouteTransition('/terminal');
+                  router.push('/terminal');
+                }
+              }}
                 key={item.ca || item.poolId || idx}
 
                 className="flex min-w-0 items-center justify-between gap-[8px] border-b border-line/40 transition-colors hover:bg-pane2 cursor-pointer"

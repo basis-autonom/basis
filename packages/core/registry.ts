@@ -12,7 +12,7 @@ const client = createPublicClient({
   transport: http(process.env.RPC_URL),
 });
 
-export async function fetchRegistry(): Promise<StockToken[]> {
+export async function fetchRegistryOriginal(): Promise<StockToken[]> {
   const now = Date.now();
   if (cachedRegistry && now - lastFetchTime < CACHE_TTL) {
     return cachedRegistry;
@@ -125,4 +125,15 @@ export async function getStockTokenByAddress(
   const registry = await fetchRegistry();
   const lowerAddress = address.toLowerCase();
   return registry.find((t) => t.address === lowerAddress) || null;
+}
+
+export async function fetchRegistry(): Promise<StockToken[]> {
+  try {
+    return await fetchRegistryOriginal();
+  } catch (error) {
+    // Never substitute invented stock addresses or feeds. The terminal must
+    // show an honest empty state until the official registry is reachable.
+    console.warn("fetchRegistry failed", error);
+    return cachedRegistry ?? [];
+  }
 }
