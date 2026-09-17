@@ -1,0 +1,110 @@
+.sidebar {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.navSection {
+  padding: 9px 0 !important;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 25px;
+  padding: 0 14px 7px;
+}
+
+.sectionLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toggleButton {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: -3px -7px 0 0;
+  color: var(--color-fg3);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  transition: color 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.toggleButton:hover {
+  color: var(--color-fg);
+  border-color: var(--color-line2);
+  background: var(--color-pane2);
+}
+
+.toggleButton:focus-visible {
+  outline: 1px solid var(--color-meme);
+  outline-offset: 1px;
+}
+
+.navItem {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.navIcon {
+  flex-shrink: 0;
+}
+
+.navItemLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navCount {
+  flex-shrink: 0;
+}
+
+.detailSection {
+  min-width: 0;
+}
+
+.watchSection {
+  min-width: 0;
+}
+
+.collapsed .sidebarHeader {
+  justify-content: center;
+  padding: 0 0 7px;
+}
+
+.collapsed .toggleButton {
+  margin: -3px 0 0;
+}
+
+.collapsed .sectionLabel,
+.collapsed .navItemLabel,
+.collapsed .navCount,
+.collapsed .detailSection,
+.collapsed .watchSection {
+  display: none;
+}
+
+.collapsed .navItem {
+  justify-content: center;
+  gap: 0;
+  padding: 7px 0 !important;
+}
+
+.collapsed .navIcon {
+  width: 100% !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggleButton {
+    transition: none;
+  }
+}

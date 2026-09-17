@@ -1,0 +1,68 @@
+.headerStat {
+  flex-shrink: 0;
+}
+
+.headerStatValue {
+  margin-top: 2px;
+}
+
+.headerActions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 7px;
+  margin-left: auto;
+}
+
+.headerButton {
+  height: 29px;
+  padding: 0 13px;
+}
+
+.timeframe {
+  padding: 3px 9px;
+}
+
+.sectionHeader {
+  margin-bottom: 13px;
+}
+
+.bigSplit {
+  margin: 20px 0 8px;
+}
+
+.bigSplitItem {
+  padding: 0 13px;
+}
+
+.attributionNote {
+  margin-top: 14px;
+}
+
+.chartLegend {
+  margin-top: 10px;
+}
+
+.kv {
+  padding: 7px 0;
+}
+
+.gauge {
+  margin: 10px 0 7px;
+}
+
+.sectionNote {
+  margin-top: 12px;
+}
+
+.drift {
+  gap: 2px;
+  margin-top: 12px;
+}
+
+.dax {
+  margin-top: 6px;
+}
+
+.mathNote {
+  margin-top: 14px;
+}

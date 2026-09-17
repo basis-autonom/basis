@@ -2,7 +2,7 @@ import React from 'react';
 import { Address, SplitResponse } from '@/packages/core/types';
 import { computeSplit } from '@/packages/core/attribution';
 import { EmptyState } from '@/components/primitives/EmptyState';
-import { SplitBar } from '@/components/primitives/SplitBar';
+import styles from './ReportPage.module.css';
 
 export const dynamic = 'force-dynamic';
 
@@ -107,30 +107,30 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
           {total != null ? `${totalSign} ${Math.abs(total * 100).toFixed(2)}%` : '—'}
         </span>
 
-        <div className="stat flex flex-col">
+        <div className={`stat flex flex-col ${styles.headerStat}`}>
           <div className="k text-[10px] text-fg3">Beta</div>
-          <div className="v font-mono text-[12px] text-fg mt-[2px]">{beta != null ? beta.toFixed(2) : '—'}</div>
+          <div className={`v font-mono text-[12px] text-fg ${styles.headerStatValue}`}>{beta != null ? beta.toFixed(2) : '—'}</div>
         </div>
 
-        <div className="stat flex flex-col">
+        <div className={`stat flex flex-col ${styles.headerStat}`}>
           <div className="k text-[10px] text-fg3">Grip</div>
-          <div className={`v font-mono text-[12px] mt-[2px] text-fg`}>
+          <div className={`v font-mono text-[12px] ${styles.headerStatValue} ${grip.gripPct >= 10 ? 'text-down' : 'text-fg'}`}>
             {grip.gripPct.toFixed(1)}%
           </div>
         </div>
 
-        <div className="stat flex flex-col">
+        <div className={`stat flex flex-col ${styles.headerStat}`}>
           <div className="k text-[10px] text-fg3">Liquidity</div>
-          <div className="v font-mono text-[12px] text-fg mt-[2px]">
+          <div className={`v font-mono text-[12px] text-fg ${styles.headerStatValue}`}>
             ${(pool.liquidityUsd / 1e6).toFixed(2)}M
           </div>
         </div>
 
-        <div className="act ml-auto flex" style={{ gap: "7px" }}>
-          <button className="btn h-[29px] px-[13px] bg-fg text-bg border-0 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:opacity-90 transition-opacity">
+        <div className={styles.headerActions}>
+          <button className={`btn bg-fg text-bg border-0 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:opacity-90 transition-opacity ${styles.headerButton}`}>
             Copy split card
           </button>
-          <button className="btn ghost h-[29px] px-[13px] bg-transparent text-fg2 border border-line2 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:text-fg hover:border-line transition-colors">
+          <button className={`btn ghost bg-transparent text-fg2 border border-line2 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:text-fg hover:border-line transition-colors ${styles.headerButton}`}>
             Share
           </button>
         </div>
@@ -141,12 +141,12 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
         
         {/* Cell 1: Attribution */}
         <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
-          <div className="flex items-baseline justify-between mb-[13px]">
+          <div className={`flex items-baseline justify-between ${styles.sectionHeader}`}>
             <h2 className="text-[12px] font-medium text-fg">Attribution</h2>
             <div className="flex gap-[2px]">
-              <span className="font-mono text-[11px] text-fg3 py-[3px] px-[9px] rounded-[3px] cursor-pointer hover:text-fg">24h</span>
-              <span className="font-mono text-[11px] text-fg bg-pane2 py-[3px] px-[9px] rounded-[3px] cursor-pointer">7d</span>
-              <span className="font-mono text-[11px] text-fg3 py-[3px] px-[9px] rounded-[3px] cursor-pointer hover:text-fg">30d</span>
+              <span className={`font-mono text-[11px] text-fg3 rounded-[3px] cursor-pointer hover:text-fg ${styles.timeframe}`}>24h</span>
+              <span className={`font-mono text-[11px] text-fg bg-pane2 rounded-[3px] cursor-pointer ${styles.timeframe}`}>7d</span>
+              <span className={`font-mono text-[11px] text-fg3 rounded-[3px] cursor-pointer hover:text-fg ${styles.timeframe}`}>30d</span>
             </div>
           </div>
 
@@ -171,15 +171,15 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
 
           {memeComp != null && stockComp != null ? (
             <>
-              <div className="flex h-[40px] rounded-[3px] overflow-hidden my-[20px] mx-0">
+              <div className={`flex h-[40px] rounded-[3px] overflow-hidden mx-0 ${styles.bigSplit}`}>
                 <div 
-                  className="flex items-center px-[13px] font-mono text-[12px] bg-memebg text-[#9BBDF7] border-l-2 border-meme"
+                  className={`flex items-center font-mono text-[12px] bg-memebg text-[#9BBDF7] border-l-2 border-meme ${styles.bigSplitItem}`}
                   style={{ width: `${memeBarPct}%` }}
                 >
                   meme
                 </div>
                 <div 
-                  className="flex items-center justify-end px-[13px] font-mono text-[12px] bg-stockbg text-[#E0BC7C] border-r-2 border-stock"
+                  className={`flex items-center justify-end font-mono text-[12px] bg-stockbg text-[#E0BC7C] border-r-2 border-stock ${styles.bigSplitItem}`}
                   style={{ width: `${stockBarPct}%` }}
                 >
                   {stock.symbol}
@@ -201,7 +201,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
             </div>
           )}
 
-          <div className="text-[11px] text-fg3 leading-[1.6] mt-[14px]">
+          <div className={`text-[11px] text-fg3 leading-[1.6] ${styles.attributionNote}`}>
             {displayStockName}{' '}
             {stockComp != null ? (
               <>
@@ -224,7 +224,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
         {/* Cell 2: Hourly contribution */}
         <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
-            <div className="ch flex items-baseline justify-between mb-[13px]">
+            <div className={`ch flex items-baseline justify-between ${styles.sectionHeader}`}>
               <h2 className="text-[12px] font-medium text-fg">Hourly contribution</h2>
               <span className="font-mono text-[10px] text-fg3">last 24h</span>
             </div>
@@ -257,7 +257,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
                 return <>{lines}{rects}</>;
               })()}
             </svg>
-            <div className="lg flex gap-[12px] text-[10px] text-fg2 font-mono mt-[8px]">
+            <div className={`lg flex gap-[12px] text-[10px] text-fg2 font-mono ${styles.chartLegend}`}>
               <span className="flex items-center gap-[6px]"><span className="block w-[10px] h-[10px] rounded-[2px] bg-meme" />meme</span>
               <span className="flex items-center gap-[6px]"><span className="block w-[10px] h-[10px] rounded-[2px] bg-stock" />stock</span>
               <span style={{ marginLeft: 'auto', color: 'var(--color-fg3)' }}>gap = Nasdaq closed</span>
@@ -267,12 +267,12 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
 {/* Cell 3: Float grip */}
         <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
-            <div className="ch flex items-baseline justify-between mb-[13px]">
+            <div className={`ch flex items-baseline justify-between ${styles.sectionHeader}`}>
               <h2 className="text-[12px] font-medium text-fg">Float grip</h2>
               <span className="font-mono text-[10px] text-fg3">{stock.symbol} supply on chain</span>
             </div>
             
-            <div className="kv flex justify-between py-[7px] border-b border-line text-[12px]">
+            <div className={`kv flex justify-between border-b border-line text-[12px] ${styles.kv}`}>
               <span className="text-fg2">Locked in AMM</span>
               <span className="font-mono text-fg">
                 {Number(stock.totalSupply) > 0
@@ -280,7 +280,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
                   : '—'}
               </span>
             </div>
-            <div className="kv flex justify-between py-[7px] border-b border-line text-[12px]">
+            <div className={`kv flex justify-between border-b border-line text-[12px] ${styles.kv}`}>
               <span className="text-fg2">Total on chain</span>
               <span className="font-mono text-fg">
                 {Number(stock.totalSupply) > 0
@@ -288,19 +288,19 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
                   : '—'}
               </span>
             </div>
-            <div className="kv flex justify-between py-[7px] text-[12px]">
+            <div className={`kv flex justify-between text-[12px] ${styles.kv}`}>
               <span className="text-fg2">Share</span>
               <span className={`font-mono text-fg`}>
                 {grip.gripPct.toFixed(1)}%
               </span>
             </div>
             
-            <div className="gauge h-[8px] bg-pane2 rounded-[2px] overflow-hidden my-[10px]">
+            <div className={`gauge h-[8px] bg-pane2 rounded-[2px] overflow-hidden ${styles.gauge}`}>
               <i className="block h-full bg-down" style={{ width: `${Math.min(grip.gripPct, 100)}%` }} />
             </div>
           </div>
           
-          <div className="mini text-[11px] text-fg3 leading-[1.6] mt-[12px]">
+          <div className={`mini text-[11px] text-fg3 leading-[1.6] ${styles.sectionNote}`}>
             Supply is fixed — only the licensed minter can create more. With LP burned, these tokens cannot be withdrawn, so the float stays locked for as long as the pool exists.
           </div>
         </div>
@@ -309,15 +309,15 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
         {/* Cell 4: 30-day drift */}
         <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
-            <div className="ch flex items-baseline justify-between mb-[13px]">
+            <div className={`ch flex items-baseline justify-between ${styles.sectionHeader}`}>
               <h2 className="text-[12px] font-medium text-fg">30-day drift</h2>
               <span className="font-mono text-[10px] text-fg3">meme component per day</span>
             </div>
-            <div className="drift flex gap-[2px] mt-[4px]">
+            <div className={`drift flex ${styles.drift}`}>
               {[1,1,0,1,0,0,1,1,1,0,1,1,0,1,1,1,0,0,1,1,1,0,1,1,0,1,1,1,1,1].map((v, i) => (
                 <i
                   key={i}
-                  className="flex-1 h-[14px]"
+                  className="flex-1 h-[30px]"
                   style={{
                     background: v ? 'var(--color-memebg)' : '#3A1A1A',
                     borderTop: `2px solid ${v ? 'var(--color-meme)' : 'var(--color-down)'}`
@@ -325,20 +325,20 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
                 />
               ))}
             </div>
-            <div className="kv flex justify-between py-[7px] border-b border-line text-[12px]"><div className="k text-fg3">beta</div><div className="v text-fg">{beta != null ? beta.toFixed(2) : '—'}</div></div>
-            <div className="dax flex justify-between text-[10px] text-fg3 font-mono mt-[4px]">
+            <div className={`kv flex justify-between border-b border-line text-[12px] ${styles.kv}`}><div className="k text-fg3">beta</div><div className="v text-fg">{beta != null ? beta.toFixed(2) : '—'}</div></div>
+            <div className={`dax flex justify-between text-[10px] text-fg3 font-mono ${styles.dax}`}>
               <span>30d ago</span>
               <span>today</span>
             </div>
           </div>
-          <div className="mini text-[11px] text-fg3 leading-[1.6] mt-[12px]">
-            The meme component closed red on 11 of 30 days while the token itself closed green. On those days every dollar of gain came from Nvidia.
+          <div className={`mini text-[11px] text-fg3 leading-[1.6] ${styles.sectionNote}`}>
+            The meme component closed red on 11 of 30 days while the token itself closed green. On those days every dollar of gain came from {displayStockName}.
           </div>
         </div>
 {/* Cell 5: Pool composition */}
         <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
-            <div className="ch flex items-baseline justify-between mb-[13px]">
+            <div className={`ch flex items-baseline justify-between ${styles.sectionHeader}`}>
               <h2 className="text-[12px] font-medium text-fg">Pool composition</h2>
               <span className="font-mono text-[10px] text-fg3">Uniswap v4</span>
             </div>
@@ -377,7 +377,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
             </table>
           </div>
 
-          <div className="mini text-[11px] text-fg3 leading-[1.6] mt-[12px]">
+          <div className={`mini text-[11px] text-fg3 leading-[1.6] ${styles.sectionNote}`}>
             Uniswap v4 singleton aggregates all reserves inside the PoolManager contract. Liquidity: ${(pool.liquidityUsd / 1e6).toFixed(2)}M.
           </div>
         </div>
@@ -385,7 +385,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
         {/* Cell 6: Corporate actions */}
         <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
-            <div className="ch flex items-baseline justify-between mb-[13px]">
+            <div className={`ch flex items-baseline justify-between ${styles.sectionHeader}`}>
               <h2 className="text-[12px] font-medium text-fg">Corporate actions</h2>
               <span className="font-mono text-[10px] text-fg3">{stock.symbol} multiplier</span>
             </div>
@@ -412,7 +412,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
             </table>
           </div>
 
-          <div className="mini text-[11px] text-fg3 leading-[1.6] mt-[12px]">
+          <div className={`mini text-[11px] text-fg3 leading-[1.6] ${styles.sectionNote}`}>
             Splits are neutral — the multiplier rises and the share price falls by the same factor. Only dividends move value, and only by the dividend.
           </div>
         </div>
@@ -420,7 +420,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
         {/* Cell 7: How these numbers were produced (full width) */}
         <div className="cell full bg-bg min-[1000px]:col-span-2 flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
-            <div className="ch flex items-baseline justify-between mb-[13px]">
+            <div className={`ch flex items-baseline justify-between ${styles.sectionHeader}`}>
               <h2 className="text-[12px] font-medium text-fg">How these numbers were produced</h2>
               <span className="font-mono text-[10px] text-fg3">read it, then run it</span>
             </div>
@@ -454,7 +454,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
             </div>
           </div>
 
-          <div className="mini text-[11px] text-fg3 leading-[1.6] mt-[14px]">
+          <div className={`mini text-[11px] text-fg3 leading-[1.6] ${styles.mathNote}`}>
             Pool ratio comes from StateView on this pool. Stock price comes from the {stock.symbol} token&apos;s Chainlink feed, which already carries the corporate-action multiplier. No model, no weighting, nothing else.
           </div>
         </div>

@@ -5,6 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { pageMetaMap } from './pageMeta';
 import { useTerminalRows } from './TerminalDataProvider';
 import { startBasisRouteTransition } from './routeTransition';
+import { useSidebarLayout } from './ResizableLayout';
+import styles from './Sidebar.module.css';
 
 function formatPrice(price: number | null | undefined) {
   if (price == null) return '—';
@@ -16,6 +18,7 @@ function formatPrice(price: number | null | undefined) {
 
 export function Sidebar() {
   const { rows: watchlist, setSelectedCa } = useTerminalRows();
+  const { isCollapsed, toggleSidebar } = useSidebarLayout();
   const router = useRouter();
   const pathname = usePathname();
   const isReport = pathname.startsWith('/c/');
@@ -38,60 +41,77 @@ export function Sidebar() {
 
   return (
     <aside
-      className="side border-r border-line bg-pane flex flex-col overflow-hidden w-full h-full"
+      data-collapsed={isCollapsed}
+      className={`side border-r border-line bg-pane flex flex-col w-full h-full ${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}
       style={{ width: "100%", height: "100%" }}
     >
-      <div className="navsec py-[9px] border-b border-line">
-        <div
-          className="navlbl text-[10px] tracking-[0.09em] text-fg3 uppercase"
-          style={{ padding: '0 14px 7px' }}
-        >
-          Views
+      <div className={`navsec border-b border-line ${styles.navSection}`}>
+        <div className={styles.sidebarHeader}>
+          <div className={`navlbl text-[10px] tracking-[0.09em] text-fg3 uppercase ${styles.sectionLabel}`}>Views</div>
+          <button
+            type="button"
+            className={styles.toggleButton}
+            onClick={toggleSidebar}
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-expanded={!isCollapsed}
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d={isCollapsed ? 'm5 2.5 4 4.5-4 4.5' : 'm9 2.5-4 4.5 4 4.5'}
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         </div>
         
-        <Link href="/terminal" className={getNavClass('/terminal')} style={{ padding: '7px 14px' }}>
-          <span className={getIconClass('/terminal')}>▱</span>
-          Split board
+        <Link href="/terminal" className={`${getNavClass('/terminal')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Split board">
+          <span className={`${getIconClass('/terminal')} ${styles.navIcon}`}>▱</span>
+          <span className={styles.navItemLabel}>Split board</span>
         </Link>
 
         {isReport && (
           <div
-            className="flex items-center gap-[10px] text-fg border-l-[2px] border-l-meme bg-pane2 cursor-pointer"
+            className={`flex items-center gap-[10px] text-fg border-l-[2px] border-l-meme bg-pane2 cursor-pointer ${styles.navItem}`}
             style={{ padding: '7px 14px' }}
+            title="Report"
           >
-            <span className="w-[14px] text-center font-mono text-[12px] text-meme">◉</span>
-            Report
+            <span className={`w-[14px] text-center font-mono text-[12px] text-meme ${styles.navIcon}`}>◉</span>
+            <span className={styles.navItemLabel}>Report</span>
           </div>
         )}
         
-        <Link href="/float" className={getNavClass('/float')} style={{ padding: '7px 14px' }}>
-          <span className={getIconClass('/float')}>◎</span>
-          Float grip
-          <span className="font-mono text-[10px] text-fg3" style={{ marginLeft: "auto" }}>12</span>
+        <Link href="/float" className={`${getNavClass('/float')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Float grip">
+          <span className={`${getIconClass('/float')} ${styles.navIcon}`}>◎</span>
+          <span className={styles.navItemLabel}>Float grip</span>
+          <span className={`font-mono text-[10px] text-fg3 ${styles.navCount}`} style={{ marginLeft: "auto" }}>12</span>
         </Link>
         
-        <Link href="/hours" className={getNavClass('/hours')} style={{ padding: '7px 14px' }}>
-          <span className={getIconClass('/hours')}>⏳</span>
-          Market hours
+        <Link href="/hours" className={`${getNavClass('/hours')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Market hours">
+          <span className={`${getIconClass('/hours')} ${styles.navIcon}`}>⏳</span>
+          <span className={styles.navItemLabel}>Market hours</span>
         </Link>
         
-        <Link href="/actions" className={getNavClass('/actions')} style={{ padding: '7px 14px' }}>
-          <span className={getIconClass('/actions')}>✎</span>
-          Corporate actions
-          <span className="font-mono text-[10px] text-fg3" style={{ marginLeft: "auto" }}>2</span>
+        <Link href="/actions" className={`${getNavClass('/actions')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Corporate actions">
+          <span className={`${getIconClass('/actions')} ${styles.navIcon}`}>✎</span>
+          <span className={styles.navItemLabel}>Corporate actions</span>
+          <span className={`font-mono text-[10px] text-fg3 ${styles.navCount}`} style={{ marginLeft: "auto" }}>2</span>
         </Link>
         
-        <Link href="/method" className={getNavClass('/method')} style={{ padding: '7px 14px' }}>
-          <span className={getIconClass('/method')}>∑</span>
-          Method
+        <Link href="/method" className={`${getNavClass('/method')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Method">
+          <span className={`${getIconClass('/method')} ${styles.navIcon}`}>∑</span>
+          <span className={styles.navItemLabel}>Method</span>
         </Link>
       </div>
 
       {isReport && (
               <>
-                <div className="border-t border-line">
+                <div className={`border-t border-line ${styles.detailSection}`}>
           <div
-            className="text-[10px] tracking-[0.09em] text-fg3 uppercase"
+            className={`text-[10px] tracking-[0.09em] text-fg3 uppercase ${styles.sectionLabel}`}
             style={{ padding: '12px 14px 7px' }}
           >
             Contract
@@ -131,9 +151,9 @@ export function Sidebar() {
         </div>
         
         {activeRow && (
-          <div className="border-t border-line">
+          <div className={`border-t border-line ${styles.detailSection}`}>
             <div
-              className="text-[10px] tracking-[0.09em] text-fg3 uppercase"
+            className={`text-[10px] tracking-[0.09em] text-fg3 uppercase ${styles.sectionLabel}`}
               style={{ padding: '12px 14px 7px' }}
             >
               Other pools on {activeRow.quote}
@@ -157,13 +177,13 @@ export function Sidebar() {
       )}
       
       {!isReport && (
-        <div className="watch flex-1 overflow-y-auto border-t border-line">
+        <div className={`watch flex-1 overflow-y-auto border-t border-line ${styles.watchSection}`}>
           {meta?.sideExtra ? (
             meta.sideExtra
           ) : (
             <>
           <div
-            className="navlbl text-[10px] tracking-[0.09em] text-fg3 uppercase"
+            className={`navlbl text-[10px] tracking-[0.09em] text-fg3 uppercase ${styles.sectionLabel}`}
             style={{ padding: '9px 14px 7px' }}
           >
             Watchlist

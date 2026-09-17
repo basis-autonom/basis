@@ -32,30 +32,36 @@ export default async function TerminalFloatPage() {
           </div>
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col" style={{ flexShrink: 0 }}>
           <div className="text-[10px] text-fg3">Tickers on chain</div>
-          <div className="font-mono text-[13px] text-fg mt-[2px]">{rows.length}</div>
+          <div className="font-mono text-[13px] text-fg" style={{ marginTop: 2 }}>{rows.length}</div>
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col" style={{ flexShrink: 0 }}>
           <div className="text-[10px] text-fg3">Gripped over 10%</div>
-          <div className="font-mono text-[13px] text-fg mt-[2px]">{grippedOver10Count}</div>
+          <div className="font-mono text-[13px] text-fg" style={{ marginTop: 2 }}>{grippedOver10Count}</div>
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col" style={{ flexShrink: 0 }}>
           <div className="text-[10px] text-fg3">Locked tokens</div>
-          <div className="font-mono text-[13px] text-fg mt-[2px]">
+          <div className="font-mono text-[13px] text-fg" style={{ marginTop: 2 }}>
             {totalLockedTokens > 0
               ? totalLockedTokens.toLocaleString(undefined, { maximumFractionDigits: 0 })
               : '—'}
           </div>
         </div>
 
-        <div className="ml-auto flex" style={{ gap: "7px" }}>
-          <button className="h-[29px] px-[13px] bg-transparent text-fg2 border border-line2 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:text-fg hover:border-line transition-colors">
+        <div className="flex flex-shrink-0" style={{ marginLeft: "auto", gap: 7 }}>
+          <button
+            className="bg-transparent text-fg2 border border-line2 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:text-fg hover:border-line transition-colors"
+            style={{ height: 29, padding: "0 13px" }}
+          >
             Export CSV
           </button>
-          <button className="h-[29px] px-[13px] bg-fg text-bg border-0 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:opacity-90 transition-opacity">
+          <button
+            className="bg-fg text-bg border-0 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:opacity-90 transition-opacity"
+            style={{ height: 29, padding: "0 13px" }}
+          >
             Copy board
           </button>
         </div>

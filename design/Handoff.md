@@ -1,13 +1,29 @@
-# BASIS — Serah terima konteks
+# BASIS — Serah terima konteks final
 
-Dibaca oleh agent baru yang melanjutkan proyek ini. Ringkas, tidak menggantikan dokumen lain.
+Snapshot 2026-09-18. Dibaca oleh Claude/agent berikutnya. Ringkas, tidak menggantikan dokumen spesifikasi.
+
+## Prompt siap dikirim ke Claude
+
+Kamu melanjutkan proyek Basis. Baca `AGENTS.md`, `design/BRIEF.md`, `design/FRAMING.md`, dan `design/Autonomous.md` sebelum memberi saran.
+
+Scope saat ini hanya keputusan scheduler dan deployment autonomous. Jangan mengubah komponen UI, halaman, styling, rumus di `packages/core`, atau membuat data contoh.
+
+Keputusan yang sedang diminta:
+
+1. Scheduler target adalah GitHub Actions scheduled workflow (`.github/workflows/watcher.yml`) yang memanggil `GET /api/cron/watch` setiap 15 menit.
+2. Jangan mengandalkan Vercel Hobby Cron untuk `*/15 * * * *`; Hobby hanya mendukung cron harian.
+3. `CRON_SECRET` adalah shared bearer secret, bukan database password. Nilainya sama di Vercel Environment Variables dan GitHub Actions Repository Secret.
+4. Database memakai `DATABASE_URL` Neon/Supabase. Setelah env tersedia, migrasikan dengan `bun run db:migrate`.
+5. `WATCHER_ENABLED` default `true`; `WATCHER_POST_X` default `false`. Jangan mengerjakan X.
+
+Validasi apakah keputusan di atas sudah tepat, tunjukkan risiko GitHub Actions schedule, lalu berikan checklist deployment paling pendek. Jangan mengarang angka atau temuan.
 
 ## Baca dulu, berurutan
 
 1. `AGENTS.md` di root — aturan tetap
 2. `design/BRIEF.md` — spesifikasi lengkap
 3. `design/FRAMING.md` — revisi framing produk, belum dikerjakan
-4. `design/AUTONOMOUS.md` — lapisan autonomous, belum dikerjakan
+4. `design/Autonomous.md` — lapisan autonomous dan ambang watcher
 5. `recon-output.json` — fakta chain yang sudah terbukti, jangan diuji ulang
 
 ## Produk dalam satu kalimat
@@ -24,6 +40,27 @@ Basis mengukur seberapa besar pergerakan harga memecoin di Robinhood Chain beras
 - `/float` — 32 ticker
 - `/c/[ca]` — laporan per coin, nama coin terbaca, harga saham benar
 - AppShell: Topbar, Sidebar, StatusBar
+
+### Autonomous/backend yang sudah disiapkan
+
+- `packages/db/schema.ts` — satu tabel `findings` dengan waktu, alamat token, simbol, pasangan saham, pergerakan harga, komponen meme, komponen saham, likuiditas, dan tanggal deduplikasi.
+- `drizzle/0000_sleepy_ser_duncan.sql` — migrasi Drizzle yang sudah tergenerate.
+- `jobs/watcher.ts` — membaca hasil `getBoardData`, memeriksa persis tiga ambang: pergerakan harga absolut >= 3%, komponen meme absolut <= 1%, likuiditas >= $10.000.
+- Deduplikasi memakai unique `(token_address, reported_on)` sehingga coin yang sama tidak disimpan berulang pada hari UTC yang sama.
+- `app/api/cron/watch/route.ts` — route Node.js yang membutuhkan `Authorization: Bearer $CRON_SECRET`, menjalankan watcher, lalu refresh board dan float.
+- `app/api/findings/route.ts` — `GET /api/findings?limit=20` untuk temuan terbaru.
+- `app/api/findings/[ca]/route.ts` — `GET /api/findings/[ca]` untuk riwayat coin dan `totalDetections`.
+- Bentuk respons kedua endpoint sudah ditulis di komentar route untuk agent UI.
+- `.env.example` berisi `DATABASE_URL`, `CRON_SECRET`, `WATCHER_ENABLED=true`, dan `WATCHER_POST_X=false`.
+
+### Status deployment autonomous
+
+- `DATABASE_URL` belum tersedia di `.env`; migrasi belum diterapkan ke Neon/Supabase.
+- Setelah mendapat connection string Postgres, jalankan `bun run db:migrate`.
+- `CRON_SECRET` harus dibuat random, minimal 16 karakter, lalu dipasang di Vercel dan GitHub dengan nilai sama.
+- `vercel.json` sebelumnya berisi cron 15 menit. Jika deploy memakai Vercel Hobby, jangan gunakan konfigurasi itu untuk jadwal 15 menit karena Hobby hanya mengizinkan jadwal harian.
+- Scheduler yang direkomendasikan: GitHub Actions YAML memanggil URL production `/api/cron/watch`. GitHub schedule menggunakan UTC dan dapat terlambat ketika load tinggi.
+- Belum ada `.github/workflows/watcher.yml`; jangan membuatnya sebelum keputusan scheduler ini dikonfirmasi.
 
 ### Fakta chain yang sudah terbukti
 
@@ -48,7 +85,7 @@ Basis mengukur seberapa besar pergerakan harga memecoin di Robinhood Chain beras
 - **Kaki saham** dikenali dari alamat kontrak yang cocok dengan registry resmi, tidak pernah dari nama atau simbol. Ada token saham palsu di chain ini.
 - **Harga**: rasio dari `sqrtPriceX96` harus dinormalisasi dengan `10^(dec0 - dec1)`, dan Chainlink dibagi `1e8` **sekali saja**. Pembagian ganda pernah bikin semua harga jadi $0.00.
 - **Tidak ada chart historis.** Butuh puluhan pembacaan state per titik, menghabiskan kuota RPC free tier. Sudah dihapus, jangan dibuat lagi tanpa perintah.
-- **Belum ada database.** Cache pakai `unstable_cache` Next.js 5 menit.
+- **Database findings sudah disiapkan dengan Drizzle/Postgres.** Penerapan migrasi masih menunggu `DATABASE_URL`; cache board lama tetap terpisah dari penyimpanan findings.
 
 ## Masalah yang masih ada
 
@@ -76,9 +113,22 @@ Urutan yang direncanakan:
 
 1. **Tampilan** — dua masalah di atas
 2. **Framing** — `design/FRAMING.md` bagian 5, 6, 7. Kolom Exposure di board, urutan ulang panel report, tab "Real performance". Tidak mengubah `packages/core`.
-3. **Autonomous** — `design/AUTONOMOUS.md`. Watcher tiap 15 menit, panel Findings di `/terminal`, penyimpanan temuan ke Postgres. Database wajib menyala sejak watcher pertama jalan, karena temuan yang tidak tersimpan hilang selamanya.
-4. **Landing** — `app/page.tsx` dari `design/index.html`, dipecah per section ke `components/landing/`
-5. **Halaman `/hours` dan `/actions`** — masih EmptyState berlabel soon
+3. **Scheduler autonomous** — pasang secret, migrasikan Postgres, lalu buat `.github/workflows/watcher.yml` jika GitHub Actions disetujui.
+4. **UI autonomous** — agent UI menghubungkan Findings panel/chart ke endpoint yang sudah tersedia.
+5. **Landing** — `app/page.tsx` dari `design/index.html`, dipecah per section ke `components/landing/`
+6. **Halaman `/hours` dan `/actions`** — masih EmptyState berlabel soon
+
+## Hasil watcher manual terakhir
+
+Perintah: `bun run watcher`
+
+Output apa adanya:
+
+```json
+{"enabled":true,"scanned":0,"detected":0,"stored":0,"duplicates":0,"findings":[]}
+```
+
+Tidak ada temuan yang dipaksa masuk. Pada lingkungan pengembangan saat itu, registry upstream Robinhood/Chainlink tidak dapat diakses sehingga board yang terbaca berjumlah 0. Ini bukan bukti bahwa chain selalu tidak punya temuan.
 
 ## Larangan tetap
 
