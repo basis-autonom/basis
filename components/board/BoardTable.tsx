@@ -5,6 +5,7 @@ import { DataTable, Column } from "@/components/primitives/DataTable";
 import { SplitBar } from "@/components/primitives/SplitBar";
 import { Sparkline } from "@/components/primitives/Sparkline";
 import { useRouter } from "next/navigation";
+import { startBasisRouteTransition } from "@/components/shell/routeTransition";
 
 // Em dash displayed in muted color when a value cannot be calculated
 const Dash = () => <span className="text-fg3 select-none">—</span>;
@@ -150,7 +151,16 @@ export function BoardTable({ rows, selectedCa, onSelectRow }: BoardTableProps) {
     <DataTable
       columns={columns}
       rows={rows}
-      onRowClick={(r) => (onSelectRow ? onSelectRow(r) : router.push(`/c/${r.ca || r.poolId}`))}
+      onRowClick={(r) => {
+        if (onSelectRow) {
+          onSelectRow(r);
+          return;
+        }
+
+        const pathname = `/c/${r.ca || r.poolId}`;
+        startBasisRouteTransition(pathname);
+        router.push(pathname);
+      }}
       activeRowFn={(r) => (selectedCa ? r.ca === selectedCa || r.poolId === selectedCa : false)}
     />
   );

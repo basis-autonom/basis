@@ -149,7 +149,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
             </div>
           </div>
 
-          <div className="text-[26px] leading-[1.28] font-medium tracking-[-0.02em] max-w-[22ch] text-fg">
+          <div style={{ fontSize: 26, lineHeight: 1.28, fontWeight: 500, letterSpacing: "-0.02em", maxWidth: "22ch", color: "var(--color-fg)" }}>
             {total != null ? (
               <>
                 {isUp ? 'Up' : 'Down'} {Math.abs(total * 100).toFixed(1)}%.{' '}
@@ -246,9 +246,9 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
                   const hm = (p[0]/max)*(H-6), hs = (p[1]/max)*(H-6);
                   return (
                     <g key={'g'+i}>
-                      <rect x={x} y={H-hm} width={w} height={hm} fill="var(--color-memebg)" stroke="var(--color-meme)" strokeWidth="1" />
+                      <rect x={x} y={H-hm} width={w} height={hm} fill="#16243C" stroke="#5B8DEF" strokeWidth="1" />
                       {hs > 0 && (
-                        <rect x={x} y={H-hm-hs} width={w} height={hs} fill="var(--color-stockbg)" stroke="var(--color-stock)" strokeWidth="1" />
+                        <rect x={x} y={H-hm-hs} width={w} height={hs} fill="#3A2E16" stroke="#C9922E" strokeWidth="1" />
                       )}
                     </g>
                   );

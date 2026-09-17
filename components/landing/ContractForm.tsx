@@ -2,6 +2,7 @@
 
 import React, { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { startBasisRouteTransition } from '@/components/shell/routeTransition';
 
 export function ContractForm() {
   const router = useRouter();
@@ -10,7 +11,10 @@ export function ContractForm() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const value = address.trim();
-    if (value) router.push(`/c/${value}`);
+    if (value) {
+      startBasisRouteTransition(`/c/${value}`);
+      router.push(`/c/${value}`);
+    }
   }
 
   return (

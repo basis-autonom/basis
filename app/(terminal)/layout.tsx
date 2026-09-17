@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/shell/Sidebar';
 import { StatusBar } from '@/components/shell/StatusBar';
 import { TerminalDataProvider } from '@/components/shell/TerminalDataProvider';
 import { getBoardData } from '@/packages/core/board';
+import { ResizableLayout } from '@/components/shell/ResizableLayout';
 
 export default async function TerminalLayout({ children }: { children: React.ReactNode }) {
   let boardRows: any[] = [];
@@ -20,12 +21,11 @@ export default async function TerminalLayout({ children }: { children: React.Rea
     <TerminalDataProvider rows={boardRows}>
       <div className="flex h-screen flex-col overflow-hidden bg-bg font-sans text-[13px] text-fg antialiased">
         <Topbar />
-        <div className="flex min-w-0 flex-1 overflow-hidden">
-          <Sidebar />
+        <ResizableLayout sidebar={<Sidebar />}>
           <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-bg">
             {children}
           </main>
-        </div>
+        </ResizableLayout>
         <StatusBar />
       </div>
     </TerminalDataProvider>
