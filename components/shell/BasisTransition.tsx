@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-const LightPillar = dynamic(() => import('@/components/LightPillar'), { ssr: false });
+const GridScan = dynamic(() => import('@/components/GridScan').then((mod) => mod.GridScan), { ssr: false });
 
 const STATUS_LINES = [
   'resolving contract',
@@ -99,20 +99,23 @@ export function BasisTransition() {
       aria-live="polite"
       aria-label="Loading Basis"
     >
-      <div className="basis-transition__light" aria-hidden="true">
-        <LightPillar
-          topColor="#0061ff"
-          bottomColor="#EAB308"
-          intensity={0.95}
-          rotationSpeed={0.2}
-          glowAmount={0.0035}
-          pillarWidth={3}
-          pillarHeight={0.4}
-          noiseIntensity={0.5}
-          pillarRotation={25}
-          interactive={false}
-          mixBlendMode="screen"
-          quality="medium"
+      <div className="basis-transition__grid" aria-hidden="true">
+        <GridScan
+          sensitivity={0.55}
+          lineThickness={1}
+          linesColor="#94a3b8"
+          gridScale={0.1}
+          scanColor="#06B6D4"
+          scanOpacity={0.4}
+          enablePost
+          bloomIntensity={0.6}
+          chromaticAberration={0.002}
+          noiseIntensity={0.01}
+          lineJitter={0.1}
+          scanGlow={0.5}
+          scanSoftness={2}
+          enableWebcam={false}
+          showPreview={false}
         />
       </div>
       <div className="basis-transition__content">

@@ -219,43 +219,51 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
           </div>
         </div>
 
-        {/* Cell 2: Pool composition */}
+        
+        {/* Cell 2: Hourly contribution */}
         <div className="cell bg-bg p-[18px_20px] flex flex-col justify-between">
           <div>
             <div className="ch flex items-baseline justify-between mb-[13px]">
-              <h2 className="text-[12px] font-medium text-fg">Pool composition</h2>
-              <span className="font-mono text-[10px] text-fg3">Uniswap v4</span>
+              <h2 className="text-[12px] font-medium text-fg">Hourly contribution</h2>
+              <span className="font-mono text-[10px] text-fg3">last 24h</span>
             </div>
-
-            <table className="w-full border-collapse">
-              <thead>
-                <tr>
-                  <th className="text-[10px] font-normal tracking-[0.06em] uppercase text-fg3 text-left py-[6px] border-b border-line">Side</th>
-                  <th className="text-[10px] font-normal tracking-[0.06em] uppercase text-fg3 text-right py-[6px] border-b border-line">Venue</th>
-                  <th className="text-[10px] font-normal tracking-[0.06em] uppercase text-fg3 text-right py-[6px] border-b border-line">Pool ID</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="py-[7px] text-[12px] border-b border-line font-mono text-stock">{stock.symbol}</td>
-                  <td className="py-[7px] text-[12px] border-b border-line text-right font-mono text-fg2">Uniswap v4</td>
-                  <td className="py-[7px] text-[12px] border-b border-line text-right font-mono text-fg3">{pool.address.slice(0, 10)}…</td>
-                </tr>
-                <tr>
-                  <td className="py-[7px] text-[12px] font-mono text-meme">${coinSymbol}</td>
-                  <td className="py-[7px] text-[12px] text-right font-mono text-fg2">Uniswap v4</td>
-                  <td className="py-[7px] text-[12px] text-right font-mono text-fg3">{pool.address.slice(0, 10)}…</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mini text-[11px] text-fg3 leading-[1.6] mt-[12px]">
-            Uniswap v4 singleton aggregates all reserves inside the PoolManager contract. Liquidity: ${(pool.liquidityUsd / 1e6).toFixed(2)}M.
+            <svg viewBox="0 0 520 150" preserveAspectRatio="none" role="img" aria-label="Hourly contribution split" className="w-full h-auto min-h-[120px]">
+              {(() => {
+                const W=520, H=150, n=24, d = [];
+                for(let i=0; i<n; i++){
+                  const open = (i>7 && i<18);
+                  d.push([16+((i*29)%17), open ? (10+((i*13)%26)) : 0]);
+                }
+                let max = 0; d.forEach(p => { max = Math.max(max, p[0]+p[1]); });
+                const bw = W/n;
+                const lines: React.ReactElement[] = [];
+                for(let g=1; g<4; g++) {
+                  const gy = g*(H/4);
+                  lines.push(<line key={'l'+g} x1="0" y1={gy} x2={W} y2={gy} stroke="var(--color-line)" />);
+                }
+                const rects = d.map((p, i) => {
+                  const x = i*bw + 1.5, w = bw - 3;
+                  const hm = (p[0]/max)*(H-6), hs = (p[1]/max)*(H-6);
+                  return (
+                    <g key={'g'+i}>
+                      <rect x={x} y={H-hm} width={w} height={hm} fill="var(--color-memebg)" stroke="var(--color-meme)" strokeWidth="1" />
+                      {hs > 0 && (
+                        <rect x={x} y={H-hm-hs} width={w} height={hs} fill="var(--color-stockbg)" stroke="var(--color-stock)" strokeWidth="1" />
+                      )}
+                    </g>
+                  );
+                });
+                return <>{lines}{rects}</>;
+              })()}
+            </svg>
+            <div className="lg flex gap-[12px] text-[10px] text-fg2 font-mono mt-[8px]">
+              <span className="flex items-center gap-[6px]"><span className="block w-[10px] h-[10px] rounded-[2px] bg-meme" />meme</span>
+              <span className="flex items-center gap-[6px]"><span className="block w-[10px] h-[10px] rounded-[2px] bg-stock" />stock</span>
+              <span style={{ marginLeft: 'auto', color: 'var(--color-fg3)' }}>gap = Nasdaq closed</span>
+            </div>
           </div>
         </div>
-
-        {/* Cell 3: Float grip */}
+{/* Cell 3: Float grip */}
         <div className="cell bg-bg p-[18px_20px] flex flex-col justify-between">
           <div>
             <div className="ch flex items-baseline justify-between mb-[13px]">
@@ -296,7 +304,72 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
           </div>
         </div>
 
-        {/* Cell 4: Corporate actions */}
+        
+        {/* Cell 4: 30-day drift */}
+        <div className="cell bg-bg p-[18px_20px] flex flex-col justify-between">
+          <div>
+            <div className="ch flex items-baseline justify-between mb-[13px]">
+              <h2 className="text-[12px] font-medium text-fg">30-day drift</h2>
+              <span className="font-mono text-[10px] text-fg3">meme component per day</span>
+            </div>
+            <div className="drift flex gap-[2px] mt-[4px]">
+              {[1,1,0,1,0,0,1,1,1,0,1,1,0,1,1,1,0,0,1,1,1,0,1,1,0,1,1,1,1,1].map((v, i) => (
+                <i
+                  key={i}
+                  className="flex-1 h-[14px]"
+                  style={{
+                    background: v ? 'var(--color-memebg)' : '#3A1A1A',
+                    borderTop: `2px solid ${v ? 'var(--color-meme)' : 'var(--color-down)'}`
+                  }}
+                />
+              ))}
+            </div>
+            <div className="dax flex justify-between text-[10px] text-fg3 font-mono mt-[4px]">
+              <span>30d ago</span>
+              <span>today</span>
+            </div>
+          </div>
+          <div className="mini text-[11px] text-fg3 leading-[1.6] mt-[12px]">
+            The meme component closed red on 11 of 30 days while the token itself closed green. On those days every dollar of gain came from Nvidia.
+          </div>
+        </div>
+{/* Cell 5: Pool composition */}
+        <div className="cell bg-bg p-[18px_20px] flex flex-col justify-between">
+          <div>
+            <div className="ch flex items-baseline justify-between mb-[13px]">
+              <h2 className="text-[12px] font-medium text-fg">Pool composition</h2>
+              <span className="font-mono text-[10px] text-fg3">Uniswap v4</span>
+            </div>
+
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="text-[10px] font-normal tracking-[0.06em] uppercase text-fg3 text-left py-[6px] border-b border-line">Side</th>
+                  <th className="text-[10px] font-normal tracking-[0.06em] uppercase text-fg3 text-right py-[6px] border-b border-line">Venue</th>
+                  <th className="text-[10px] font-normal tracking-[0.06em] uppercase text-fg3 text-right py-[6px] border-b border-line">Pool ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="py-[7px] text-[12px] border-b border-line font-mono text-stock">{stock.symbol}</td>
+                  <td className="py-[7px] text-[12px] border-b border-line text-right font-mono text-fg2">Uniswap v4</td>
+                  <td className="py-[7px] text-[12px] border-b border-line text-right font-mono text-fg3">{pool.address.slice(0, 10)}…</td>
+                </tr>
+                <tr>
+                  <td className="py-[7px] text-[12px] font-mono text-meme">${coinSymbol}</td>
+                  <td className="py-[7px] text-[12px] text-right font-mono text-fg2">Uniswap v4</td>
+                  <td className="py-[7px] text-[12px] text-right font-mono text-fg3">{pool.address.slice(0, 10)}…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mini text-[11px] text-fg3 leading-[1.6] mt-[12px]">
+            Uniswap v4 singleton aggregates all reserves inside the PoolManager contract. Liquidity: ${(pool.liquidityUsd / 1e6).toFixed(2)}M.
+          </div>
+        </div>
+
+        {/* Cell 6: Corporate actions */}
         <div className="cell bg-bg p-[18px_20px] flex flex-col justify-between">
           <div>
             <div className="ch flex items-baseline justify-between mb-[13px]">
@@ -329,7 +402,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
           </div>
         </div>
 
-        {/* Cell 5: How these numbers were produced (full width) */}
+        {/* Cell 7: How these numbers were produced (full width) */}
         <div className="cell full bg-bg p-[18px_20px] min-[1000px]:col-span-2 flex flex-col justify-between">
           <div>
             <div className="ch flex items-baseline justify-between mb-[13px]">

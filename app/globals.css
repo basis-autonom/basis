@@ -76,12 +76,13 @@ body {
   opacity: 0;
   transform: translateY(-8px);
 }
-.basis-transition__light {
+.basis-transition__grid {
   position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  opacity: .36;
+  opacity: .44;
+  mix-blend-mode: screen;
   -webkit-mask-image: radial-gradient(ellipse at center, black 0%, rgb(0 0 0 / 88%) 42%, transparent 86%);
   mask-image: radial-gradient(ellipse at center, black 0%, rgb(0 0 0 / 88%) 42%, transparent 86%);
 }
@@ -209,7 +210,7 @@ body {
   }
   .basis-transition__slash,
   .landing-brand-slash { transform: none; }
-  .basis-transition__light { display: none; }
+  .basis-transition__grid { display: none; }
   .basis-transition__meme { transform: scaleX(1); }
   .basis-transition__stock { transform: scaleX(1); }
   .landing-reveal,
