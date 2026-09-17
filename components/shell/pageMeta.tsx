@@ -18,8 +18,8 @@ export const pageMetaMap: Record<string, PageMeta> = {
     statusText: [
       'rpc.mainnet.chain.robinhood.com', 
       'chain 4663', 
-      '108 stock tokens read', 
-      '50 pools scanned'
+      'registry lookup', 
+      'pools scanned'
     ],
     sideExtra: (
       <>

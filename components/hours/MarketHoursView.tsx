@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTerminalRows } from "@/components/shell/TerminalDataProvider";
 
 type MarketRow = {
@@ -20,6 +20,13 @@ type MarketRow = {
 
 const FEED_LIVENESS_WINDOW_MS = 3 * 60 * 60 * 1000;
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+type HoursDiagnostic = {
+  kind: "success" | "error";
+  data?: MarketRow[];
+  source?: "registry" | "chain" | "pools";
+  message?: string;
+};
 
 function formatPrice(price: number | null | undefined) {
   if (price == null) return "—";
@@ -83,6 +90,9 @@ function FeedState({ updatedAt, now }: { updatedAt?: number | null; now: number 
 
 export function MarketHoursView() {
   const { rows } = useTerminalRows() as { rows: MarketRow[] };
+  const [diagnosticRows, setDiagnosticRows] = useState<MarketRow[]>([]);
+  const [diagnostic, setDiagnostic] = useState<HoursDiagnostic | null>(null);
+  const diagnosticRequested = useRef(false);
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -90,14 +100,37 @@ export function MarketHoursView() {
     return () => window.clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (rows.length > 0 || diagnosticRequested.current) return;
+    diagnosticRequested.current = true;
+
+    fetch("/api/hours")
+      .then(async (response) => {
+        const result = (await response.json()) as HoursDiagnostic;
+        if (result.kind === "success" && result.data?.length) {
+          setDiagnosticRows(result.data);
+        }
+        setDiagnostic(result);
+      })
+      .catch(() => {
+        setDiagnostic({
+          kind: "error",
+          source: "chain",
+          message: "The hours snapshot request failed before a chain read completed.",
+        });
+      });
+  }, [rows.length]);
+
+  const visibleRows = rows.length > 0 ? rows : diagnosticRows;
+
   const observations = useMemo(() => {
-    return (rows || []).map((row) => {
+    return (visibleRows || []).map((row) => {
       const updatedAt = row.stockFeedUpdatedAt ?? null;
       const age = updatedAt && now ? Math.max(0, now - updatedAt) : null;
       const feedLive = age != null && age <= FEED_LIVENESS_WINDOW_MS;
       return { row, updatedAt, age, feedLive };
     });
-  }, [rows, now]);
+  }, [visibleRows, now]);
 
   const feedRows = observations.filter((observation) => observation.updatedAt != null);
   const liveCount = feedRows.filter((observation) => observation.feedLive).length;
@@ -116,7 +149,7 @@ export function MarketHoursView() {
           ? "frozen"
           : "mixed";
 
-  const currentDate = now ? new Date(now) : null;
+  const currentDate = latestUpdate ? new Date(latestUpdate) : null;
   const currentDayIndex = currentDate ? getEtDayIndex(currentDate) : -1;
   const hour = currentDate ? Number(getEtPart(currentDate, "hour")) : 0;
   const minute = currentDate ? Number(getEtPart(currentDate, "minute")) : 0;
@@ -130,29 +163,6 @@ export function MarketHoursView() {
       }).format(new Date(currentDate.getTime() - currentDayIndex * 86400000))
     : "syncing";
 
-  const handleAddToCalendar = () => {
-    const calendar = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//Basis//Market hours//EN",
-      "BEGIN:VEVENT",
-      "UID:basis-market-hours@basis",
-      "DTSTART;TZID=America/New_York:20260101T093000",
-      "DTEND;TZID=America/New_York:20260101T160000",
-      "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
-      "SUMMARY:Basis market hours",
-      "DESCRIPTION:Regular stock leg session reference. Check Basis for live Chainlink feed state.",
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\\r\\n");
-    const url = URL.createObjectURL(new Blob([calendar], { type: "text/calendar" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "basis-market-hours.ics";
-    anchor.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="hours-page">
       <header className="hours-header">
@@ -165,7 +175,7 @@ export function MarketHoursView() {
           <div className="hours-stat">
             <span>Now</span>
             <strong className={`hours-value hours-value--${aggregateState}`}>
-              {now === 0 ? "syncing" : aggregateState === "unavailable" ? "unknown" : aggregateState}
+              {aggregateState === "unavailable" ? "unknown" : aggregateState}
             </strong>
           </div>
           <div className="hours-stat">
@@ -178,42 +188,45 @@ export function MarketHoursView() {
           </div>
           <div className="hours-stat">
             <span>Tracked pools</span>
-            <strong>{rows?.length || 0}</strong>
+            <strong>{visibleRows.length}</strong>
           </div>
         </div>
-
-        <button className="hours-calendar" type="button" onClick={handleAddToCalendar}>
-          Add to calendar
-        </button>
       </header>
 
       <section className="hours-panel hours-week-panel">
         <div className="hours-panel-head">
           <div>
             <h2>This week</h2>
-            <p>Regular session reference in Eastern Time; live state comes from Chainlink feed timestamps.</p>
+            <p>Observed Chainlink feed state; no exchange calendar is assumed.</p>
           </div>
           <span className="hours-mono">week of {weekLabel} · {frozenCount} frozen signals</span>
         </div>
 
-        <div className="hours-week" role="img" aria-label="Weekly regular stock market session guide">
+        <div className="hours-week" role="img" aria-label="Weekly Chainlink feed observations">
           {WEEKDAYS.map((day, index) => {
-            const isWeekday = index < 5;
             const isToday = index === currentDayIndex;
+            const currentState =
+              aggregateState === "unavailable"
+                ? "no feed snapshot"
+                : aggregateState === "mixed"
+                  ? "mixed feed state"
+                  : aggregateState === "live"
+                    ? "feed live"
+                    : "feed frozen";
             return (
               <div className={`hours-day ${isToday ? "hours-day--today" : ""}`} key={day}>
                 <div className="hours-day-label">
                   <span>{day}</span>
-                  {isToday && <b>now</b>}
+                  {isToday && <b>latest</b>}
                 </div>
                 <div className="hours-day-track">
-                  {isWeekday ? (
-                    <div className="hours-session-bar">
-                      <span>09:30</span>
-                      <span>16:00</span>
+                  {isToday ? (
+                    <div className={`hours-observed-state hours-observed-state--${aggregateState}`}>
+                      <span>{currentState}</span>
+                      <small>latest Chainlink observation</small>
                     </div>
                   ) : (
-                    <span className="hours-closed">no regular session</span>
+                    <span className="hours-closed">no snapshot for this day</span>
                   )}
                 </div>
               </div>
@@ -223,10 +236,10 @@ export function MarketHoursView() {
         </div>
 
         <div className="hours-legend">
-          <span><i className="hours-swatch hours-swatch--stock" />regular session reference</span>
+          <span><i className="hours-swatch hours-swatch--stock" />stock feed live</span>
           <span><i className="hours-swatch hours-swatch--frozen" />feed outside liveness window</span>
           <span><i className="hours-swatch hours-swatch--meme" />meme leg remains onchain-live</span>
-          <span className="hours-legend-note">No calendar data is used as a market-status oracle.</span>
+          <span className="hours-legend-note">Market state comes from feed timestamps, never a calendar.</span>
         </div>
       </section>
 
@@ -236,7 +249,7 @@ export function MarketHoursView() {
             <h2>Freeze log</h2>
             <p>Every row is a pool currently indexed by the terminal. Movement is measured over the same 24h window.</p>
           </div>
-          <span className="hours-mono">{rows?.length || 0} pool reads · live</span>
+          <span className="hours-mono">{visibleRows.length} pool reads · live</span>
         </div>
 
         {observations.length > 0 ? (
@@ -248,8 +261,8 @@ export function MarketHoursView() {
                   <th>Coin</th>
                   <th>Quote</th>
                   <th className="hours-right">Feed age</th>
-                  <th className="hours-right">Pool move · 24h</th>
-                  <th className="hours-right">Stock move · 24h</th>
+                  <th className="hours-right">Pool ratio move · 24h</th>
+                  <th className="hours-right">Stock feed move · 24h</th>
                   <th className="hours-right">Pool price</th>
                   <th className="hours-right">Liquidity</th>
                 </tr>
@@ -278,8 +291,18 @@ export function MarketHoursView() {
           </div>
         ) : (
           <div className="hours-empty">
-            <span>No stock-paired pools are available from the current chain read.</span>
-            <small>Refresh the terminal when the RPC or pool directory is available again.</small>
+            <span>
+              {diagnostic?.kind === "error"
+                ? diagnostic.message
+                : "No stock-paired pools are available from the current chain read."}
+            </span>
+            <small>
+              {diagnostic?.source === "registry"
+                ? "Cause: the official stock-token registry could not be reached. No substitute data is used."
+                : diagnostic?.source === "chain"
+                  ? "Cause: the RPC chain read did not complete. No substitute data is used."
+                  : "Cause: the registry loaded, but no verified stock-paired pool rows were returned."}
+            </small>
           </div>
         )}
       </section>

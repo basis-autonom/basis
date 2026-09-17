@@ -1,7 +1,10 @@
+'use client';
 import React from "react";
 import Link from "next/link";
+import { useBlockHeight } from "./useBlockHeight";
 
 export function Topbar() {
+  const blockHeight = useBlockHeight();
   return (
     <header
       className="top flex items-center border-b border-line bg-pane flex-shrink-0"
@@ -50,7 +53,7 @@ export function Topbar() {
           />
           Robinhood Chain
         </div>
-        <span className="font-mono">block 4,912,338</span>
+        <span className="font-mono">{blockHeight}</span>
         <span>Repo</span>
       </div>
     </header>

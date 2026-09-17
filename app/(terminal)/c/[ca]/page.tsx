@@ -87,7 +87,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
   return (
     <div className="main flex-1 flex flex-col overflow-y-auto bg-bg">
       {/* Top Header: matches .hdr in design/report.html */}
-      <div className="hdr flex items-center gap-[22px] px-[18px] h-[58px] border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0">
+      <div className="hdr flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: 22, padding: "0 18px", height: 58 }}>
         <div className="pairid flex items-baseline gap-[8px]">
           <span className="font-mono text-[17px] font-semibold text-fg" title={coinName}>
             ${coinSymbol}
@@ -139,7 +139,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
       <div className="bg-line" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))", gap: "1px" }}>
         
         {/* Cell 1: Attribution */}
-        <div className="cell bg-bg p-[18px_20px] flex flex-col justify-between">
+        <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div className="flex items-baseline justify-between mb-[13px]">
             <h2 className="text-[12px] font-medium text-fg">Attribution</h2>
             <div className="flex gap-[2px]">
@@ -221,7 +221,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
 
         
         {/* Cell 2: Hourly contribution */}
-        <div className="cell bg-bg p-[18px_20px] flex flex-col justify-between">
+        <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
             <div className="ch flex items-baseline justify-between mb-[13px]">
               <h2 className="text-[12px] font-medium text-fg">Hourly contribution</h2>
@@ -264,7 +264,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
           </div>
         </div>
 {/* Cell 3: Float grip */}
-        <div className="cell bg-bg p-[18px_20px] flex flex-col justify-between">
+        <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
             <div className="ch flex items-baseline justify-between mb-[13px]">
               <h2 className="text-[12px] font-medium text-fg">Float grip</h2>
@@ -306,7 +306,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
 
         
         {/* Cell 4: 30-day drift */}
-        <div className="cell bg-bg p-[18px_20px] flex flex-col justify-between">
+        <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
             <div className="ch flex items-baseline justify-between mb-[13px]">
               <h2 className="text-[12px] font-medium text-fg">30-day drift</h2>
@@ -334,31 +334,42 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
           </div>
         </div>
 {/* Cell 5: Pool composition */}
-        <div className="cell bg-bg p-[18px_20px] flex flex-col justify-between">
+        <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
             <div className="ch flex items-baseline justify-between mb-[13px]">
               <h2 className="text-[12px] font-medium text-fg">Pool composition</h2>
               <span className="font-mono text-[10px] text-fg3">Uniswap v4</span>
             </div>
 
-            <table className="w-full border-collapse">
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th className="text-[10px] font-normal tracking-[0.06em] uppercase text-fg3 text-left py-[6px] border-b border-line">Side</th>
-                  <th className="text-[10px] font-normal tracking-[0.06em] uppercase text-fg3 text-right py-[6px] border-b border-line">Venue</th>
-                  <th className="text-[10px] font-normal tracking-[0.06em] uppercase text-fg3 text-right py-[6px] border-b border-line">Pool ID</th>
+                  <th style={{ fontSize: 10, fontWeight: 400, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-fg3)', textAlign: 'left', padding: '6px 0', borderBottom: '1px solid var(--color-line)' }}>Side</th>
+                  <th style={{ fontSize: 10, fontWeight: 400, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-fg3)', textAlign: 'right', padding: '6px 0', borderBottom: '1px solid var(--color-line)' }}>Amount</th>
+                  <th style={{ fontSize: 10, fontWeight: 400, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-fg3)', textAlign: 'right', padding: '6px 0', borderBottom: '1px solid var(--color-line)' }}>Value</th>
+                  <th style={{ fontSize: 10, fontWeight: 400, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-fg3)', textAlign: 'right', padding: '6px 0', borderBottom: '1px solid var(--color-line)' }}>Weight</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td className="py-[7px] text-[12px] border-b border-line font-mono text-stock">{stock.symbol}</td>
-                  <td className="py-[7px] text-[12px] border-b border-line text-right font-mono text-fg2">Uniswap v4</td>
-                  <td className="py-[7px] text-[12px] border-b border-line text-right font-mono text-fg3">{pool.address.slice(0, 10)}…</td>
+                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', color: 'var(--color-meme)', fontFamily: 'var(--font-mono)' }}>$\{coinSymbol}</td>
+                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
+                    {(priceUsd ?? 0) > 0 && pool.liquidityUsd > 0 ? ((pool.liquidityUsd / 2) / (priceUsd ?? 1)).toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}
+                  </td>
+                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
+                    {pool.liquidityUsd > 0 ? '$' + (pool.liquidityUsd / 2).toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—'}
+                  </td>
+                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>50.0%</td>
                 </tr>
                 <tr>
-                  <td className="py-[7px] text-[12px] font-mono text-meme">${coinSymbol}</td>
-                  <td className="py-[7px] text-[12px] text-right font-mono text-fg2">Uniswap v4</td>
-                  <td className="py-[7px] text-[12px] text-right font-mono text-fg3">{pool.address.slice(0, 10)}…</td>
+                  <td style={{ padding: '7px 0', fontSize: 12, color: 'var(--color-stock)', fontFamily: 'var(--font-mono)' }}>{stock.symbol}</td>
+                  <td style={{ padding: '7px 0', fontSize: 12, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
+                    {(prices.stockNow ?? 0) > 0 && pool.liquidityUsd > 0 ? ((pool.liquidityUsd / 2) / (prices.stockNow ?? 1)).toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}
+                  </td>
+                  <td style={{ padding: '7px 0', fontSize: 12, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
+                    {pool.liquidityUsd > 0 ? '$' + (pool.liquidityUsd / 2).toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—'}
+                  </td>
+                  <td style={{ padding: '7px 0', fontSize: 12, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>50.0%</td>
                 </tr>
               </tbody>
             </table>
@@ -370,28 +381,30 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
         </div>
 
         {/* Cell 6: Corporate actions */}
-        <div className="cell bg-bg p-[18px_20px] flex flex-col justify-between">
+        <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
             <div className="ch flex items-baseline justify-between mb-[13px]">
               <h2 className="text-[12px] font-medium text-fg">Corporate actions</h2>
               <span className="font-mono text-[10px] text-fg3">{stock.symbol} multiplier</span>
             </div>
 
-            <table className="w-full border-collapse">
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th className="text-[10px] font-normal tracking-[0.06em] uppercase text-fg3 text-left py-[6px] border-b border-line">State</th>
-                  <th className="text-[10px] font-normal tracking-[0.06em] uppercase text-fg3 text-right py-[6px] border-b border-line">Multiplier</th>
-                  <th className="text-[10px] font-normal tracking-[0.06em] uppercase text-fg3 text-right py-[6px] border-b border-line">Effect here</th>
+                  <th style={{ fontSize: 10, fontWeight: 400, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-fg3)', textAlign: 'left', padding: '6px 0', borderBottom: '1px solid var(--color-line)' }}>Date</th>
+                  <th style={{ fontSize: 10, fontWeight: 400, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-fg3)', textAlign: 'left', padding: '6px 0', borderBottom: '1px solid var(--color-line)' }}>Type</th>
+                  <th style={{ fontSize: 10, fontWeight: 400, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-fg3)', textAlign: 'right', padding: '6px 0', borderBottom: '1px solid var(--color-line)' }}>Multiplier</th>
+                  <th style={{ fontSize: 10, fontWeight: 400, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-fg3)', textAlign: 'right', padding: '6px 0', borderBottom: '1px solid var(--color-line)' }}>Effect here</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td className="py-[7px] text-[12px] border-b border-line font-mono text-fg2">Current on chain</td>
-                  <td className="py-[7px] text-[12px] border-b border-line text-right font-mono text-stock">
-                    {stock.multiplier ? stock.multiplier.toFixed(4) : '1.0000'}
+                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)' }}>—</td>
+                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)' }}>Current on chain</td>
+                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--color-stock)' }}>
+                    {stock.multiplier ? stock.multiplier.toFixed(4) + 'x' : '1.0000x'}
                   </td>
-                  <td className="py-[7px] text-[12px] border-b border-line text-right font-mono text-fg3">0.00%</td>
+                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--color-fg3)' }}>No effect, LP ratio adjusted</td>
                 </tr>
               </tbody>
             </table>
@@ -403,7 +416,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
         </div>
 
         {/* Cell 7: How these numbers were produced (full width) */}
-        <div className="cell full bg-bg p-[18px_20px] min-[1000px]:col-span-2 flex flex-col justify-between">
+        <div className="cell full bg-bg min-[1000px]:col-span-2 flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div>
             <div className="ch flex items-baseline justify-between mb-[13px]">
               <h2 className="text-[12px] font-medium text-fg">How these numbers were produced</h2>

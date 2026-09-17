@@ -68,7 +68,7 @@ export function FloatTable({ rows }: { rows: any[] }) {
           <Dash />
         ),
     },
-    {
+        {
       key: "poolsCount",
       label: "Pools",
       align: "right",

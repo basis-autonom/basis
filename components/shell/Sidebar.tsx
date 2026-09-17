@@ -20,6 +20,7 @@ export function Sidebar() {
   const isReport = pathname.startsWith('/c/');
   const reportCa = isReport ? pathname.split('/c/')[1] : '';
   const shortCa = reportCa ? `${reportCa.slice(0, 6)}…${reportCa.slice(-4)}` : '';
+  const activeRow = watchlist.find(r => r.ca?.toLowerCase() === reportCa?.toLowerCase() || r.poolId?.toLowerCase() === reportCa?.toLowerCase());
 
   const getNavClass = (path: string) => {
     const isActive = !isReport && pathname === path;
@@ -85,7 +86,8 @@ export function Sidebar() {
       </div>
 
       {isReport && (
-        <div className="border-t border-line">
+              <>
+                <div className="border-t border-line">
           <div
             className="text-[10px] tracking-[0.09em] text-fg3 uppercase"
             style={{ padding: '12px 14px 7px' }}
@@ -97,16 +99,59 @@ export function Sidebar() {
               <span className="text-fg3">Token</span>
               <span className="font-mono">{shortCa}</span>
             </div>
+            {activeRow && (
+              <>
+                <div className="flex justify-between py-[5px] text-[11px]">
+                  <span className="text-fg3">Pool</span>
+                  <span className="font-mono">{activeRow.poolId ? `${activeRow.poolId.slice(0,6)}…${activeRow.poolId.slice(-4)}` : '—'}</span>
+                </div>
+                <div className="flex justify-between py-[5px] text-[11px]">
+                  <span className="text-fg3">Quote</span>
+                  <span className="font-mono text-stock">{activeRow.quote || '—'}</span>
+                </div>
+              </>
+            )}
             <div className="flex justify-between py-[5px] text-[11px]">
               <span className="text-fg3">Venue</span>
               <span className="font-mono">Uniswap v4</span>
             </div>
+            {activeRow && (
+              <div className="flex justify-between py-[5px] text-[11px]">
+                <span className="text-fg3">Age</span>
+                <span className="font-mono">{activeRow.windowLabel || '—'}</span>
+              </div>
+            )}
             <div className="flex justify-between py-[5px] text-[11px]">
               <span className="text-fg3">LP</span>
               <span className="font-mono">burned</span>
             </div>
           </div>
         </div>
+        
+        {activeRow && (
+          <div className="border-t border-line">
+            <div
+              className="text-[10px] tracking-[0.09em] text-fg3 uppercase"
+              style={{ padding: '12px 14px 7px' }}
+            >
+              Other pools on {activeRow.quote}
+            </div>
+            <div style={{ padding: '4px 14px 12px' }}>
+              {watchlist.filter(r => r.quote === activeRow.quote && r.ca !== activeRow.ca).slice(0, 3).map((r, i) => (
+                <div key={i} className="flex justify-between py-[5px] text-[11px]">
+                  <span className="text-fg3">${r.coin}</span>
+                  <span className="font-mono text-fg2">${r.liquidity ? (r.liquidity / 1e6).toFixed(1) + 'M' : '—'}</span>
+                </div>
+              ))}
+              {watchlist.filter(r => r.quote === activeRow.quote && r.ca !== activeRow.ca).length === 0 && (
+                <div className="flex justify-between py-[5px] text-[11px]">
+                  <span className="text-fg3">None</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+              </>
       )}
       
       {!isReport && (

@@ -24,7 +24,7 @@ export default async function TerminalFloatPage() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Page header: matches .phead in design/float.html */}
-      <div className="flex items-center gap-[22px] px-[18px] h-[58px] border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0">
+      <div className="flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: 22, padding: "0 18px", height: 58 }}>
         <div>
           <h1 className="text-[16px] font-semibold text-fg">Float grip</h1>
           <div className="text-[12px] text-fg3">
@@ -70,8 +70,8 @@ export default async function TerminalFloatPage() {
         </div>
 
         {/* 'Why this number matters' — strictly ONLY this block per instruction #1 and BRIEF 5.2b */}
-        <div className="grid grid-cols-1 min-[1000px]:grid-cols-2 gap-[1px] bg-line border-b border-line">
-          <div className="bg-bg p-[16px_18px]">
+        <div className="grid grid-cols-1 gap-[1px] bg-line border-b border-line" >
+          <div className="bg-bg flex flex-col" style={{ padding: "16px 18px" }}>
             <div className="flex items-baseline justify-between mb-[13px]">
               <h2 className="text-[12px] font-medium text-fg">
                 Why this number matters
@@ -84,8 +84,9 @@ export default async function TerminalFloatPage() {
               If the LP position is burned, it leaves permanently. The pool stops being a participant in that ticker&apos;s on-chain market and becomes the market &#8212; anyone wanting NVDA on chain has to go through a memecoin to get it.
             </p>
           </div>
-        </div>
+          
       </div>
+    </div>
     </div>
   );
 }

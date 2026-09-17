@@ -12,6 +12,24 @@ const client = createPublicClient({
   transport: http(process.env.RPC_URL),
 });
 
+
+async function fetchWithRetry(url: string, retries = 3): Promise<any> {
+  let lastError;
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (e: any) {
+      lastError = e;
+      if (i < retries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 500 * Math.pow(2, i)));
+      }
+    }
+  }
+  throw lastError;
+}
+
 export async function fetchRegistryOriginal(): Promise<StockToken[]> {
   const now = Date.now();
   if (cachedRegistry && now - lastFetchTime < CACHE_TTL) {
@@ -19,10 +37,8 @@ export async function fetchRegistryOriginal(): Promise<StockToken[]> {
   }
 
   const [assetsRes, feedsRes] = await Promise.all([
-    fetch("https://api.robinhood.com/rhj/assets").then((r) => r.json()),
-    fetch(
-      "https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json",
-    ).then((r) => r.json()),
+    fetchWithRetry("https://api.robinhood.com/rhj/assets"),
+    fetchWithRetry("https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json"),
   ]);
 
   const tokens = assetsRes.assets.filter((a: any) =>
@@ -133,7 +149,7 @@ export async function fetchRegistry(): Promise<StockToken[]> {
   } catch (error) {
     // Never substitute invented stock addresses or feeds. The terminal must
     // show an honest empty state until the official registry is reachable.
-    console.warn("fetchRegistry failed", error);
+            console.warn("fetchRegistry failed", error);
     return cachedRegistry ?? [];
   }
 }

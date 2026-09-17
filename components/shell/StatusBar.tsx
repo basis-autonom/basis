@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { pageMetaMap } from './pageMeta';
-import { createPublicClient, http } from 'viem';
+import { useBlockHeight } from './useBlockHeight';
 
 export function StatusBar() {
   const pathname = usePathname();
@@ -14,30 +14,7 @@ export function StatusBar() {
     'Nasdaq closed · stock leg frozen',
   ];
   const statusItems = meta.statusText?.length ? meta.statusText : defaultStatus;
-  const [blockHeight, setBlockHeight] = useState<string>('syncing...');
-  
-  useEffect(() => {
-    // Only fetch block height in browser
-    if (typeof window === 'undefined') return;
-
-    // Use a public RPC to avoid rate limits on the backend ALCHEMY key just for the status bar
-    const client = createPublicClient({
-      transport: http('https://rpc.mainnet.chain.robinhood.com')
-    });
-    
-    client.getBlockNumber()
-      .then(b => setBlockHeight(`block ${b.toLocaleString()}`))
-      .catch(() => setBlockHeight('block unknown'));
-      
-    // Fetch every 10s
-    const int = setInterval(() => {
-      client.getBlockNumber()
-        .then(b => setBlockHeight(`block ${b.toLocaleString()}`))
-        .catch(() => {});
-    }, 10000);
-    
-    return () => clearInterval(int);
-  }, []);
+  const blockHeight = useBlockHeight();
 
   return (
     <div className="flex items-center gap-0 border-t border-line bg-pane font-mono text-[10px] text-fg3 overflow-hidden flex-shrink-0">
