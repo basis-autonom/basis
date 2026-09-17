@@ -24,7 +24,7 @@ export default async function TerminalFloatPage() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Page header: matches .phead in design/float.html */}
-      <div className="flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: '22px', padding: "0 18px", height: 58 }}>
+      <div className="flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: "22px", padding: "0 18px", height: 58, minWidth: "100%" }}>
         <div>
           <h1 className="text-[16px] font-semibold text-fg">Float grip</h1>
           <div className="text-[12px] text-fg3">

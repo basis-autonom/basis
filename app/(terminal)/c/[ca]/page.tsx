@@ -88,7 +88,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
   return (
     <div className="main flex-1 flex flex-col overflow-y-auto bg-bg">
       {/* Top Header: matches .hdr in design/report.html */}
-      <div className="hdr flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: '22px', padding: "0 18px", height: 58 }}>
+      <div className="hdr flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: "22px", padding: "0 18px", height: 58, minWidth: "100%" }}>
         <div className="pairid flex items-baseline gap-[8px]">
           <span className="font-mono text-[17px] font-semibold text-fg" title={coinName}>
             ${coinSymbol}
@@ -356,12 +356,12 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
                 <tr>
                   <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', color: 'var(--color-meme)', fontFamily: 'var(--font-mono)' }}>$\{coinSymbol}</td>
                   <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                    {(priceUsd ?? 0) > 0 && pool.liquidityUsd > 0 ? ((pool.liquidityUsd / 2) / (priceUsd ?? 1)).toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}
+                    —
                   </td>
                   <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                    {pool.liquidityUsd > 0 ? '$' + (pool.liquidityUsd / 2).toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—'}
+                    —
                   </td>
-                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>50.0%</td>
+                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>—</td>
                 </tr>
                 <tr>
                   <td style={{ padding: '7px 0', fontSize: 12, color: 'var(--color-stock)', fontFamily: 'var(--font-mono)' }}>{stock.symbol}</td>
@@ -369,9 +369,9 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
                     {(prices.stockNow ?? 0) > 0 && pool.liquidityUsd > 0 ? ((pool.liquidityUsd / 2) / (prices.stockNow ?? 1)).toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}
                   </td>
                   <td style={{ padding: '7px 0', fontSize: 12, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                    {pool.liquidityUsd > 0 ? '$' + (pool.liquidityUsd / 2).toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—'}
+                    —
                   </td>
-                  <td style={{ padding: '7px 0', fontSize: 12, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>50.0%</td>
+                  <td style={{ padding: '7px 0', fontSize: 12, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>—</td>
                 </tr>
               </tbody>
             </table>
