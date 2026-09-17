@@ -2,6 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { pageMetaMap } from './pageMeta';
 import { useTerminalRows } from './TerminalDataProvider';
 import { startBasisRouteTransition } from './routeTransition';
 
@@ -21,6 +22,7 @@ export function Sidebar() {
   const reportCa = isReport ? pathname.split('/c/')[1] : '';
   const shortCa = reportCa ? `${reportCa.slice(0, 6)}…${reportCa.slice(-4)}` : '';
   const activeRow = watchlist.find(r => r.ca?.toLowerCase() === reportCa?.toLowerCase() || r.poolId?.toLowerCase() === reportCa?.toLowerCase());
+  const meta = pageMetaMap[pathname];
 
   const getNavClass = (path: string) => {
     const isActive = !isReport && pathname === path;
@@ -156,6 +158,10 @@ export function Sidebar() {
       
       {!isReport && (
         <div className="watch flex-1 overflow-y-auto border-t border-line">
+          {meta?.sideExtra ? (
+            meta.sideExtra
+          ) : (
+            <>
           <div
             className="navlbl text-[10px] tracking-[0.09em] text-fg3 uppercase"
             style={{ padding: '9px 14px 7px' }}
@@ -190,6 +196,8 @@ export function Sidebar() {
             ))}
             {watchlist.length === 0 && <div style={{ padding: '12px 14px' }} className="font-mono text-[10px] text-fg3">No pools indexed</div>}
           </div>
+          </>
+          )}
         </div>
       )}
     </aside>

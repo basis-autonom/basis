@@ -63,6 +63,7 @@ export interface SplitResponse {
       stockComponent: number | null;
       memeComponent: number | null;
       total: number | null;
+      beta: number | null;
     };
     grip: FloatGrip;
   };

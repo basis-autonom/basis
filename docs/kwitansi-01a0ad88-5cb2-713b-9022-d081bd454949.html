@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kwitansi FC Binna Banua — INV-01A0AD88-D081BD454949</title>
+    <style>
+        @page {
+            size: 210mm 130mm;
+            margin: 0;
+        }
+
+        :root {
+            color-scheme: light;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: #0f172a;
+            background: #f4f6fb;
+        }
+
+        .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 16px;
+            color: #fff;
+            background: #0f172a;
+        }
+
+        .toolbar-title {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toolbar button {
+            padding: 8px 14px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .back-button {
+            background: #475569;
+        }
+
+        .print-button {
+            background: #22c55e;
+        }
+
+        .paper {
+            position: relative;
+            width: 210mm;
+            height: 130mm;
+            margin: 24px auto;
+            overflow: hidden;
+            padding: 16mm 18mm;
+            background: #fff;
+            box-shadow: 0 6px 24px rgba(15, 23, 42, .12);
+        }
+
+        .watermark {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(15, 23, 42, .04);
+            font-size: 32pt;
+            font-weight: 800;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            transform: rotate(-22deg);
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+        }
+
+        .header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #0f172a;
+        }
+
+        .identity {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 56px;
+            width: 56px;
+            height: 56px;
+            overflow: hidden;
+            color: #64748b;
+            font-size: 8pt;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-align: center;
+            text-transform: uppercase;
+            border: 1px solid #cbd5f5;
+            border-radius: 6px;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .tenant-name {
+            color: #0f172a;
+            font-size: 14pt;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .tenant-contact {
+            max-width: 350px;
+            margin-top: 2px;
+            color: #64748b;
+            font-size: 9pt;
+            line-height: 1.35;
+        }
+
+        .receipt-heading {
+            text-align: right;
+        }
+
+        .receipt-title {
+            padding-bottom: 2px;
+            color: #0f172a;
+            font-size: 22pt;
+            font-weight: 800;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            border-bottom: 3px solid #0f172a;
+        }
+
+        .receipt-number {
+            margin-top: 4px;
+            color: #475569;
+            font-size: 9.5pt;
+            letter-spacing: 1px;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: 180px minmax(0, 1fr);
+            gap: 14px 12px;
+            margin-top: 20px;
+            font-size: 11pt;
+        }
+
+        .detail-label {
+            color: #64748b;
+        }
+
+        .detail-value {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .amount {
+            display: inline-block;
+            padding: 6px 14px;
+            color: #1e3a8a;
+            font-size: 12pt;
+            font-weight: 700;
+            background: #f1f5f9;
+            border: 1px solid #cbd5f5;
+            border-radius: 6px;
+        }
+
+        .paid-stamp {
+            position: absolute;
+            top: 38%;
+            right: 12%;
+            padding: 4px 18px;
+            color: rgba(34, 197, 94, .18);
+            font-size: 48pt;
+            font-weight: 900;
+            letter-spacing: 4px;
+            border: 6px solid rgba(34, 197, 94, .18);
+            border-radius: 12px;
+            transform: rotate(-12deg);
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .footer {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 32px;
+            margin-top: 28px;
+        }
+
+        .note {
+            max-width: 240px;
+            color: #94a3b8;
+            font-size: 8.5pt;
+            font-style: italic;
+            line-height: 1.35;
+        }
+
+        .signature {
+            min-width: 180px;
+            color: #475569;
+            text-align: center;
+        }
+
+        .signature-date {
+            margin-bottom: 36px;
+            font-size: 10pt;
+        }
+
+        .signature-line {
+            border-top: 1px solid #0f172a;
+        }
+
+        .signature-title {
+            padding-top: 4px;
+            color: #0f172a;
+            font-size: 10.5pt;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 850px) {
+            .paper {
+                width: calc(100vw - 24px);
+                height: auto;
+                min-height: 130mm;
+                margin: 12px;
+                padding: 24px;
+            }
+
+            .header,
+            .footer {
+                flex-direction: column;
+            }
+
+            .receipt-heading {
+                align-self: flex-end;
+            }
+        }
+
+        @media print {
+            body {
+                background: #fff;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .paper {
+                margin: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar no-print">
+        <span class="toolbar-title">Kwitansi Pembayaran</span>
+        <span class="toolbar-actions">
+            <button type="button" class="back-button" onclick="window.history.back()">Kembali</button>
+            <button type="button" class="print-button" onclick="window.print()">Cetak / Simpan PDF</button>
+        </span>
+    </div>
+
+    <main class="paper">
+        <div class="watermark">FC Binna Banua</div>
+
+        <div class="content">
+            <header class="header">
+                <div class="identity">
+                    <div class="logo">
+                                                    <img src="https://pub-d8ff5d84e47e43f3b6e2f21d4a6ea747.r2.dev/tenants/logos/75a6b4a6-3313-429a-80fd-bd1e49c3f927.webp" alt="Logo FC Binna Banua">
+                                            </div>
+                    <div>
+                        <div class="tenant-name">FC Binna Banua</div>
+                        <div class="tenant-contact">
+                            Jl. Patal Senayan III No.1, Grogol Utara, Kebayoran Lama, Jakarta, Jawa Barat, 12210
+                                                            · Telp. 0854888621001
+                                                    </div>
+                    </div>
+                </div>
+                <div class="receipt-heading">
+                    <div class="receipt-title">Kwitansi</div>
+                    <div class="receipt-number">NO: INV-01A0AD88-D081BD454949</div>
+                </div>
+            </header>
+
+            <section class="details">
+                <div class="detail-label">Telah Terima Dari</div>
+                <div class="detail-value">
+                    : Fahad Abdul Aziz
+                                    </div>
+
+                <div class="detail-label">Uang Sejumlah</div>
+                <div><span class="amount">Rp 500.000,00</span></div>
+
+                <div class="detail-label">Untuk Pembayaran</div>
+                <div class="detail-value">
+                    : SPP September - Januari 2026
+                                            (SPP)
+                                    </div>
+
+                <div class="detail-label">Metode Bayar</div>
+                <div class="detail-value">: Transfer Bank</div>
+
+                            </section>
+
+            <div class="paid-stamp">LUNAS</div>
+
+            <footer class="footer">
+                <div class="note">
+                    Bukti pembayaran ini sah dan diterbitkan secara elektronik. Simpan sebagai bukti transaksi yang valid.
+                </div>
+                <div class="signature">
+                    <div class="signature-date">Jakarta, 17 Sep 2026</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Bendahara SSB</div>
+                </div>
+            </footer>
+        </div>
+    </main>
+</body>
+</html>

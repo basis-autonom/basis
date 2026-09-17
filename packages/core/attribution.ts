@@ -175,6 +175,11 @@ export async function computeSplit(
     total = (1 + memeComponent) * (1 + stockComponent) - 1;
   }
 
+  let beta: number | null = null;
+  if (total !== null && total !== 0 && stockComponent !== null) {
+    beta = stockComponent / total;
+  }
+
   // 7. Float Grip
   const grip = await getFloatGrip(stockToken, pool.address);
 
@@ -203,6 +208,7 @@ export async function computeSplit(
         stockComponent,
         memeComponent,
         total,
+        beta,
       },
       grip,
     },
