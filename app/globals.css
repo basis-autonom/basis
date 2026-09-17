@@ -81,7 +81,7 @@ body {
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  opacity: .2;
+  opacity: .36;
   -webkit-mask-image: radial-gradient(ellipse at center, black 0%, rgb(0 0 0 / 88%) 42%, transparent 86%);
   mask-image: radial-gradient(ellipse at center, black 0%, rgb(0 0 0 / 88%) 42%, transparent 86%);
 }
@@ -212,6 +212,13 @@ body {
   .basis-transition__light { display: none; }
   .basis-transition__meme { transform: scaleX(1); }
   .basis-transition__stock { transform: scaleX(1); }
+  .landing-reveal,
+  .landing-reveal--visible,
+  .landing-reveal--after {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 /* Landing page tokens and layout. Kept separate from the dense terminal shell. */
@@ -285,6 +292,12 @@ body {
 .landing-tape-track i { color: var(--color-fg3); font-style: normal; }
 @keyframes landing-slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .landing-hero { padding: 74px 0 0; }
+.landing-hero > .landing-frame {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+}
 .landing-h1 {
   max-width: 19ch;
   margin: 0;
@@ -301,7 +314,7 @@ body {
 }
 .landing-lede {
   max-width: 52ch;
-  margin: 20px 0 0;
+  margin: 20px auto 0;
   color: var(--color-fg2);
   font-size: 17px;
 }
@@ -321,6 +334,7 @@ body {
 }
 .landing-form {
   display: flex;
+  width: 100%;
   max-width: 540px;
   gap: 9px;
   margin-top: 30px;
@@ -353,6 +367,10 @@ body {
 }
 .landing-tryline { margin-top: 11px; color: var(--color-fg3); font-family: var(--font-ibm-plex-mono), monospace; font-size: 12px; }
 .landing-tryline a { border-bottom: 1px solid var(--color-memebg); color: var(--color-meme); }
+.landing-hero .landing-shot {
+  align-self: stretch;
+  text-align: left;
+}
 .landing-shot { margin-top: 52px; overflow: hidden; border: 1px solid var(--color-line2); border-bottom: 0; border-radius: 9px 9px 0 0; background: var(--color-pane); }
 .landing-shotbar { display: flex; align-items: center; height: 34px; gap: 10px; padding: 0 12px; border-bottom: 1px solid var(--color-line); }
 .landing-dots { display: flex; gap: 5px; }

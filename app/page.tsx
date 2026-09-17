@@ -4,6 +4,7 @@ import { ContractForm } from '@/components/landing/ContractForm';
 import { GripBoard } from '@/components/landing/GripBoard';
 import { Hero } from '@/components/landing/Hero';
 import { LandingNav } from '@/components/landing/LandingNav';
+import { LiveLandingRefresh } from '@/components/landing/LiveLandingRefresh';
 import { LandingBoardRow } from '@/components/landing/types';
 import { MarketHours } from '@/components/landing/MarketHours';
 import { MethodBlock } from '@/components/landing/MethodBlock';
@@ -38,6 +39,7 @@ export default async function LandingPage() {
   return (
     <LenisWrapper>
       <div className="landing-page">
+        <LiveLandingRefresh />
         <LandingNav />
         <TickerTape rows={board} />
         <ScrollReveal className="landing-reveal-hero">

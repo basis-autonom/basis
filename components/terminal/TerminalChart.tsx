@@ -10,7 +10,7 @@ interface TerminalChartProps {
 
 export function TerminalChart({ seed, timeframe, onTimeframeChange }: TerminalChartProps) {
   const { grid, memePath, stockPath, marks } = useMemo(() => {
-    const s = seed.length + seed.charCodeAt(0) + seed.charCodeAt(seed.length - 1);
+    const s = seed.length + seed.charCodeAt(0) + seed.charCodeAt(seed.length - 1) + (timeframe === "1h" ? 10 : timeframe === "4h" ? 20 : timeframe === "24h" ? 30 : timeframe === "7d" ? 40 : 50);
     const W = 1000, H = 216, n = 48, pts: [number, number][] = [];
     for (let i = 0; i < n; i++) {
       const open = (i > 14 && i < 34);

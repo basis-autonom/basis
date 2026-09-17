@@ -103,9 +103,9 @@ export function BasisTransition() {
         <LightPillar
           topColor="#0061ff"
           bottomColor="#EAB308"
-          intensity={0.72}
+          intensity={0.95}
           rotationSpeed={0.2}
-          glowAmount={0.002}
+          glowAmount={0.0035}
           pillarWidth={3}
           pillarHeight={0.4}
           noiseIntensity={0.5}
