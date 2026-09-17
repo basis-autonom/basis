@@ -24,7 +24,7 @@ export default async function TerminalFloatPage() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Page header: matches .phead in design/float.html */}
-      <div className="flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: 22, padding: "0 18px", height: 58 }}>
+      <div className="flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: '22px', padding: "0 18px", height: 58 }}>
         <div>
           <h1 className="text-[16px] font-semibold text-fg">Float grip</h1>
           <div className="text-[12px] text-fg3">
@@ -39,7 +39,7 @@ export default async function TerminalFloatPage() {
 
         <div className="flex flex-col">
           <div className="text-[10px] text-fg3">Gripped over 10%</div>
-          <div className="font-mono text-[13px] text-down mt-[2px]">{grippedOver10Count}</div>
+          <div className="font-mono text-[13px] text-fg mt-[2px]">{grippedOver10Count}</div>
         </div>
 
         <div className="flex flex-col">
@@ -51,7 +51,7 @@ export default async function TerminalFloatPage() {
           </div>
         </div>
 
-        <div className="ml-auto flex gap-[7px]">
+        <div className="ml-auto flex" style={{ gap: "7px" }}>
           <button className="h-[29px] px-[13px] bg-transparent text-fg2 border border-line2 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:text-fg hover:border-line transition-colors">
             Export CSV
           </button>

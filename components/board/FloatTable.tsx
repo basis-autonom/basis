@@ -47,8 +47,8 @@ export function FloatTable({ rows }: { rows: any[] }) {
         r.gripPct != null ? (
           <div className="h-[8px] bg-pane2 rounded-[2px] overflow-hidden w-[120px]">
             <i
-              className="block h-full bg-fg3"
-              style={{ width: `${Math.min(r.gripPct, 100)}%` }}
+              className="block h-full"
+              style={{ width: `${Math.min(r.gripPct, 100)}%`, backgroundColor: "var(--color-fg3)" }}
             />
           </div>
         ) : (
@@ -61,7 +61,7 @@ export function FloatTable({ rows }: { rows: any[] }) {
       align: "right",
       render: (r) =>
         r.gripPct != null ? (
-          <span className={r.gripPct >= 10 ? "text-down" : undefined}>
+          <span >
             {r.gripPct.toFixed(1)}%
           </span>
         ) : (

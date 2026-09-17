@@ -64,6 +64,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
   const memeComp = attribution.memeComponent;
   const stockComp = attribution.stockComponent;
   const total = attribution.total;
+  const beta = attribution.beta;
 
   const isUp = total != null && total >= 0;
   const totalColor = total != null ? (isUp ? 'text-up' : 'text-down') : 'text-fg3';
@@ -87,7 +88,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
   return (
     <div className="main flex-1 flex flex-col overflow-y-auto bg-bg">
       {/* Top Header: matches .hdr in design/report.html */}
-      <div className="hdr flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: 22, padding: "0 18px", height: 58 }}>
+      <div className="hdr flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: '22px', padding: "0 18px", height: 58 }}>
         <div className="pairid flex items-baseline gap-[8px]">
           <span className="font-mono text-[17px] font-semibold text-fg" title={coinName}>
             ${coinSymbol}
@@ -108,12 +109,12 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
 
         <div className="stat flex flex-col">
           <div className="k text-[10px] text-fg3">Beta</div>
-          <div className="v font-mono text-[12px] text-fg mt-[2px]">—</div>
+          <div className="v font-mono text-[12px] text-fg mt-[2px]">{beta != null ? beta.toFixed(2) : '—'}</div>
         </div>
 
         <div className="stat flex flex-col">
           <div className="k text-[10px] text-fg3">Grip</div>
-          <div className={`v font-mono text-[12px] mt-[2px] ${grip.gripPct >= 10 ? 'text-down' : 'text-fg'}`}>
+          <div className={`v font-mono text-[12px] mt-[2px] text-fg`}>
             {grip.gripPct.toFixed(1)}%
           </div>
         </div>
@@ -125,7 +126,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
           </div>
         </div>
 
-        <div className="act ml-auto flex gap-[7px]">
+        <div className="act ml-auto flex" style={{ gap: "7px" }}>
           <button className="btn h-[29px] px-[13px] bg-fg text-bg border-0 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:opacity-90 transition-opacity">
             Copy split card
           </button>
@@ -289,7 +290,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
             </div>
             <div className="kv flex justify-between py-[7px] text-[12px]">
               <span className="text-fg2">Share</span>
-              <span className={`font-mono ${grip.gripPct >= 10 ? 'text-down' : 'text-fg'}`}>
+              <span className={`font-mono text-fg`}>
                 {grip.gripPct.toFixed(1)}%
               </span>
             </div>
@@ -324,6 +325,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
                 />
               ))}
             </div>
+            <div className="kv flex justify-between py-[7px] border-b border-line text-[12px]"><div className="k text-fg3">beta</div><div className="v text-fg">{beta != null ? beta.toFixed(2) : '—'}</div></div>
             <div className="dax flex justify-between text-[10px] text-fg3 font-mono mt-[4px]">
               <span>30d ago</span>
               <span>today</span>

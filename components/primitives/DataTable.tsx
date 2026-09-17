@@ -48,7 +48,7 @@ export function DataTable<T>({ columns, rows, onRowClick, activeRowFn }: DataTab
                 {columns.map((col) => (
                   <td 
                     key={col.key} 
-                    style={{ padding: "8px 12px" }}
+                    style={{ padding: "8px 14px" }}
                     className={`text-[12px] whitespace-nowrap ${
                       col.align === 'right' ? 'text-right font-mono' : ''
                     }`}

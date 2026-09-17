@@ -1,0 +1,70 @@
+.overlay {
+  padding: 24px 12px;
+}
+
+.header {
+  padding: 8px;
+}
+
+.searchField {
+  padding: 8px 12px;
+}
+
+.results {
+  padding: 8px;
+}
+
+.results > * + * {
+  margin-top: 4px;
+}
+
+.row {
+  padding: 10px 12px;
+}
+
+.rowSubtitle {
+  margin-top: 2px;
+}
+
+.rowMeta {
+  margin-left: auto;
+}
+
+.empty > p + p {
+  margin-top: 5px;
+}
+
+.empty {
+  padding: 24px 12px;
+}
+
+.footer {
+  padding: 12px 16px;
+}
+
+.footer kbd {
+  margin-right: 4px;
+  padding: 1px 4px;
+}
+
+.footerShortcut {
+  margin-left: auto;
+}
+
+.closeHint {
+  padding: 2px 6px;
+}
+
+@media (min-width: 640px) {
+  .overlay {
+    padding: 24px;
+  }
+
+  .header {
+    padding: 12px;
+  }
+
+  .results {
+    padding: 12px;
+  }
+}
