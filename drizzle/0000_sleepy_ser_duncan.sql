@@ -1,4 +1,4 @@
-CREATE TABLE "findings" (
+CREATE TABLE IF NOT EXISTS "findings" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "findings_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"detected_at" timestamp with time zone NOT NULL,
 	"reported_on" date NOT NULL,
@@ -11,6 +11,6 @@ CREATE TABLE "findings" (
 	"liquidity" numeric(30, 10)
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX "findings_token_address_reported_on_idx" ON "findings" USING btree ("token_address","reported_on");--> statement-breakpoint
-CREATE INDEX "findings_detected_at_idx" ON "findings" USING btree ("detected_at");--> statement-breakpoint
-CREATE INDEX "findings_token_address_idx" ON "findings" USING btree ("token_address");
+CREATE UNIQUE INDEX IF NOT EXISTS "findings_token_address_reported_on_idx" ON "findings" USING btree ("token_address","reported_on");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "findings_detected_at_idx" ON "findings" USING btree ("detected_at");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "findings_token_address_idx" ON "findings" USING btree ("token_address");
