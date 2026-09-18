@@ -108,6 +108,12 @@ export async function getPoolForToken(
       stockSide,
       createdAt: typeof bestPool.pairCreatedAt === "number" ? bestPool.pairCreatedAt : null,
       liquidityUsd: bestPool.liquidity?.usd || 0,
+      liquidityBase: typeof bestPool.liquidity?.base === "number" && Number.isFinite(bestPool.liquidity.base)
+        ? bestPool.liquidity.base
+        : null,
+      liquidityQuote: typeof bestPool.liquidity?.quote === "number" && Number.isFinite(bestPool.liquidity.quote)
+        ? bestPool.liquidity.quote
+        : null,
       lpBurned: true,
       venue: "Uniswap v4",
     };
@@ -141,7 +147,14 @@ export async function getRobinhoodPools(limit: number = 50) {
     }
 
     // Filter to Robinhood Chain and Uniswap (v4)
-    let rhPools = allPairs.filter(
+    const uniquePairs = new Map<string, any>();
+    for (const pair of allPairs) {
+      if (typeof pair.pairAddress === "string") {
+        uniquePairs.set(pair.pairAddress.toLowerCase(), pair);
+      }
+    }
+
+    let rhPools = Array.from(uniquePairs.values()).filter(
       (p: any) =>
         p.chainId === "robinhood" &&
         p.dexId === "uniswap" &&
@@ -171,6 +184,12 @@ export async function getRobinhoodPools(limit: number = 50) {
         stockSide,
         createdAt: typeof bestPool.pairCreatedAt === "number" ? bestPool.pairCreatedAt : null,
         liquidityUsd: bestPool.liquidity?.usd || 0,
+        liquidityBase: typeof bestPool.liquidity?.base === "number" && Number.isFinite(bestPool.liquidity.base)
+          ? bestPool.liquidity.base
+          : null,
+        liquidityQuote: typeof bestPool.liquidity?.quote === "number" && Number.isFinite(bestPool.liquidity.quote)
+          ? bestPool.liquidity.quote
+          : null,
         vol24hUsd: bestPool.volume?.h24 || 0,
         lpBurned: true,
         venue: bestPool.labels?.includes("v4") ? "Uniswap v4" : "Uniswap v4",

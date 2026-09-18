@@ -1,6 +1,7 @@
-import { Address, FloatGrip, StockToken } from './types';
+import { Address, FloatGrip, Pool, StockToken } from './types';
 import { createPublicClient, http, parseAbi } from 'viem';
 import { robinhoodChain, V4_POOL_MANAGER, V4_STATE_VIEW } from './chain';
+import { getRobinhoodPools } from './pools';
 
 const client = createPublicClient({
   chain: robinhoodChain,
@@ -25,6 +26,13 @@ export interface ReportSnapshot {
   latestRoundData: LatestRoundData | null;
   slot0: Slot0Data | null;
 }
+
+export interface CorporateActionPoolExposure {
+  poolsHit: number | null;
+  stockLegValueUsd: number | null;
+}
+
+type CorporateActionToken = Pick<StockToken, 'address'> & { feed: Address | null };
 
 function successfulResult<T>(result: { status?: string; result?: unknown } | undefined): T | null {
   return result?.status === 'success' ? (result.result as T) : null;
@@ -128,6 +136,87 @@ export async function getFloatGrip(stockToken: StockToken, poolAddress: Address)
     successfulResult<bigint>(results[0]),
     successfulResult<bigint>(results[1]),
   );
+}
+
+/**
+ * Read the active stock-paired pools and their current stock-side USD value.
+ * Pool amounts come from the same DexScreener-backed pool directory used by
+ * the board; the stock price comes from the token's Chainlink feed.
+ */
+export async function getCorporateActionPoolExposure(
+  stockTokens: CorporateActionToken[],
+): Promise<Map<string, CorporateActionPoolExposure>> {
+  const result = new Map<string, CorporateActionPoolExposure>();
+  if (stockTokens.length === 0) return result;
+
+  let pools: Pool[] = [];
+  try {
+    pools = await getRobinhoodPools(1000);
+  } catch {
+    return result;
+  }
+
+  const tokensByAddress = new Map(
+    stockTokens.map((token) => [token.address.toLowerCase(), token]),
+  );
+  const poolsByStock = new Map<string, Pool[]>();
+  for (const pool of pools) {
+    if (!Number.isFinite(pool.liquidityUsd) || pool.liquidityUsd <= 0) continue;
+    const stockAddress = tokensByAddress.has(pool.token0.toLowerCase())
+      ? pool.token0.toLowerCase()
+      : tokensByAddress.has(pool.token1.toLowerCase())
+        ? pool.token1.toLowerCase()
+        : null;
+    if (!stockAddress) continue;
+    const matching = poolsByStock.get(stockAddress) ?? [];
+    matching.push(pool);
+    poolsByStock.set(stockAddress, matching);
+  }
+
+  const feedTokens = stockTokens.filter(
+    (token): token is CorporateActionToken & { feed: Address } =>
+      token.feed != null && poolsByStock.has(token.address.toLowerCase()),
+  );
+  const priceResults = await client.multicall({
+    contracts: feedTokens.map((token) => ({
+      address: token.feed,
+      abi: reportAbi,
+      functionName: 'latestRoundData' as const,
+    })),
+  });
+
+  for (let index = 0; index < feedTokens.length; index++) {
+    const token = feedTokens[index];
+    const matching = poolsByStock.get(token.address.toLowerCase()) ?? [];
+    const latest = successfulResult<LatestRoundData>(priceResults[index]);
+    const stockPrice = latest && latest[1] > 0n ? Number(latest[1]) / 1e8 : null;
+    let stockLegValueUsd: number | null = stockPrice != null ? 0 : null;
+
+    if (stockPrice != null && stockLegValueUsd != null) {
+      for (const pool of matching) {
+        const stockAmount = pool.stockSide === 0 ? pool.liquidityBase : pool.liquidityQuote;
+        if (stockAmount == null || !Number.isFinite(stockAmount) || stockAmount < 0) {
+          stockLegValueUsd = null;
+          break;
+        }
+        stockLegValueUsd += stockAmount * stockPrice;
+      }
+    }
+
+    result.set(token.address.toLowerCase(), {
+      poolsHit: matching.length,
+      stockLegValueUsd,
+    });
+  }
+
+  for (const token of stockTokens) {
+    const address = token.address.toLowerCase();
+    if (!result.has(address)) {
+      result.set(address, { poolsHit: 0, stockLegValueUsd: 0 });
+    }
+  }
+
+  return result;
 }
 
 export async function getFloatBoardData() {

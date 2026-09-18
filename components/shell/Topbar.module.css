@@ -7,6 +7,34 @@
   border-radius: 999px;
 }
 
+.socialLink,
+.socialLinkDisabled {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-fg2);
+  transition: color 160ms ease, opacity 160ms ease;
+}
+
+.socialLink svg,
+.socialLinkDisabled svg {
+  width: 15px;
+  height: 15px;
+}
+
+.socialLink:hover,
+.socialLink:focus-visible {
+  color: var(--color-fg);
+  outline: none;
+}
+
+.socialLinkDisabled {
+  cursor: not-allowed;
+  opacity: .34;
+}
+
 @media (min-width: 1280px) {
   .searchTrigger {
     position: absolute;

@@ -5,6 +5,8 @@ import {
   type Address,
 } from "viem";
 import { publicClient as robinhoodClient } from "@/packages/core/chain";
+import { getCorporateActionPoolExposure } from "@/packages/core/float";
+import { getStockTokenByAddress } from "@/packages/core/registry";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +68,8 @@ type HistoryRow = {
   newMultiplier: number | null;
   valueChange: number | null;
   date: number | null;
+  poolsHit: number | null;
+  valueAtRisk: number | null;
 };
 
 const ACTIONS_TIMEOUT_MS = 15_000;
@@ -238,15 +242,37 @@ async function readActions() {
     }
   }));
 
-  const historyRows: HistoryRow[] = history.map((row) => ({
-    symbol: row.symbol,
-    address: row.address,
-    type: row.type,
-    oldMultiplier: row.oldMultiplier,
-    newMultiplier: row.newMultiplier,
-    valueChange: row.valueChange,
-    date: row.date ?? (row.blockNumber == null ? null : blockDates.get(row.blockNumber) ?? null),
-  }));
+  const historyTokens = snapshots.filter((token) =>
+    history.some((row) => row.address.toLowerCase() === token.address.toLowerCase()),
+  );
+  const exposureTokens = await Promise.all(
+    historyTokens.map(async (token) => {
+      const registryToken = await getStockTokenByAddress(token.address);
+      return { address: token.address, feed: registryToken?.feed ?? null };
+    }),
+  );
+  const exposureByAddress = await getCorporateActionPoolExposure(exposureTokens);
+
+  const historyRows: HistoryRow[] = history.map((row) => {
+    const exposure = exposureByAddress.get(row.address.toLowerCase());
+    const valueAtRisk = row.type === "Split"
+      ? null
+      : row.oldMultiplier != null && row.newMultiplier != null && row.oldMultiplier > 0 && exposure?.stockLegValueUsd != null
+        ? exposure.stockLegValueUsd * (row.newMultiplier / row.oldMultiplier - 1)
+        : null;
+
+    return {
+      symbol: row.symbol,
+      address: row.address,
+      type: row.type,
+      oldMultiplier: row.oldMultiplier,
+      newMultiplier: row.newMultiplier,
+      valueChange: row.valueChange,
+      date: row.date ?? (row.blockNumber == null ? null : blockDates.get(row.blockNumber) ?? null),
+      poolsHit: exposure?.poolsHit ?? null,
+      valueAtRisk,
+    };
+  });
 
   return {
     kind: "success" as const,

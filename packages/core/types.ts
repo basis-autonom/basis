@@ -23,6 +23,8 @@ export interface Pool {
   stockSide: 0 | 1;
   createdAt: number | null;
   liquidityUsd: number;
+  liquidityBase: number | null;
+  liquidityQuote: number | null;
   lpBurned: boolean;
   venue: string;
 }

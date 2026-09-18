@@ -11,6 +11,8 @@ type Action = {
   newMultiplier: number | null;
   valueChange: number | null;
   date: number | null;
+  poolsHit: number | null;
+  valueAtRisk: number | null;
 };
 
 type Token = {
@@ -57,9 +59,25 @@ function formatDate(value: number | null) {
   }).format(new Date(value));
 }
 
+function formatUsd(value: number | null) {
+  if (value == null || !Number.isFinite(value)) return "—";
+  const absolute = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+  if (absolute >= 1_000_000) return `${sign}$${(absolute / 1_000_000).toFixed(2)}M`;
+  if (absolute >= 1_000) return `${sign}$${(absolute / 1_000).toFixed(2)}K`;
+  return `${sign}$${absolute.toFixed(2)}`;
+}
+
+function poolResponse(action: Action) {
+  if (action.type === "Split") return "neutral — token value unchanged";
+  if (action.valueChange == null) return "—";
+  return `stock leg ${formatPct(action.valueChange)}`;
+}
+
 export function CorporateActionsView() {
   const { rows } = useTerminalRows() as { rows: TerminalRow[] };
   const [data, setData] = useState<ActionResponse | null>(null);
+  const [selectedAction, setSelectedAction] = useState<Action | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -92,7 +110,6 @@ export function CorporateActionsView() {
 
   const scheduled = data?.scheduled ?? [];
   const history = data?.history ?? [];
-  const selected = scheduled[0] ?? null;
 
   return (
     <div className="actions-page">
@@ -131,11 +148,18 @@ export function CorporateActionsView() {
 
         <article className="actions-cell">
           <div className="actions-heading"><h2>Effect on a pool</h2><span>worked from observed chain values</span></div>
-          <div className="actions-kv"><span>Selected ticker</span><strong>{selected?.symbol ?? "—"}</strong></div>
-          <div className="actions-kv"><span>Multiplier change</span><strong>{selected ? `${formatMultiplier(selected.currentMultiplier)} → ${formatMultiplier(selected.pendingMultiplier)}` : "—"}</strong></div>
-          <div className="actions-kv"><span>Pool response</span><strong>{selected ? "not estimated" : "—"}</strong></div>
-          <div className="actions-kv"><span>Pool value at risk</span><strong>—</strong></div>
-          <p className="actions-note">The chain exposes the multiplier change. A pool response or value at risk is shown only when the required pool state is available; this page does not fill gaps with estimates.</p>
+          {selectedAction ? (
+            <>
+              <div className="actions-kv"><span>Selected ticker</span><strong>{selectedAction.symbol}</strong></div>
+              <div className="actions-kv"><span>Multiplier change</span><strong>{formatMultiplier(selectedAction.oldMultiplier)} → {formatMultiplier(selectedAction.newMultiplier)}</strong></div>
+              <div className="actions-kv"><span>Pool response</span><strong>{poolResponse(selectedAction)}</strong></div>
+              <div className="actions-kv"><span>Pools hit</span><strong>{selectedAction.poolsHit ?? "—"}</strong></div>
+              <div className="actions-kv"><span>Pool value at risk</span><strong>{formatUsd(selectedAction.valueAtRisk)}</strong></div>
+            </>
+          ) : (
+            <div className="actions-selection-empty">Click a row in History to see its effect on a pool.</div>
+          )}
+          <p className="actions-note">Splits are neutral. Dividends expose the stock-leg value that can leak to arbitrage before the pool reprices.</p>
         </article>
       </section>
 
@@ -146,8 +170,21 @@ export function CorporateActionsView() {
           {data == null ? <div className="actions-empty"><span>Reading historical multiplier events…</span></div> : data.historyStatus === "partial" && history.length === 0 ? <div className="actions-empty"><span>No multiplier update events found in the ranges that were scanned.</span><small>History is incomplete; no substitute data is used.</small></div> : history.length === 0 ? <div className="actions-empty"><span>No multiplier update events were returned by the chain.</span></div> : (
             <div className="actions-table-wrap">
               <table className="actions-table">
-                <thead><tr><th>Date</th><th>Ticker</th><th>Type</th><th className="actions-right">Old</th><th className="actions-right">New</th><th className="actions-right">Value change</th><th className="actions-right">Pools hit</th><th className="actions-right">Value at risk</th></tr></thead>
-                <tbody>{history.map((action, index) => <tr key={`${action.address}-${action.date ?? "unknown"}-${index}`}><td className="actions-muted">{formatDate(action.date)}</td><td className="actions-ticker">{action.symbol}</td><td>{action.type ?? "—"}</td><td className="actions-right actions-mono">{formatMultiplier(action.oldMultiplier)}</td><td className="actions-right actions-mono">{formatMultiplier(action.newMultiplier)}</td><td className="actions-right actions-mono">{formatPct(action.valueChange)}</td><td className="actions-right actions-mono">—</td><td className="actions-right actions-mono">—</td></tr>)}</tbody>
+                <thead><tr><th>Date</th><th>Ticker</th><th>Type</th><th className="actions-right">Old</th><th className="actions-right">New</th><th className="actions-right">Value change</th><th>Pool response</th><th className="actions-right">Pools hit</th><th className="actions-right">Value at risk</th></tr></thead>
+                <tbody>{history.map((action, index) => <tr
+                  key={`${action.address}-${action.date ?? "unknown"}-${index}`}
+                  className={`actions-history-row${selectedAction === action ? " actions-history-row--selected" : ""}`}
+                  onClick={() => setSelectedAction(action)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setSelectedAction(action);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-pressed={selectedAction === action}
+                ><td className="actions-muted">{formatDate(action.date)}</td><td className="actions-ticker">{action.symbol}</td><td>{action.type ?? "—"}</td><td className="actions-right actions-mono">{formatMultiplier(action.oldMultiplier)}</td><td className="actions-right actions-mono">{formatMultiplier(action.newMultiplier)}</td><td className="actions-right actions-mono">{formatPct(action.valueChange)}</td><td>{poolResponse(action)}</td><td className="actions-right actions-mono">{action.poolsHit ?? "—"}</td><td className="actions-right actions-mono">{action.type === "Split" ? "—" : formatUsd(action.valueAtRisk)}</td></tr>)}</tbody>
               </table>
             </div>
           )}
