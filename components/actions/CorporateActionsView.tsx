@@ -65,7 +65,7 @@ export function CorporateActionsView() {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 20_000);
 
-    fetch("/api/actions", { signal: controller.signal })
+    fetch("/api/actions", { cache: "no-store", signal: controller.signal })
       .then(async (response) => {
         const body = (await response.json()) as ActionResponse;
         if (!response.ok) throw new Error(body.message || "The on-chain corporate-action read failed.");

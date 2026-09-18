@@ -100,7 +100,7 @@ async function readAssets(): Promise<Asset[]> {
   return body.assets;
 }
 
-async function readHistory(tokens: TokenSnapshot[]) {
+async function readHistory(tokens: TokenSnapshot[], toBlock: bigint) {
   if (tokens.length === 0) return [];
 
   const tokensByAddress = new Map(
@@ -110,7 +110,9 @@ async function readHistory(tokens: TokenSnapshot[]) {
     address: tokens.map((token) => token.address),
     event: updateEventAbi[0],
     fromBlock: 0n,
-    toBlock: "latest",
+    // Resolve latest first so the response records the exact complete range
+    // that was queried instead of relying on an RPC's implicit latest tag.
+    toBlock,
   });
 
   return logs.flatMap((log) => {
@@ -196,8 +198,10 @@ async function readActions() {
 
     let history: Awaited<ReturnType<typeof readHistory>> = [];
     let historyUnavailable = false;
+    let historyToBlock: bigint | null = null;
     try {
-      history = await readHistory(snapshots);
+      historyToBlock = await robinhoodClient.getBlockNumber();
+      history = await readHistory(snapshots, historyToBlock);
     } catch (error) {
       historyUnavailable = true;
       console.error("Corporate-action history read failed:", error);
@@ -231,6 +235,14 @@ async function readActions() {
       scheduled,
       history: historyRows,
       historyStatus: historyUnavailable ? "partial" : "complete",
+      // Audit metadata: complete means one successful getLogs query from
+      // genesis through the resolved latest block. A null end block is
+      // intentionally partial; the endpoint never calls that complete.
+      historyRange: {
+        fromBlock: "0",
+        toBlock: historyToBlock?.toString() ?? null,
+        complete: !historyUnavailable && historyToBlock != null,
+      },
     });
   } catch (error) {
     return NextResponse.json({

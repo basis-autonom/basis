@@ -18,6 +18,11 @@ function formatPrice(price: number | null | undefined) {
 
 type SidebarIconName = 'board' | 'report' | 'float' | 'hours' | 'actions' | 'method';
 
+type CorporateActionsBadgeResponse = {
+  kind?: 'success' | 'error';
+  scheduled?: unknown[];
+};
+
 function SidebarIcon({ name, className }: { name: SidebarIconName; className: string }) {
   const common = {
     className,
@@ -53,11 +58,37 @@ export function Sidebar() {
   const { isCollapsed, toggleSidebar } = useSidebarLayout();
   const router = useRouter();
   const pathname = usePathname();
+  const [scheduledActionsCount, setScheduledActionsCount] = React.useState<number | null>(null);
   const isReport = pathname.startsWith('/c/');
   const reportCa = isReport ? pathname.split('/c/')[1] : '';
   const shortCa = reportCa ? `${reportCa.slice(0, 6)}…${reportCa.slice(-4)}` : '';
   const activeRow = watchlist.find(r => r.ca?.toLowerCase() === reportCa?.toLowerCase() || r.poolId?.toLowerCase() === reportCa?.toLowerCase());
   const meta = pageMetaMap[pathname];
+  const highGripCount = watchlist.length > 0
+    ? watchlist.filter((row) => typeof row.grip === 'number' && row.grip >= 10).length
+    : null;
+
+  React.useEffect(() => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 20_000);
+
+    fetch('/api/actions', { cache: 'no-store', signal: controller.signal })
+      .then(async (response) => {
+        const body = (await response.json()) as CorporateActionsBadgeResponse;
+        if (!response.ok || body.kind !== 'success' || !Array.isArray(body.scheduled)) {
+          throw new Error('Corporate-action badge data unavailable');
+        }
+        return body.scheduled.length;
+      })
+      .then(setScheduledActionsCount)
+      .catch(() => setScheduledActionsCount(null))
+      .finally(() => window.clearTimeout(timeout));
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, []);
 
   const getNavClass = (path: string) => {
     const isActive = !isReport && pathname === path;
@@ -119,7 +150,9 @@ export function Sidebar() {
         <Link href="/float" className={`${getNavClass('/float')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Float grip">
           <SidebarIcon name="float" className={getIconClass('/float')} />
           <span className={styles.navItemLabel} data-collapsed-label="Float">Float grip</span>
-          <span className={`font-mono text-[10px] text-fg3 ${styles.navCount}`} style={{ marginLeft: "auto" }}>12</span>
+          <span className={`font-mono text-[10px] text-fg3 ${styles.navCount}`} style={{ marginLeft: "auto" }}>
+            {highGripCount ?? '—'}
+          </span>
         </Link>
         
         <Link href="/hours" className={`${getNavClass('/hours')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Market hours">
@@ -130,7 +163,9 @@ export function Sidebar() {
         <Link href="/actions" className={`${getNavClass('/actions')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Corporate actions">
           <SidebarIcon name="actions" className={getIconClass('/actions')} />
           <span className={styles.navItemLabel} data-collapsed-label="Actions">Corporate actions</span>
-          <span className={`font-mono text-[10px] text-fg3 ${styles.navCount}`} style={{ marginLeft: "auto" }}>2</span>
+          <span className={`font-mono text-[10px] text-fg3 ${styles.navCount}`} style={{ marginLeft: "auto" }}>
+            {scheduledActionsCount ?? '—'}
+          </span>
         </Link>
         
         <Link href="/method" className={`${getNavClass('/method')} ${styles.navItem}`} style={{ padding: '7px 14px' }} title="Method">

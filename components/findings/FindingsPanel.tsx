@@ -87,10 +87,10 @@ export function FindingsPanel({ poolCount }: { poolCount: number }) {
       aria-labelledby="findings-heading"
       className="flex min-h-[42px] min-w-0 flex-shrink-0 border-b border-line bg-pane"
     >
-      <div className="flex w-[116px] flex-shrink-0 items-center justify-between border-r border-line px-[14px]">
+      <div className="flex w-[116px] flex-shrink-0  items-center justify-between border-r border-line px-[12px]!">
         <h2
           id="findings-heading"
-          className="font-mono text-[10px] uppercase tracking-[0.09em] text-fg3"
+          className="font-mono text-[10px] uppercase tracking-[0.09em] text-fg3 "
         >
           Findings
         </h2>
@@ -105,7 +105,8 @@ export function FindingsPanel({ poolCount }: { poolCount: number }) {
         </p>
       ) : state.status === "ready" && state.findings.length === 0 ? (
         <p className="flex min-w-0 items-center px-[14px] font-mono text-[10px] text-fg3">
-          Watching {poolCount} stock-paired pools. Nothing moving on its stock right now.
+          Watching {poolCount} stock-paired pools. Nothing moving on its stock
+          right now.
         </p>
       ) : state.status === "loading" ? (
         <p className="flex min-w-0 items-center px-[14px] font-mono text-[10px] text-fg3">
@@ -117,7 +118,10 @@ export function FindingsPanel({ poolCount }: { poolCount: number }) {
           className="flex min-w-0 flex-1 overflow-x-auto"
         >
           {state.findings.map((finding) => (
-            <li key={finding.id} className="flex flex-shrink-0 border-r border-line last:border-r-0">
+            <li
+              key={finding.id}
+              className="flex flex-shrink-0 border-r border-line last:border-r-0"
+            >
               <Link
                 href={`/c/${finding.tokenAddress}`}
                 className="flex items-center gap-[12px] px-[14px] py-[8px] font-mono text-[11px] transition-colors hover:bg-pane2 focus-visible:bg-pane2"
@@ -130,7 +134,9 @@ export function FindingsPanel({ poolCount }: { poolCount: number }) {
                 </time>
                 <span className="flex-shrink-0 text-fg">
                   ${finding.symbol ?? "—"}
-                  <span className="ml-[5px] text-stock">/ {finding.stockPair ?? "—"}</span>
+                  <span className="ml-[5px] text-stock">
+                    / {finding.stockPair ?? "—"}
+                  </span>
                 </span>
                 <span className={movementClass(finding.priceMovement)}>
                   price {formatPercent(finding.priceMovement)}%
