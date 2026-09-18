@@ -67,6 +67,10 @@ type HistoryRow = {
 };
 
 const ACTIONS_TIMEOUT_MS = 15_000;
+// The scheduled-state multicall is the information the page needs first.
+// A genesis-to-latest log scan can legitimately take longer on a cold RPC,
+// so it has its own deadline and can only make *history* partial.
+const HISTORY_TIMEOUT_MS = 6_000;
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -141,121 +145,124 @@ async function readHistory(tokens: TokenSnapshot[], toBlock: bigint) {
   });
 }
 
+async function readCurrentActionState() {
+  const assets = await readAssets();
+  const tokens = assets.flatMap((asset) => {
+    const deployment = asset.deployments?.find(
+      (item) => item.chainId === 4663 && item.contractAddress,
+    );
+    if (!deployment?.contractAddress || !asset.tokenSymbol) return [];
+    return [{
+      address: deployment.contractAddress.toLowerCase() as Address,
+      symbol: asset.tokenSymbol,
+      name: asset.tokenName || asset.tokenSymbol,
+    }];
+  });
+
+  const calls = tokens.flatMap((token) =>
+    ["uiMultiplier", "newUIMultiplier", "effectiveAt", "totalSupply"].map(
+      (functionName) => ({
+        address: token.address,
+        abi: actionAbi,
+        functionName,
+      }),
+    ),
+  );
+  const results = await robinhoodClient.multicall({ contracts: calls });
+  const snapshots: TokenSnapshot[] = tokens.map((token, index) => {
+    const resultAt = (offset: number) => results[index * 4 + offset];
+    const current = resultAt(0);
+    const pending = resultAt(1);
+    const effective = resultAt(2);
+    const supply = resultAt(3);
+    const effectiveRaw = effective?.status === "success" && typeof effective.result === "bigint"
+      ? Number(effective.result)
+      : null;
+    return {
+      ...token,
+      currentMultiplier: current?.status === "success" ? rawMultiplier(current.result) : null,
+      pendingMultiplier: pending?.status === "success" ? rawMultiplier(pending.result) : null,
+      effectiveAt: effectiveRaw && effectiveRaw > 0 ? effectiveRaw * 1000 : null,
+      totalSupply: supply?.status === "success" && typeof supply.result === "bigint"
+        ? supply.result.toString()
+        : null,
+    };
+  });
+
+  const now = Date.now();
+  const scheduled = snapshots.filter(
+    (token) =>
+      token.effectiveAt != null &&
+      token.effectiveAt > now &&
+      token.currentMultiplier != null &&
+      token.pendingMultiplier != null &&
+      token.pendingMultiplier !== token.currentMultiplier,
+  );
+
+  return { snapshots, scheduled };
+}
+
 async function readActions() {
+  const { snapshots, scheduled } = await readCurrentActionState();
+
+  let history: Awaited<ReturnType<typeof readHistory>> = [];
+  let historyUnavailable = false;
+  let historyToBlock: bigint | null = null;
   try {
-    const assets = await readAssets();
-    const tokens = assets.flatMap((asset) => {
-      const deployment = asset.deployments?.find(
-        (item) => item.chainId === 4663 && item.contractAddress,
-      );
-      if (!deployment?.contractAddress || !asset.tokenSymbol) return [];
-      return [{
-        address: deployment.contractAddress.toLowerCase() as Address,
-        symbol: asset.tokenSymbol,
-        name: asset.tokenName || asset.tokenSymbol,
-      }];
-    });
-
-    const calls = tokens.flatMap((token) =>
-      ["uiMultiplier", "newUIMultiplier", "effectiveAt", "totalSupply"].map(
-        (functionName) => ({
-          address: token.address,
-          abi: actionAbi,
-          functionName,
-        }),
-      ),
-    );
-    const results = await robinhoodClient.multicall({ contracts: calls });
-    const snapshots: TokenSnapshot[] = tokens.map((token, index) => {
-      const resultAt = (offset: number) => results[index * 4 + offset];
-      const current = resultAt(0);
-      const pending = resultAt(1);
-      const effective = resultAt(2);
-      const supply = resultAt(3);
-      const effectiveRaw = effective?.status === "success" && typeof effective.result === "bigint"
-        ? Number(effective.result)
-        : null;
-      return {
-        ...token,
-        currentMultiplier: current?.status === "success" ? rawMultiplier(current.result) : null,
-        pendingMultiplier: pending?.status === "success" ? rawMultiplier(pending.result) : null,
-        effectiveAt: effectiveRaw && effectiveRaw > 0 ? effectiveRaw * 1000 : null,
-        totalSupply: supply?.status === "success" && typeof supply.result === "bigint"
-          ? supply.result.toString()
-          : null,
-      };
-    });
-
-    const now = Date.now();
-    const scheduled = snapshots.filter(
-      (token) =>
-        token.effectiveAt != null &&
-        token.effectiveAt > now &&
-        token.currentMultiplier != null &&
-        token.pendingMultiplier != null &&
-        token.pendingMultiplier !== token.currentMultiplier,
-    );
-
-    let history: Awaited<ReturnType<typeof readHistory>> = [];
-    let historyUnavailable = false;
-    let historyToBlock: bigint | null = null;
-    try {
-      historyToBlock = await robinhoodClient.getBlockNumber();
-      history = await readHistory(snapshots, historyToBlock);
-    } catch (error) {
-      historyUnavailable = true;
-      console.error("Corporate-action history read failed:", error);
-    }
-    const blockNumbers = [...new Set(
-      history.flatMap((row) => row.blockNumber == null ? [] : [row.blockNumber]),
-    )];
-    const blockDates = new Map<bigint, number>();
-    await Promise.all(blockNumbers.map(async (blockNumber) => {
-      try {
-        const block = await robinhoodClient.getBlock({ blockNumber });
-        blockDates.set(blockNumber, Number(block.timestamp) * 1000);
-      } catch {
-        // A missing block timestamp makes only this event's date unknown.
-      }
-    }));
-
-    const historyRows: HistoryRow[] = history.map((row) => ({
-      symbol: row.symbol,
-      address: row.address,
-      type: row.type,
-      oldMultiplier: row.oldMultiplier,
-      newMultiplier: row.newMultiplier,
-      valueChange: row.valueChange,
-      date: row.blockNumber == null ? null : blockDates.get(row.blockNumber) ?? null,
-    }));
-
-    return NextResponse.json({
-      kind: "success",
-      tokens: snapshots,
-      scheduled,
-      history: historyRows,
-      historyStatus: historyUnavailable ? "partial" : "complete",
-      // Audit metadata: complete means one successful getLogs query from
-      // genesis through the resolved latest block. A null end block is
-      // intentionally partial; the endpoint never calls that complete.
-      historyRange: {
-        fromBlock: "0",
-        toBlock: historyToBlock?.toString() ?? null,
-        complete: !historyUnavailable && historyToBlock != null,
-      },
-    });
+    const historyResult = await withTimeout((async () => {
+      const toBlock = await robinhoodClient.getBlockNumber();
+      return { toBlock, rows: await readHistory(snapshots, toBlock) };
+    })(), HISTORY_TIMEOUT_MS);
+    historyToBlock = historyResult.toBlock;
+    history = historyResult.rows;
   } catch (error) {
-    return NextResponse.json({
-      kind: "error",
-      source: "registry-or-chain",
-      message: error instanceof Error ? error.message : "The on-chain corporate-action read failed.",
-    }, { status: 503 });
+    historyUnavailable = true;
+    console.error("Corporate-action history read failed or timed out:", error);
   }
+
+  const blockNumbers = [...new Set(
+    history.flatMap((row) => row.blockNumber == null ? [] : [row.blockNumber]),
+  )];
+  const blockDates = new Map<bigint, number>();
+  await Promise.all(blockNumbers.map(async (blockNumber) => {
+    try {
+      const block = await robinhoodClient.getBlock({ blockNumber });
+      blockDates.set(blockNumber, Number(block.timestamp) * 1000);
+    } catch {
+      // A missing block timestamp makes only this event's date unknown.
+    }
+  }));
+
+  const historyRows: HistoryRow[] = history.map((row) => ({
+    symbol: row.symbol,
+    address: row.address,
+    type: row.type,
+    oldMultiplier: row.oldMultiplier,
+    newMultiplier: row.newMultiplier,
+    valueChange: row.valueChange,
+    date: row.blockNumber == null ? null : blockDates.get(row.blockNumber) ?? null,
+  }));
+
+  return {
+    kind: "success" as const,
+    tokens: snapshots,
+    scheduled,
+    history: historyRows,
+    historyStatus: historyUnavailable ? "partial" as const : "complete" as const,
+    // Audit metadata: complete means one successful getLogs query from
+    // genesis through the resolved latest block. A timeout is deliberately
+    // partial, never an implicit claim that history is empty.
+    historyRange: {
+      fromBlock: "0",
+      toBlock: historyToBlock?.toString() ?? null,
+      complete: !historyUnavailable && historyToBlock != null,
+    },
+  };
 }
 
 export async function GET() {
   try {
-    return await withTimeout(readActions(), ACTIONS_TIMEOUT_MS);
+    return NextResponse.json(await withTimeout(readActions(), ACTIONS_TIMEOUT_MS));
   } catch (error) {
     return NextResponse.json({
       kind: "error",

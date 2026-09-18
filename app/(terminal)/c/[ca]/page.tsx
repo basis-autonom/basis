@@ -292,7 +292,9 @@ export default async function ReportPage({
           <div>
             <div className={`ch flex items-baseline justify-between ${styles.sectionHeader}`}>
               <h2 className="text-[12px] font-medium text-fg">Hourly contribution</h2>
-              <span className="font-mono text-[10px] text-fg3">last 24h</span>
+              <span className="font-mono text-[10px] text-fg3">
+                {splitResponse.data.clamped ? windowLabel : `last ${window}`}
+              </span>
             </div>
             <HourlyContributionChart tokenAddress={ca} window={window} className="h-[150px]" />
             <div className={`lg flex gap-[12px] text-[10px] text-fg2 font-mono ${styles.chartLegend}`}>

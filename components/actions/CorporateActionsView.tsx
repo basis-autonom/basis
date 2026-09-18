@@ -141,8 +141,8 @@ export function CorporateActionsView() {
       <section className="actions-grid actions-history">
         <article className="actions-cell actions-cell--full">
           <div className="actions-heading"><h2>History</h2><span>UIMultiplierUpdated logs from chain genesis</span></div>
-          {data?.historyStatus === "partial" && <div className="actions-warning">History is partial because the RPC rejected at least one genesis log range. Missing values remain em dashes.</div>}
-          {data == null ? <div className="actions-empty"><span>Reading historical multiplier events…</span></div> : history.length === 0 ? <div className="actions-empty"><span>No multiplier update events were returned by the chain.</span></div> : (
+          {data?.historyStatus === "partial" && <div className="actions-warning">History could not complete before the RPC deadline. Missing values remain em dashes.</div>}
+          {data == null ? <div className="actions-empty"><span>Reading historical multiplier events…</span></div> : data.historyStatus === "partial" && history.length === 0 ? <div className="actions-empty"><span>Historical multiplier events could not be read before the deadline.</span><small>No substitute history data is used.</small></div> : history.length === 0 ? <div className="actions-empty"><span>No multiplier update events were returned by the chain.</span></div> : (
             <div className="actions-table-wrap">
               <table className="actions-table">
                 <thead><tr><th>Date</th><th>Ticker</th><th>Type</th><th className="actions-right">Old</th><th className="actions-right">New</th><th className="actions-right">Value change</th><th className="actions-right">Pools hit</th><th className="actions-right">Value at risk</th></tr></thead>

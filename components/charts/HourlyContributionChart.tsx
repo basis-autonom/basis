@@ -69,6 +69,20 @@ function formatTimestamp(timestamp: number) {
   return `${datePart} ${timePart}`;
 }
 
+function formatAxisTimestamp(timestamp: number, spanMs: number) {
+  if (spanMs > 48 * 60 * 60 * 1000) {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+    }).format(new Date(timestamp));
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(timestamp));
+}
+
 function formatPercent(value: number | null) {
   if (value == null || !Number.isFinite(value)) return '—';
   const digits = Math.abs(value) < 0.1 ? 2 : 1;
@@ -243,7 +257,7 @@ export function HourlyContributionChart({
           fontSize="10"
           fontFamily="var(--font-mono)"
         >
-          {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {formatAxisTimestamp(timestamp, domainSpan)}
         </text>,
       );
     });
