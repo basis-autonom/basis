@@ -147,14 +147,14 @@ export function CorporateActionsView() {
         </article>
 
         <article className="actions-cell">
-          <div className="actions-heading"><h2>Effect on a pool</h2><span>worked from observed chain values</span></div>
+          <div className="actions-heading"><h2>Effect on a pool</h2><span>today's liquidity and price · not historical event values</span></div>
           {selectedAction ? (
             <>
               <div className="actions-kv"><span>Selected ticker</span><strong>{selectedAction.symbol}</strong></div>
               <div className="actions-kv"><span>Multiplier change</span><strong>{formatMultiplier(selectedAction.oldMultiplier)} → {formatMultiplier(selectedAction.newMultiplier)}</strong></div>
               <div className="actions-kv"><span>Pool response</span><strong>{poolResponse(selectedAction)}</strong></div>
               <div className="actions-kv"><span>Pools hit</span><strong>{selectedAction.poolsHit ?? "—"}</strong></div>
-              <div className="actions-kv"><span>Pool value at risk</span><strong>{formatUsd(selectedAction.valueAtRisk)}</strong></div>
+              <div className="actions-kv"><span>Pool value at risk (today)</span><strong>{formatUsd(selectedAction.valueAtRisk)}</strong></div>
             </>
           ) : (
             <div className="actions-selection-empty">Click a row in History to see its effect on a pool.</div>
@@ -165,12 +165,12 @@ export function CorporateActionsView() {
 
       <section className="actions-grid actions-history">
         <article className="actions-cell actions-cell--full">
-          <div className="actions-heading"><h2>History</h2><span>UIMultiplierUpdated logs from chain genesis</span></div>
+          <div className="actions-heading"><h2>History</h2><span>UIMultiplierUpdated logs from chain genesis · value at risk uses today's liquidity and price</span></div>
           {data?.historyStatus === "partial" && <div className="actions-warning">History could not complete before the RPC deadline. Missing values remain em dashes.</div>}
           {data == null ? <div className="actions-empty"><span>Reading historical multiplier events…</span></div> : data.historyStatus === "partial" && history.length === 0 ? <div className="actions-empty"><span>No multiplier update events found in the ranges that were scanned.</span><small>History is incomplete; no substitute data is used.</small></div> : history.length === 0 ? <div className="actions-empty"><span>No multiplier update events were returned by the chain.</span></div> : (
             <div className="actions-table-wrap">
               <table className="actions-table">
-                <thead><tr><th>Date</th><th>Ticker</th><th>Type</th><th className="actions-right">Old</th><th className="actions-right">New</th><th className="actions-right">Value change</th><th>Pool response</th><th className="actions-right">Pools hit</th><th className="actions-right">Value at risk</th></tr></thead>
+                <thead><tr><th>Date</th><th>Ticker</th><th>Type</th><th className="actions-right">Old</th><th className="actions-right">New</th><th className="actions-right">Value change</th><th>Pool response</th><th className="actions-right">Pools hit</th><th className="actions-right" title="Estimated using current pool liquidity and price, not historical values at the time of the event.">Value at risk (today)</th></tr></thead>
                 <tbody>{history.map((action, index) => <tr
                   key={`${action.address}-${action.date ?? "unknown"}-${index}`}
                   className={`actions-history-row${selectedAction === action ? " actions-history-row--selected" : ""}`}
