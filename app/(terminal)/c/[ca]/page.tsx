@@ -2,6 +2,7 @@ import React from 'react';
 import { Address, SplitResponse } from '@/packages/core/types';
 import { computeSplit } from '@/packages/core/attribution';
 import { EmptyState } from '@/components/primitives/EmptyState';
+import { HourlyContributionChart } from '@/components/charts/HourlyContributionChart';
 import styles from './ReportPage.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -235,35 +236,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
               <h2 className="text-[12px] font-medium text-fg">Hourly contribution</h2>
               <span className="font-mono text-[10px] text-fg3">last 24h</span>
             </div>
-            <svg viewBox="0 0 520 150" preserveAspectRatio="none" role="img" aria-label="Hourly contribution split" className="w-full h-auto min-h-[120px]">
-              {(() => {
-                const W=520, H=150, n=24, plotTop=6, plotBottom=H-6, d = [];
-                for(let i=0; i<n; i++){
-                  const open = (i>7 && i<18);
-                  d.push([16+((i*29)%17), open ? (10+((i*13)%26)) : 0]);
-                }
-                let max = 0; d.forEach(p => { max = Math.max(max, p[0]+p[1]); });
-                const bw = W/n;
-                const lines: React.ReactElement[] = [];
-                for(let g=1; g<4; g++) {
-                  const gy = plotTop + g*((plotBottom-plotTop)/4);
-                  lines.push(<line key={'l'+g} x1="0" y1={gy} x2={W} y2={gy} stroke="var(--color-line)" />);
-                }
-                const rects = d.map((p, i) => {
-                  const x = i*bw + 1.5, w = bw - 3;
-                  const hm = (p[0]/max)*(plotBottom-plotTop), hs = (p[1]/max)*(plotBottom-plotTop);
-                  return (
-                    <g key={'g'+i}>
-                      <rect x={x} y={plotBottom-hm} width={w} height={hm} fill="#16243C" stroke="#5B8DEF" strokeWidth="1" />
-                      {hs > 0 && (
-                        <rect x={x} y={plotBottom-hm-hs} width={w} height={hs} fill="#3A2E16" stroke="#C9922E" strokeWidth="1" />
-                      )}
-                    </g>
-                  );
-                });
-                return <>{lines}<line x1="0" y1={plotBottom} x2={W} y2={plotBottom} stroke="var(--color-line2)" />{rects}</>;
-              })()}
-            </svg>
+            <HourlyContributionChart tokenAddress={ca} className="h-[150px]" />
             <div className={`lg flex gap-[12px] text-[10px] text-fg2 font-mono ${styles.chartLegend}`}>
               <span className="flex items-center gap-[6px]"><span className="block w-[10px] h-[10px] rounded-[2px] bg-meme" />meme</span>
               <span className="flex items-center gap-[6px]"><span className="block w-[10px] h-[10px] rounded-[2px] bg-stock" />stock</span>

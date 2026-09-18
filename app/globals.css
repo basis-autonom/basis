@@ -58,6 +58,70 @@ body {
   outline-offset: 2px;
 }
 
+.hourly-chart-surface {
+  touch-action: none;
+  overflow: visible;
+}
+
+.hourly-chart-tooltip {
+  position: absolute;
+  z-index: 20;
+  pointer-events: none;
+  padding: 10px 11px;
+  border: 1px solid var(--color-line2);
+  border-radius: 3px;
+  background: rgba(17, 21, 27, .98);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .28);
+  color: var(--color-fg);
+  font-family: var(--font-ibm-plex-mono), monospace;
+  font-size: 10px;
+  line-height: 1.45;
+  opacity: 0;
+  transform: translate3d(0, 7px, 0) scale(.98);
+  transform-origin: center bottom;
+  transition: opacity 150ms ease, transform 180ms cubic-bezier(.2, .8, .2, 1), left 140ms cubic-bezier(.2, .8, .2, 1), top 140ms cubic-bezier(.2, .8, .2, 1);
+  will-change: left, top, opacity, transform;
+}
+
+.hourly-chart-tooltip.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.hourly-chart-tooltip__time {
+  margin-bottom: 7px;
+  color: var(--color-fg);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.hourly-chart-tooltip__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 2px 0;
+}
+
+.hourly-chart-tooltip__row strong {
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.hourly-chart-tooltip__status {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid var(--color-line);
+  color: var(--color-fg3);
+  line-height: 1.35;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hourly-chart-tooltip {
+    transition: none;
+  }
+}
+
 /* Shared loading state from design/loading.html. The overlay stays mounted
    across the app so route changes use the same small Basis signature. */
 .basis-transition {
