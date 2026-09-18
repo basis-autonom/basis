@@ -104,6 +104,7 @@ export function CorporateActionsView() {
         <div className="actions-stat"><span>Scheduled</span><strong>{data ? scheduled.length : "—"}</strong></div>
         <div className="actions-stat"><span>Since chain launch</span><strong>{data?.historyStatus === "complete" ? history.length : "—"}</strong></div>
         <div className="actions-stat"><span>Pools exposed</span><strong>{rows.length || "—"}</strong></div>
+        <p className="actions-header-note">Scheduled and history are read from all 194 stock tokens on this chain. Pools exposed counts the active memecoin pools among them.</p>
       </header>
 
       <section className="actions-grid">

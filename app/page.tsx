@@ -1,6 +1,6 @@
 import React from "react";
 import { getBoardData } from "@/packages/core/board";
-import { ContractForm } from "@/components/landing/ContractForm";
+// import { ContractForm } from "@/components/landing/ContractForm";
 import { GripBoard } from "@/components/landing/GripBoard";
 import { Hero } from "@/components/landing/Hero";
 import { LandingNav } from "@/components/landing/LandingNav";

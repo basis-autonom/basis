@@ -377,6 +377,13 @@ body {
   line-height: 1.1;
 }
 .landing-h1 .landing-mono { font-weight: 600; }
+.landing-highlight {
+  background: linear-gradient(135deg, var(--color-meme), var(--color-stock));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
 .landing-mono {
   font-family: var(--font-ibm-plex-mono), monospace;
   font-variant-numeric: tabular-nums;
@@ -388,14 +395,19 @@ body {
   font-size: 17px;
 }
 .landing-exposure {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-top: 18px;
-  color: var(--color-fg3);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 6px 14px;
+  border: 1px solid var(--color-line2);
+  border-radius: 20px;
+  background: rgba(22, 27, 34, 0.4);
+  color: var(--color-fg2);
   font-family: var(--font-ibm-plex-mono), monospace;
   font-size: 11px;
   text-transform: lowercase;
+  backdrop-filter: blur(4px);
 }
 .landing-exposure strong {
   color: var(--color-stock);
@@ -421,7 +433,7 @@ body {
   font-size: 13px;
 }
 .landing-form input::placeholder { color: var(--color-fg3); }
-.landing-form input:focus { border-color: var(--color-meme); outline: none; }
+.landing-form input:focus { border-color: var(--color-meme); outline: none; box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.15); }
 .landing-form button {
   height: 46px;
   border: 0;
@@ -433,9 +445,27 @@ body {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.landing-form button:hover {
+  transform: translateY(-1px);
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+.landing-form button:active {
+  transform: translateY(0);
 }
 .landing-tryline { margin-top: 11px; color: var(--color-fg3); font-family: var(--font-ibm-plex-mono), monospace; font-size: 12px; }
-.landing-tryline a { border-bottom: 1px solid var(--color-memebg); color: var(--color-meme); }
+.landing-tryline a { 
+  border-bottom: 1px solid var(--color-memebg); 
+  color: var(--color-meme); 
+  transition: all 0.2s ease;
+}
+.landing-tryline a:hover {
+  color: #fff;
+  border-bottom-color: var(--color-meme);
+  text-shadow: 0 0 8px rgba(91, 141, 239, 0.4);
+}
 .landing-hero .landing-shot {
   align-self: stretch;
   text-align: left;
@@ -479,7 +509,15 @@ body {
 .landing-kv span:last-child { font-family: var(--font-ibm-plex-mono), monospace; }
 .landing-band { border-top: 1px solid var(--color-line); border-bottom: 1px solid var(--color-line); background: var(--color-pane); }
 .landing-band-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
-.landing-band-cell { padding: 22px 0 22px 22px; border-left: 1px solid var(--color-line); }
+.landing-band-cell { 
+  padding: 22px 0 22px 22px; 
+  border-left: 1px solid var(--color-line); 
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.landing-band-cell:hover {
+  background: rgba(255, 255, 255, 0.02);
+  transform: translateY(-2px);
+}
 .landing-band-cell:first-child { border-left: 0; padding-left: 0; }
 .landing-band-value { font-family: var(--font-ibm-plex-mono), monospace; font-size: 24px; }
 .landing-band-label { margin-top: 5px; color: var(--color-fg2); font-size: 13px; line-height: 1.45; }
@@ -880,6 +918,7 @@ body {
 .method-stat span { display: block; color: var(--color-fg3); font-family: var(--font-ibm-plex-mono), monospace; font-size: 10px; }
 .actions-stat strong,
 .method-stat strong { display: block; margin-top: 2px; color: var(--color-fg); font-family: var(--font-ibm-plex-mono), monospace; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.actions-header-note { grid-column: 1 / -1; justify-self: end; max-width: 760px; margin: -10px 0 2px !important; color: var(--color-fg3) !important; font-family: var(--font-ibm-plex-mono), monospace; font-size: 10px !important; line-height: 1.5; text-align: right; }
 .actions-grid,
 .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; border-bottom: 1px solid var(--color-line); background: var(--color-line); }
 .actions-cell,
@@ -930,6 +969,7 @@ body {
   .method-header { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; padding-block: 16px; }
   .actions-header > div:first-child,
   .method-header > div:first-child { grid-column: 1 / -1; }
+  .actions-header-note { justify-self: start; margin-top: -4px !important; text-align: left; }
   .actions-grid,
   .method-grid { grid-template-columns: 1fr; }
   .actions-cell--full,
