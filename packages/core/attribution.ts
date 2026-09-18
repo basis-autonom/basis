@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Address, SplitResponse, Window } from "./types";
 import { createPublicClient, http, parseAbi, erc20Abi } from "viem";
+import { unstable_cache } from "next/cache";
 import { robinhoodChain, V4_STATE_VIEW } from "./chain";
 import { getStockTokenByAddress } from "./registry";
 import { getPoolForToken } from "./pools";
 import { getBlockByTimestamp } from "./blocks";
 import { getPrices } from "./prices";
-import { getFloatGrip } from "./float";
+import { getReportSnapshot, makeFloatGrip, type ReportSnapshot } from "./float";
 
 const client = createPublicClient({
   chain: robinhoodChain,
@@ -24,7 +25,7 @@ function shortAddr(addr: string): string {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
-export async function computeSplit(
+async function computeSplitUncached(
   tokenAddress: Address,
   window: Window,
 ): Promise<SplitResponse> {
@@ -102,33 +103,40 @@ export async function computeSplit(
   const targetTs = now - windowMs;
   const oldBlock = await getBlockByTimestamp(targetTs);
 
-  // 4. Get Pool Ratio via StateView
+  // 4. Read the current report state in one multicall. The historical reads
+  // below are necessarily separate because they use a prior block/round.
   const stateViewAbi = parseAbi([
     "function getSlot0(bytes32 poolId) view returns (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee)",
   ]);
 
-  let slot0Now: any = null;
+  const emptySnapshot: ReportSnapshot = {
+    lockedRaw: null,
+    totalRaw: null,
+    multiplierRaw: null,
+    latestRoundData: null,
+    slot0: null,
+  };
+  let reportSnapshot = emptySnapshot;
+  try {
+    reportSnapshot = await getReportSnapshot(stockToken, pool.address);
+  } catch (e) {
+    console.error("Error fetching current report snapshot:", e);
+  }
+
+  const slot0Now = reportSnapshot.slot0;
   let slot0Old: any = null;
 
   try {
-    slot0Now = await client.readContract({
-      address: V4_STATE_VIEW as Address,
-      abi: stateViewAbi,
-      functionName: "getSlot0",
-      args: [pool.address],
-    });
-  } catch (e) {
-    console.error("Error fetching slot0Now:", e);
-  }
-
-  try {
-    slot0Old = await client.readContract({
-      address: V4_STATE_VIEW as Address,
-      abi: stateViewAbi,
-      functionName: "getSlot0",
-      args: [pool.address],
+    const [oldSlotResult] = await client.multicall({
+      contracts: [{
+        address: V4_STATE_VIEW as Address,
+        abi: stateViewAbi,
+        functionName: "getSlot0" as const,
+        args: [pool.address],
+      }],
       blockNumber: oldBlock,
     });
+    if (oldSlotResult?.status === "success") slot0Old = oldSlotResult.result;
   } catch (e) {
     console.error("Error fetching slot0Old:", e);
   }
@@ -156,8 +164,13 @@ export async function computeSplit(
     memeComponent = poolRatioNow / poolRatioOld - 1;
   }
 
-  // 5. Get Chainlink prices (getPrices returns values already divided by 1e8)
-  const { latestPrice, oldPrice } = await getPrices(stockToken.feed, targetTs);
+  // 5. Get Chainlink prices (getPrices returns values already divided by 1e8).
+  // The latest round came from the report multicall, so this only looks up history.
+  const { latestPrice, oldPrice } = await getPrices(
+    stockToken.feed,
+    targetTs,
+    reportSnapshot.latestRoundData ?? undefined,
+  );
 
   // Rule: If stock price is 0 or unreadable, stockComponent must be null, not 0 or negative
   let stockComponent: number | null = null;
@@ -180,8 +193,19 @@ export async function computeSplit(
     beta = stockComponent / total;
   }
 
-  // 7. Float Grip
-  const grip = await getFloatGrip(stockToken, pool.address);
+  // 7. Float grip and current corporate-action multiplier come from the same
+  // report snapshot. A failed read remains null; it is never converted to 0.
+  const reportMultiplier =
+    reportSnapshot.multiplierRaw === null
+      ? stockToken.multiplier
+      : Number(reportSnapshot.multiplierRaw) / 1e18;
+  const reportStock = { ...stockToken, multiplier: reportMultiplier };
+  const grip = makeFloatGrip(
+    reportStock,
+    pool.address,
+    reportSnapshot.lockedRaw,
+    reportSnapshot.totalRaw,
+  );
 
   // 8. Price in USD
   const priceUsd =
@@ -194,7 +218,7 @@ export async function computeSplit(
     data: {
       coinSymbol,
       coinName,
-      stock: stockToken,
+      stock: reportStock,
       pool,
       window,
       priceUsd,
@@ -214,3 +238,10 @@ export async function computeSplit(
     },
   };
 }
+
+export const computeSplit = unstable_cache(
+  async (tokenAddress: Address, window: Window) =>
+    computeSplitUncached(tokenAddress, window),
+  ["report-split-v2"],
+  { revalidate: 60 },
+);

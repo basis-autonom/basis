@@ -23,10 +23,11 @@ export interface Pool {
 
 export interface FloatGrip {
   stock: StockToken;
-  lockedRaw: string;
-  gripPct: number;
+  lockedRaw: string | null;
+  totalRaw: string | null;
+  gripPct: number | null;
   poolCount: number;
-  largestPool: { address: Address; symbol: string; pct: number };
+  largestPool: { address: Address; symbol: string; pct: number | null };
 }
 
 export interface MarketState {

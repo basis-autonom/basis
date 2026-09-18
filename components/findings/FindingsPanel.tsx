@@ -85,7 +85,7 @@ export function FindingsPanel({ poolCount }: { poolCount: number }) {
   return (
     <section
       aria-labelledby="findings-heading"
-      className="flex min-h-[42px] min-w-0 border-b border-line bg-pane"
+      className="flex min-h-[42px] min-w-0 flex-shrink-0 border-b border-line bg-pane"
     >
       <div className="flex w-[116px] flex-shrink-0 items-center justify-between border-r border-line px-[14px]">
         <h2

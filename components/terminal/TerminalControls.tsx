@@ -30,7 +30,7 @@ export function TerminalControls({
   const counts = { rowCount, greenStockCount, highGripCount };
 
   return (
-    <div className="flex items-center overflow-x-auto whitespace-nowrap border-b border-line bg-pane" style={{ padding: '0 14px' }}>
+    <div className="flex flex-shrink-0 items-center overflow-x-auto whitespace-nowrap border-b border-line bg-pane" style={{ padding: '0 14px', marginTop: '6px' }}>
       <div className="flex" style={{ gap: '0' }}>
         {tabs.map((tab) => {
           const isOn = activeTab === tab.id;

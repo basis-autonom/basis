@@ -27,6 +27,17 @@ To learn more about Next.js, take a look at the following resources:
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
+## Demo warm-up
+
+Sebelum demo atau rekaman, buka report berikut satu kali agar cache hourly
+5 menit sudah terisi:
+
+- `/c/0x3b7729edcd5e899f5a0688cc6ff91c503acd324f` — SPOON
+- `/c/0xcd8df4c1052a3447bda6a7423fbc234102f3b477` — SILVERBACK
+
+Warm-up dilakukan tepat sebelum demo; tidak perlu menjalankan endpoint
+berulang kali.
+
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
 ## Deploy on Vercel

@@ -62,12 +62,32 @@ export function CorporateActionsView() {
   const [data, setData] = useState<ActionResponse | null>(null);
 
   useEffect(() => {
-    fetch("/api/actions")
-      .then(async (response) => setData((await response.json()) as ActionResponse))
-      .catch(() => setData({
-        kind: "error",
-        message: "The on-chain corporate-action read failed before a response was returned.",
-      }));
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 20_000);
+
+    fetch("/api/actions", { signal: controller.signal })
+      .then(async (response) => {
+        const body = (await response.json()) as ActionResponse;
+        if (!response.ok) throw new Error(body.message || "The on-chain corporate-action read failed.");
+        return body;
+      })
+      .then(setData)
+      .catch((error: unknown) => {
+        setData({
+          kind: "error",
+          message: error instanceof DOMException && error.name === "AbortError"
+            ? "The on-chain corporate-action read timed out."
+            : error instanceof Error
+              ? error.message
+              : "The on-chain corporate-action read failed before a response was returned.",
+        });
+      })
+      .finally(() => window.clearTimeout(timeout));
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
   }, []);
 
   const scheduled = data?.scheduled ?? [];

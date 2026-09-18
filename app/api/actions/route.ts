@@ -66,6 +66,19 @@ type HistoryRow = {
   date: number | null;
 };
 
+const ACTIONS_TIMEOUT_MS = 15_000;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error("Corporate-action read timed out.")), timeoutMs);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
 function rawMultiplier(value: unknown) {
   if (typeof value !== "bigint") return null;
   return Number(value) / 1e18;
@@ -118,7 +131,7 @@ async function readHistory(token: TokenSnapshot) {
   });
 }
 
-export async function GET() {
+async function readActions() {
   try {
     const assets = await readAssets();
     const tokens = assets.flatMap((asset) => {
@@ -213,6 +226,20 @@ export async function GET() {
       kind: "error",
       source: "registry-or-chain",
       message: error instanceof Error ? error.message : "The on-chain corporate-action read failed.",
+    }, { status: 503 });
+  }
+}
+
+export async function GET() {
+  try {
+    return await withTimeout(readActions(), ACTIONS_TIMEOUT_MS);
+  } catch (error) {
+    return NextResponse.json({
+      kind: "error",
+      source: "timeout",
+      message: error instanceof Error
+        ? error.message
+        : "The on-chain corporate-action read timed out.",
     }, { status: 503 });
   }
 }

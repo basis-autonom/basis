@@ -65,6 +65,12 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
   const stockComp = attribution.stockComponent;
   const total = attribution.total;
   const beta = attribution.beta;
+  const stockAttributionReady = stockComp != null
+    && prices.stockOld != null
+    && prices.stockNow != null
+    && prices.stockOld > 0
+    && prices.stockNow > 0;
+  const attributionReady = stockAttributionReady && memeComp != null && total != null;
 
   const isUp = total != null && total >= 0;
   const totalColor = total != null ? (isUp ? 'text-up' : 'text-down') : 'text-fg3';
@@ -114,8 +120,8 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
 
         <div className={`stat flex flex-col ${styles.headerStat}`}>
           <div className="k text-[10px] text-fg3">Grip</div>
-          <div className={`v font-mono text-[12px] ${styles.headerStatValue} ${grip.gripPct >= 10 ? 'text-down' : 'text-fg'}`}>
-            {grip.gripPct.toFixed(1)}%
+          <div className={`v font-mono text-[12px] ${styles.headerStatValue} ${grip.gripPct != null && grip.gripPct >= 10 ? 'text-down' : 'text-fg'}`}>
+            {grip.gripPct == null ? '—' : `${grip.gripPct.toFixed(1)}%`}
           </div>
         </div>
 
@@ -151,12 +157,19 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
           </div>
 
           <div style={{ fontSize: 26, lineHeight: 1.28, fontWeight: 500, letterSpacing: "-0.02em", maxWidth: "22ch", color: "var(--color-fg)" }}>
-            {total != null ? (
+            {attributionReady ? (
               <>
                 {isUp ? 'Up' : 'Down'} {Math.abs(total * 100).toFixed(1)}%.{' '}
                 <em className="not-italic text-fg2 font-normal">
                   The meme did {memeComp != null ? `${(memeComp * 100).toFixed(1)}%` : '—'} of it.{' '}
                   {stock.symbol} did {stockComp != null ? `${(stockComp * 100).toFixed(1)}%` : '—'}.
+                </em>
+              </>
+            ) : stockAttributionReady ? (
+              <>
+                {stock.symbol} did {stockComp >= 0 ? '+' : ''}{(stockComp * 100).toFixed(1)}%.{' '}
+                <em className="not-italic text-fg2 font-normal">
+                  The historical meme state is incomplete for the standard 7d window.
                 </em>
               </>
             ) : (
@@ -169,7 +182,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
             )}
           </div>
 
-          {memeComp != null && stockComp != null ? (
+          {attributionReady ? (
             <>
               <div className={`flex h-[40px] rounded-[3px] overflow-hidden mx-0 ${styles.bigSplit}`}>
                 <div 
@@ -201,23 +214,17 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
             </div>
           )}
 
-          <div className={`text-[11px] text-fg3 leading-[1.6] ${styles.attributionNote}`}>
-            {displayStockName}{' '}
-            {stockComp != null ? (
-              <>
-                {stockComp >= 0 ? 'rose' : 'fell'} from{' '}
-                {prices.stockOld != null && prices.stockOld > 0 ? `$${prices.stockOld.toFixed(2)}` : '—'}{' '}
-                to{' '}
-                {prices.stockNow != null && prices.stockNow > 0 ? `$${prices.stockNow.toFixed(2)}` : '—'}{' '}
-                over the window. Holding the pool ratio flat, that alone lifts this token{' '}
-                {(stockComp * 100).toFixed(1)}%.
-              </>
-            ) : (
-              <>
-                feed price data is unavailable or zero. Holding the pool ratio flat, the stock component cannot be calculated.
-              </>
-            )}
-          </div>
+          {stockAttributionReady && (
+            <div className={`text-[11px] text-fg3 leading-[1.6] ${styles.attributionNote}`}>
+              {displayStockName}{' '}
+              {stockComp >= 0 ? 'rose' : 'fell'} from{' '}
+              {prices.stockOld != null && prices.stockOld > 0 ? `$${prices.stockOld.toFixed(2)}` : '—'}{' '}
+              to{' '}
+              {prices.stockNow != null && prices.stockNow > 0 ? `$${prices.stockNow.toFixed(2)}` : '—'}{' '}
+              over the window. Holding the pool ratio flat, that alone lifts this token{' '}
+              {(stockComp * 100).toFixed(1)}%.
+            </div>
+          )}
         </div>
 
         
@@ -230,7 +237,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
             </div>
             <svg viewBox="0 0 520 150" preserveAspectRatio="none" role="img" aria-label="Hourly contribution split" className="w-full h-auto min-h-[120px]">
               {(() => {
-                const W=520, H=150, n=24, d = [];
+                const W=520, H=150, n=24, plotTop=6, plotBottom=H-6, d = [];
                 for(let i=0; i<n; i++){
                   const open = (i>7 && i<18);
                   d.push([16+((i*29)%17), open ? (10+((i*13)%26)) : 0]);
@@ -239,22 +246,22 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
                 const bw = W/n;
                 const lines: React.ReactElement[] = [];
                 for(let g=1; g<4; g++) {
-                  const gy = g*(H/4);
+                  const gy = plotTop + g*((plotBottom-plotTop)/4);
                   lines.push(<line key={'l'+g} x1="0" y1={gy} x2={W} y2={gy} stroke="var(--color-line)" />);
                 }
                 const rects = d.map((p, i) => {
                   const x = i*bw + 1.5, w = bw - 3;
-                  const hm = (p[0]/max)*(H-6), hs = (p[1]/max)*(H-6);
+                  const hm = (p[0]/max)*(plotBottom-plotTop), hs = (p[1]/max)*(plotBottom-plotTop);
                   return (
                     <g key={'g'+i}>
-                      <rect x={x} y={H-hm} width={w} height={hm} fill="#16243C" stroke="#5B8DEF" strokeWidth="1" />
+                      <rect x={x} y={plotBottom-hm} width={w} height={hm} fill="#16243C" stroke="#5B8DEF" strokeWidth="1" />
                       {hs > 0 && (
-                        <rect x={x} y={H-hm-hs} width={w} height={hs} fill="#3A2E16" stroke="#C9922E" strokeWidth="1" />
+                        <rect x={x} y={plotBottom-hm-hs} width={w} height={hs} fill="#3A2E16" stroke="#C9922E" strokeWidth="1" />
                       )}
                     </g>
                   );
                 });
-                return <>{lines}{rects}</>;
+                return <>{lines}<line x1="0" y1={plotBottom} x2={W} y2={plotBottom} stroke="var(--color-line2)" />{rects}</>;
               })()}
             </svg>
             <div className={`lg flex gap-[12px] text-[10px] text-fg2 font-mono ${styles.chartLegend}`}>
@@ -275,28 +282,28 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
             <div className={`kv flex justify-between border-b border-line text-[12px] ${styles.kv}`}>
               <span className="text-fg2">Locked in AMM</span>
               <span className="font-mono text-fg">
-                {Number(stock.totalSupply) > 0
-                  ? (((Number(stock.totalSupply) / 1e18) * (grip.gripPct / 100))).toLocaleString('en-US', { maximumFractionDigits: 2 })
+                {grip.lockedRaw != null
+                  ? (Number(grip.lockedRaw) / 1e18).toLocaleString('en-US', { maximumFractionDigits: 2 })
                   : '—'}
               </span>
             </div>
             <div className={`kv flex justify-between border-b border-line text-[12px] ${styles.kv}`}>
               <span className="text-fg2">Total on chain</span>
               <span className="font-mono text-fg">
-                {Number(stock.totalSupply) > 0
-                  ? (Number(stock.totalSupply) / 1e18).toLocaleString('en-US', { maximumFractionDigits: 2 })
+                {grip.totalRaw != null
+                  ? (Number(grip.totalRaw) / 1e18).toLocaleString('en-US', { maximumFractionDigits: 2 })
                   : '—'}
               </span>
             </div>
             <div className={`kv flex justify-between text-[12px] ${styles.kv}`}>
               <span className="text-fg2">Share</span>
               <span className={`font-mono text-fg`}>
-                {grip.gripPct.toFixed(1)}%
+                {grip.gripPct == null ? '—' : `${grip.gripPct.toFixed(1)}%`}
               </span>
             </div>
             
             <div className={`gauge h-[8px] bg-pane2 rounded-[2px] overflow-hidden ${styles.gauge}`}>
-              <i className="block h-full bg-down" style={{ width: `${Math.min(grip.gripPct, 100)}%` }} />
+              <i className="block h-full bg-down" style={{ width: grip.gripPct == null ? '0%' : `${Math.min(grip.gripPct, 100)}%` }} />
             </div>
           </div>
           
@@ -354,7 +361,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
               </thead>
               <tbody>
                 <tr>
-                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', color: 'var(--color-meme)', fontFamily: 'var(--font-mono)' }}>$\{coinSymbol}</td>
+                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', color: 'var(--color-meme)', fontFamily: 'var(--font-mono)' }}>${coinSymbol}</td>
                   <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
                     —
                   </td>
@@ -365,9 +372,7 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
                 </tr>
                 <tr>
                   <td style={{ padding: '7px 0', fontSize: 12, color: 'var(--color-stock)', fontFamily: 'var(--font-mono)' }}>{stock.symbol}</td>
-                  <td style={{ padding: '7px 0', fontSize: 12, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                    {(prices.stockNow ?? 0) > 0 && pool.liquidityUsd > 0 ? ((pool.liquidityUsd / 2) / (prices.stockNow ?? 1)).toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}
-                  </td>
+                  <td style={{ padding: '7px 0', fontSize: 12, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>—</td>
                   <td style={{ padding: '7px 0', fontSize: 12, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
                     —
                   </td>

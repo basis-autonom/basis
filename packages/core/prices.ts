@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Address } from "./types";
+import type { LatestRoundData } from "./float";
 import { createPublicClient, http, parseAbi } from "viem";
 import { robinhoodChain } from "./chain";
 
@@ -17,19 +18,24 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function getPrices(feedAddress: Address, targetMs: number) {
+export async function getPrices(
+  feedAddress: Address,
+  targetMs: number,
+  latestOverride?: LatestRoundData,
+) {
   const targetTs = BigInt(Math.floor(targetMs / 1000));
 
-  let latest: any = null;
-  try {
-    latest = await client.readContract({
-    address: feedAddress,
-    abi: clAbi,
-    functionName: "latestRoundData",
-  });
-
-  } catch (e) {
-    return { latestPrice: 0, oldPrice: 0, latestUpdatedAt: 0 };
+  let latest: LatestRoundData | null = latestOverride ?? null;
+  if (latest === null) {
+    try {
+      latest = (await client.readContract({
+        address: feedAddress,
+        abi: clAbi,
+        functionName: "latestRoundData",
+      })) as LatestRoundData;
+    } catch (e) {
+      return { latestPrice: 0, oldPrice: 0, latestUpdatedAt: 0 };
+    }
   }
   const latestPrice = Number(latest[1]) / 1e8;
   const lastUpdatedAt = latest[3];
