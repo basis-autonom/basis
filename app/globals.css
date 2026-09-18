@@ -541,7 +541,22 @@ body {
 .landing-grip-name { font-family: var(--font-ibm-plex-mono), monospace; font-size: 14px; }
 .landing-grip-name em { display: block; margin-top: 2px; color: var(--color-fg3); font-size: 11px; font-style: normal; }
 .landing-grip-track { height: 9px; overflow: hidden; border-radius: 2px; background: var(--color-pane2); }
-.landing-grip-track i { display: block; height: 100%; background: var(--color-down); }
+.landing-grip-track i { 
+  display: block; 
+  height: 100%; 
+  background: var(--color-down); 
+  transform-origin: left;
+  transform: scaleX(0);
+}
+.landing-reveal--visible .landing-grip-track i {
+  transform: scaleX(1);
+  transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.landing-grip-row:nth-child(1) .landing-grip-track i { transition-delay: 100ms; }
+.landing-grip-row:nth-child(2) .landing-grip-track i { transition-delay: 200ms; }
+.landing-grip-row:nth-child(3) .landing-grip-track i { transition-delay: 300ms; }
+.landing-grip-row:nth-child(4) .landing-grip-track i { transition-delay: 400ms; }
+.landing-grip-row:nth-child(5) .landing-grip-track i { transition-delay: 500ms; }
 .landing-grip-value { color: var(--color-down); font-family: var(--font-ibm-plex-mono), monospace; font-size: 15px; text-align: right; }
 .landing-week-chart { display: grid; grid-template-columns: repeat(7, 1fr); overflow: hidden; border: 1px solid var(--color-line); border-radius: 8px; background: var(--color-pane); }
 .landing-day { min-height: 190px; padding: 10px; border-right: 1px solid var(--color-line); }

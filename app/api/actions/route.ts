@@ -38,7 +38,9 @@ const actionAbi = [
     type: "function",
   },
 ] as const;
-const updateEventAbi = parseAbi(["event UIMultiplierUpdated(uint256,uint256)"]);
+const updateEventAbi = parseAbi([
+  "event UIMultiplierUpdated(uint256 oldMultiplier, uint256 newMultiplier, uint256 effectiveAtTimestamp)",
+]);
 
 type Asset = {
   tokenSymbol?: string;
@@ -123,12 +125,15 @@ async function readHistory(tokens: TokenSnapshot[], toBlock: bigint) {
     const token = tokensByAddress.get(log.address.toLowerCase());
     if (!token) return [];
 
-    const [oldRaw, newRaw] = decodeAbiParameters(
-      [{ type: "uint256" }, { type: "uint256" }],
+    const [oldRaw, newRaw, effectiveAtRaw] = decodeAbiParameters(
+      [{ type: "uint256" }, { type: "uint256" }, { type: "uint256" }],
       log.data,
     );
     const oldMultiplier = rawMultiplier(oldRaw);
     const newMultiplier = rawMultiplier(newRaw);
+    const effectiveAt = typeof effectiveAtRaw === "bigint" && effectiveAtRaw > 0n
+      ? Number(effectiveAtRaw) * 1000
+      : null;
     return [{
       symbol: token.symbol,
       address: token.address,
@@ -139,7 +144,7 @@ async function readHistory(tokens: TokenSnapshot[], toBlock: bigint) {
         oldMultiplier != null && newMultiplier != null && oldMultiplier > 0
           ? (newMultiplier / oldMultiplier - 1) * 100
           : null,
-      date: null,
+      date: effectiveAt,
       blockNumber: log.blockNumber,
     }];
   });
@@ -240,7 +245,7 @@ async function readActions() {
     oldMultiplier: row.oldMultiplier,
     newMultiplier: row.newMultiplier,
     valueChange: row.valueChange,
-    date: row.blockNumber == null ? null : blockDates.get(row.blockNumber) ?? null,
+    date: row.date ?? (row.blockNumber == null ? null : blockDates.get(row.blockNumber) ?? null),
   }));
 
   return {
