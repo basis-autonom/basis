@@ -1,4 +1,6 @@
 import React from 'react';
+import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { Address, SplitResponse, type Window } from '@/packages/core/types';
 import { computeSplit } from '@/packages/core/attribution';
 import { EmptyState } from '@/components/primitives/EmptyState';
@@ -6,6 +8,83 @@ import { HourlyContributionChart } from '@/components/charts/HourlyContributionC
 import styles from './ReportPage.module.css';
 
 export const dynamic = 'force-dynamic';
+
+type ReportRouteProps = {
+  params: Promise<{ ca: string }>;
+  searchParams: Promise<{ window?: string | string[] }>;
+};
+
+function getWindow(value: string | string[] | undefined): Window {
+  const requested = Array.isArray(value) ? value[0] : value;
+  return requested === '24h' || requested === '30d' || requested === '7d'
+    ? requested
+    : '7d';
+}
+
+function formatSharePercent(value: number | null): string {
+  return value == null || !Number.isFinite(value)
+    ? '—'
+    : `${value >= 0 ? '+' : ''}${(value * 100).toFixed(1)}%`;
+}
+
+function shortAddress(address: string): string {
+  return address.length > 12 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address;
+}
+
+async function requestOrigin(): Promise<string | null> {
+  const requestHeaders = await headers();
+  const host = requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
+  const protocol = requestHeaders.get('x-forwarded-proto');
+  return host && protocol ? `${protocol}://${host}` : null;
+}
+
+export async function generateMetadata({ params, searchParams }: ReportRouteProps): Promise<Metadata> {
+  const { ca } = await params;
+  const query = await searchParams;
+  const window = getWindow(query.window);
+  const origin = await requestOrigin();
+  const imagePath = `/c/${encodeURIComponent(ca)}/opengraph-image`;
+  const imageUrl = origin ? `${origin}${imagePath}` : undefined;
+
+  try {
+    const splitResponse = await computeSplit(ca as Address, window);
+    const data = splitResponse.kind === 'success' ? splitResponse.data : null;
+    const coinLabel = data ? `$${data.coinSymbol}` : shortAddress(ca);
+    const title = data
+      ? `${coinLabel} / ${data.stock.symbol} split report | Basis`
+      : `${coinLabel} report | Basis`;
+    const description = data
+      ? `${coinLabel} quoted in ${data.stock.symbol}. Meme ${formatSharePercent(data.attribution.memeComponent)}, stock ${formatSharePercent(data.attribution.stockComponent)}, total ${formatSharePercent(data.attribution.total)} over ${data.windowLabel}.`
+      : splitResponse.kind === 'no_stock_leg'
+        ? `${coinLabel} is quoted in ${splitResponse.quoteSymbol ?? 'a cash asset'}. There is no stock leg to separate.`
+        : 'On-chain split attribution for a Robinhood Chain pool.';
+    const images = imageUrl ? [{ url: `${imageUrl}?window=${window}`, width: 1200, height: 630, alt: `${title} preview` }] : undefined;
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        type: 'website',
+        images,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: imageUrl ? [`${imageUrl}?window=${window}`] : undefined,
+      },
+    };
+  } catch {
+    return {
+      title: `${shortAddress(ca)} report | Basis`,
+      description: 'On-chain split attribution for a Robinhood Chain pool.',
+      openGraph: imageUrl ? { images: [`${imageUrl}?window=${window}`] } : undefined,
+      twitter: imageUrl ? { card: 'summary_large_image', images: [`${imageUrl}?window=${window}`] } : undefined,
+    };
+  }
+}
 
 function fmtPrice(p: number | null): string {
   if (p == null || p <= 0) return '—';
@@ -26,16 +105,10 @@ function fmtRatio(r: number | null): string {
 export default async function ReportPage({
   params,
   searchParams,
-}: {
-  params: Promise<{ ca: string }>;
-  searchParams: Promise<{ window?: string | string[] }>;
-}) {
+}: ReportRouteProps) {
   const { ca } = await params;
   const query = await searchParams;
-  const requestedWindow = Array.isArray(query.window) ? query.window[0] : query.window;
-  const window: Window = requestedWindow === '24h' || requestedWindow === '30d' || requestedWindow === '7d'
-    ? requestedWindow
-    : '7d';
+  const window = getWindow(query.window);
   
   const splitResponse: SplitResponse = await computeSplit(ca as Address, window);
 

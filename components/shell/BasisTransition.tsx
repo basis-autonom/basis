@@ -178,8 +178,10 @@ export function BasisTransition() {
         />
       </div>
       <div className="basis-transition__content">
-        <div className="basis-transition__mark" aria-hidden="true">
-          ba<b className="basis-transition__slash">/</b>sis
+        <div className="basis-transition__mark" aria-hidden="true" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px', fontSize: '24px' }}>
+          <span>ba</span>
+          <img src="/logo.png" alt="/" className="basis-transition__slash" style={{ width: 'auto', height: '32px' }} />
+          <span>sis</span>
         </div>
         <div className="basis-transition__bar" aria-hidden="true">
           <i className="basis-transition__meme" />

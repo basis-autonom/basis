@@ -60,10 +60,12 @@ export function Topbar() {
         {/* brand */}
         <Link
           href="/"
-          className="font-mono text-[14px] font-semibold tracking-[-0.02em] text-fg flex-shrink-0"
-          style={{ lineHeight: "46px" }}
+          className="flex items-center flex-shrink-0 font-mono font-semibold tracking-[-0.02em] text-fg gap-[2px]"
+          style={{ height: "46px", fontSize: "16px" }}
         >
-          ba<b className="text-meme font-semibold">/</b>sis
+          <span>ba</span>
+          <img src="/logo.png" alt="/" style={{ width: 'auto', height: '20px' }} />
+          <span>sis</span>
         </Link>
 
         {/* search trigger */}
