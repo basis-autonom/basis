@@ -5,6 +5,7 @@ import { unstable_cache } from "next/cache";
 import { robinhoodChain, V4_STATE_VIEW } from "./chain";
 import { getStockTokenByAddress } from "./registry";
 import { getPoolForToken } from "./pools";
+import { getBoardData } from "./board";
 import { getBlockByTimestamp } from "./blocks";
 import { getPrices } from "./prices";
 import { getReportSnapshot, makeFloatGrip, type ReportSnapshot } from "./float";
@@ -23,6 +24,65 @@ const windowToMs: Record<Window, number> = {
 function shortAddr(addr: string): string {
   if (!addr || addr.length < 10) return addr;
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+}
+
+const CASH_QUOTE_SYMBOLS = new Set([
+  "USDG",
+  "USDC",
+  "USDT",
+  "DAI",
+  "USDS",
+  "PYUSD",
+  "BUSD",
+  "TUSD",
+  "FRAX",
+  "FDUSD",
+  "EURC",
+  "EURT",
+  "ETH",
+  "WETH",
+]);
+
+const CASH_QUOTE_ADDRESSES = new Set([
+  "0x0000000000000000000000000000000000000000",
+  "0x5fc5360d0400a0fd4f2af552add042d716f1d168", // USDG
+]);
+
+async function readQuoteSymbol(address: Address) {
+  try {
+    const symbol = await client.readContract({
+      address,
+      abi: erc20Abi,
+      functionName: "symbol",
+    });
+    return typeof symbol === "string" && symbol.trim()
+      ? symbol.trim().toUpperCase()
+      : shortAddr(address);
+  } catch {
+    return shortAddr(address);
+  }
+}
+
+async function getStockPairSuggestions() {
+  try {
+    const rows = await getBoardData(3);
+    return rows
+      .filter(
+        (row) =>
+          typeof row.ca === "string" &&
+          typeof row.coin === "string" &&
+          typeof row.quote === "string",
+      )
+      .slice(0, 3)
+      .map((row) => ({
+        tokenAddress: row.ca as Address,
+        coinSymbol: row.coin as string,
+        stockPair: row.quote as string,
+      }));
+  } catch (error) {
+    console.error("Error reading stock-paired suggestions:", error);
+    return [];
+  }
 }
 
 async function computeSplitUncached(
@@ -45,6 +105,20 @@ async function computeSplitUncached(
 
   const stockToken = await getStockTokenByAddress(stockTokenAddr);
   if (!stockToken) {
+    const quoteAddress = stockTokenAddr;
+    const quoteSymbol = await readQuoteSymbol(quoteAddress);
+    const isCashQuote =
+      CASH_QUOTE_ADDRESSES.has(quoteAddress) ||
+      CASH_QUOTE_SYMBOLS.has(quoteSymbol);
+
+    if (isCashQuote) {
+      return {
+        kind: "no_stock_leg",
+        quoteSymbol,
+        suggestions: await getStockPairSuggestions(),
+      };
+    }
+
     return { kind: "unknown_token" };
   }
 

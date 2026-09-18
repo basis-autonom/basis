@@ -31,6 +31,8 @@ type BarGeometry = {
   memeHeight: number;
   stockHeight: number;
   top: number;
+  hitX: number;
+  hitWidth: number;
 };
 
 type HoverState = {
@@ -153,19 +155,29 @@ export function HourlyContributionChart({
       ...points.map((point) => Math.abs(point.meme ?? 0) + Math.abs(point.stock ?? 0)),
     );
     const scale = (PLOT_BOTTOM - PLOT_TOP) / maxStack;
-    const width = WIDTH / Math.max(points.length, 1);
     const nextGeometry: BarGeometry[] = [];
     const renderedBars: React.ReactElement[] = [];
     const renderedLabels: React.ReactElement[] = [];
     const renderedHitAreas: React.ReactElement[] = [];
 
+    const firstDelta = points.length > 1 ? points[1].t - points[0].t : 60 * 60 * 1000;
+    const domainStart = points.length > 0 ? points[0].t - firstDelta : 0;
+    const domainEnd = points.length > 0 ? points[points.length - 1].t : domainStart + firstDelta;
+    const domainSpan = Math.max(domainEnd - domainStart, 1);
+    const xForTime = (timestamp: number) =>
+      ((timestamp - domainStart) / domainSpan) * WIDTH;
+
     points.forEach((point, index) => {
-      const x = index * width + 3;
-      const barWidth = Math.max(2, width - 6);
+      const intervalStart = index === 0 ? domainStart : points[index - 1].t;
+      const hitX = xForTime(intervalStart);
+      const hitEnd = xForTime(point.t);
+      const hitWidth = Math.max(1, hitEnd - hitX);
+      const x = hitX + 3;
+      const barWidth = Math.max(2, hitWidth - 6);
       const memeHeight = point.meme == null ? 0 : Math.abs(point.meme * scale);
       const stockHeight = point.stock == null ? 0 : Math.abs(point.stock * scale);
       const top = PLOT_BOTTOM - memeHeight - stockHeight;
-      nextGeometry.push({ x, width: barWidth, memeHeight, stockHeight, top });
+      nextGeometry.push({ x, width: barWidth, memeHeight, stockHeight, top, hitX, hitWidth });
 
       if (point.meme != null) {
         renderedBars.push(
@@ -200,9 +212,9 @@ export function HourlyContributionChart({
         <rect
           key={`hit-${point.t}`}
           className="hourly-chart-hit-area"
-          x={index * width}
+          x={hitX}
           y={PLOT_TOP}
-          width={width}
+          width={hitWidth}
           height={PLOT_BOTTOM - PLOT_TOP}
           fill="transparent"
           tabIndex={0}
@@ -217,21 +229,23 @@ export function HourlyContributionChart({
         />,
       );
 
-      if (index === 0 || index === points.length - 1 || index === Math.floor(points.length / 2)) {
-        renderedLabels.push(
-          <text
-            key={`label-${point.t}`}
-            x={x + barWidth / 2}
-            y={HEIGHT - 2}
-            textAnchor="middle"
-            fill="var(--color-fg3)"
-            fontSize="10"
-            fontFamily="var(--font-mono)"
-          >
-            {new Date(point.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </text>,
-        );
-      }
+    });
+
+    const labelTimes = [domainStart, domainStart + domainSpan / 2, domainEnd];
+    labelTimes.forEach((timestamp, index) => {
+      renderedLabels.push(
+        <text
+          key={`label-${timestamp}`}
+          x={xForTime(timestamp)}
+          y={HEIGHT - 2}
+          textAnchor={index === 0 ? 'start' : index === labelTimes.length - 1 ? 'end' : 'middle'}
+          fill="var(--color-fg3)"
+          fontSize="10"
+          fontFamily="var(--font-mono)"
+        >
+          {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </text>,
+      );
     });
 
     return {
@@ -252,10 +266,16 @@ export function HourlyContributionChart({
     const bounds = surface.getBoundingClientRect();
     const localX = clamp(clientX - bounds.left, 0, bounds.width);
     const localY = clamp(clientY - bounds.top, 0, bounds.height);
-    const calculatedIndex = Math.min(
-      points.length - 1,
-      Math.max(0, Math.floor((localX / Math.max(bounds.width, 1)) * points.length)),
+    const svgX = (localX / Math.max(bounds.width, 1)) * WIDTH;
+    const hitIndex = geometry.findIndex(
+      (bar) => svgX >= bar.hitX && svgX <= bar.hitX + bar.hitWidth,
     );
+    const calculatedIndex = hitIndex >= 0
+      ? hitIndex
+      : Math.min(
+        points.length - 1,
+        Math.max(0, Math.floor((svgX / WIDTH) * points.length)),
+      );
     const index = forcedIndex ?? calculatedIndex;
     const bar = geometry[index];
     const tooltipWidth = Math.min(TOOLTIP_WIDTH, Math.max(160, bounds.width - 16));

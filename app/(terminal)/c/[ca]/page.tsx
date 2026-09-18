@@ -39,6 +39,37 @@ export default async function ReportPage({
   
   const splitResponse: SplitResponse = await computeSplit(ca as Address, window);
 
+  if (splitResponse.kind === "no_stock_leg") {
+    return (
+      <div className="flex flex-1 h-full items-center justify-center p-6 bg-bg">
+        <div className="flex w-full max-w-[520px] flex-col gap-[16px] text-center">
+          <div className="font-mono text-[14px] text-fg2">
+            This coin is quoted in {splitResponse.quoteSymbol ?? "—"}. There&apos;s no stock leg to separate.
+          </div>
+          {splitResponse.suggestions && splitResponse.suggestions.length > 0 && (
+            <div className="text-left border border-line bg-pane p-[14px] rounded-[3px]">
+              <div className="font-mono text-[11px] text-fg3 mb-[9px]">
+                Try a busy stock-paired coin instead.
+              </div>
+              <div className="flex flex-col gap-[7px]">
+                {splitResponse.suggestions.map((suggestion) => (
+                  <a
+                    key={suggestion.tokenAddress}
+                    href={`/c/${suggestion.tokenAddress}`}
+                    className="flex items-center justify-between font-mono text-[12px] text-fg2 hover:text-fg"
+                  >
+                    <span>${suggestion.coinSymbol}</span>
+                    <span className="text-stock">{suggestion.stockPair}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (splitResponse.kind !== "success" || !splitResponse.data) {
     const errorMessages: Record<string, { title: string; message: string }> = {
       no_pool: {

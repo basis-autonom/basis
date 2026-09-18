@@ -1,6 +1,12 @@
 export type Address = `0x${string}`;
 export type Window = "24h" | "7d" | "30d";
 
+export interface SplitSuggestion {
+  tokenAddress: Address;
+  coinSymbol: string;
+  stockPair: string;
+}
+
 export interface StockToken {
   address: Address;
   symbol: string;
@@ -46,7 +52,9 @@ export interface CorporateAction {
 }
 
 export interface SplitResponse {
-  kind: "success" | "unknown_token" | "no_pool" | "no_feed" | "too_new";
+  kind: "success" | "unknown_token" | "no_stock_leg" | "no_pool" | "no_feed" | "too_new";
+  quoteSymbol?: string;
+  suggestions?: SplitSuggestion[];
   data?: {
     coinSymbol: string;
     coinName: string;

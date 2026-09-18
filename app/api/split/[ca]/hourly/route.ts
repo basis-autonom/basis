@@ -24,7 +24,11 @@ const feedAbi = parseAbi([
 ]);
 
 const HOUR_MS = 60 * 60 * 1000;
-const POINT_COUNT = 12;
+const POINT_COUNT_BY_WINDOW: Record<Window, number> = {
+  "24h": 24,
+  "7d": 14,
+  "30d": 15,
+};
 const FEED_ROUND_COUNT = 96;
 
 type Slot0 = readonly [bigint, number, number, number];
@@ -139,15 +143,13 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
   );
   const clamped = pool.createdAt != null && pool.createdAt > requestedStart && pool.createdAt <= now;
   const effectiveStart = clamped && pool.createdAt != null ? pool.createdAt : requestedStart;
+  const pointCount = POINT_COUNT_BY_WINDOW[window];
   const span = Math.max(HOUR_MS, now - effectiveStart);
-  const intervalMs = Math.max(
-    HOUR_MS,
-    Math.round(span / Math.max(POINT_COUNT - 1, 1) / HOUR_MS) * HOUR_MS,
-  );
-  const timestamps = Array.from({ length: POINT_COUNT }, (_, index) =>
-    index === POINT_COUNT - 1
-      ? now
-      : Math.min(now, effectiveStart + index * intervalMs),
+  const intervalMs = span / pointCount;
+  // Keep a fixed number of contribution bars. Each returned point is the end
+  // of one interval, so the internal sample grid has one extra boundary.
+  const timestamps = Array.from({ length: pointCount + 1 }, (_, index) =>
+    effectiveStart + index * intervalMs,
   );
   const windowLabel = clamped
     ? `since launch, ${Math.max(0, Math.floor((now - effectiveStart) / 86400000))}d`
@@ -240,18 +242,15 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
   );
   const prices = timestamps.map((timestamp) => priceAtOrBefore(timestamp, rounds));
 
-  const points = timestamps.map((t, index): HourlyPoint => {
-    if (index === 0 || ratios[index] === null) {
-      return { t, meme: null, stock: null };
-    }
-
-    const previousRatio = ratios[index - 1];
-    const currentRatio = ratios[index];
-    const previousPrice = prices[index - 1];
-    const currentPrice = prices[index];
+  const points = Array.from({ length: pointCount }, (_, index): HourlyPoint => {
+    const sampleIndex = index + 1;
+    const previousRatio = ratios[index];
+    const currentRatio = ratios[sampleIndex];
+    const previousPrice = prices[index];
+    const currentPrice = prices[sampleIndex];
 
     return {
-      t,
+      t: timestamps[sampleIndex],
       meme:
         previousRatio !== null && previousRatio > 0 && currentRatio !== null
           ? (currentRatio / previousRatio - 1) * 100
