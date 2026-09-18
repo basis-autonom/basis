@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import type { Window } from '@/packages/core/types';
 
 export type HourlyPoint = {
   t: number;
@@ -18,6 +19,7 @@ type ChartState = 'loading' | 'ready' | 'error';
 interface HourlyContributionChartProps {
   points?: HourlyPoint[];
   tokenAddress?: string;
+  window?: Window;
   state?: ChartState;
   className?: string;
   emptyLabel?: string;
@@ -89,6 +91,7 @@ function statusFor(point: HourlyPoint) {
 export function HourlyContributionChart({
   points: providedPoints,
   tokenAddress,
+  window = '24h',
   state: providedState,
   className,
   emptyLabel = 'No hourly data available.',
@@ -106,7 +109,7 @@ export function HourlyContributionChart({
     setRemotePoints(null);
     setRemoteState('loading');
 
-    fetch(`/api/split/${encodeURIComponent(tokenAddress)}/hourly`)
+    fetch(`/api/split/${encodeURIComponent(tokenAddress)}/hourly?window=${window}`)
       .then(async (response) => {
         if (!response.ok) throw new Error(`Hourly request failed: ${response.status}`);
         return (await response.json()) as HourlyResponse;
@@ -123,7 +126,7 @@ export function HourlyContributionChart({
     return () => {
       cancelled = true;
     };
-  }, [tokenAddress]);
+  }, [tokenAddress, window]);
 
   const points = providedPoints ?? remotePoints ?? [];
   const state = providedState ?? (tokenAddress ? remoteState : 'ready');

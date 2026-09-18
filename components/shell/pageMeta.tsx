@@ -23,18 +23,18 @@ export const pageMetaMap: Record<string, PageMeta> = {
     ],
     sideExtra: (
       <>
-        <div className="text-[10px] tracking-[0.09em] text-fg3 uppercase px-[14px] pt-[12px] pb-[7px]">
+        <div className="text-[10px] tracking-[0.09em] text-fg3 uppercase px-[8px] pt-[12px] pb-[7px]">
           Most gripped
         </div>
-        <div className="px-[14px] pt-[4px] pb-[12px]">
+        <div className="px-[8px] pt-[4px] pb-[12px]">
           <div className="flex justify-between py-[5px] text-[11px]">
-            <span className="text-fg3">HIMS</span><span className="font-mono">53.4%</span>
+            <span className="text-fg3">HIMS</span><span className="font-mono text-down">53.4%</span>
           </div>
           <div className="flex justify-between py-[5px] text-[11px]">
-            <span className="text-fg3">NVDA</span><span className="font-mono">16.2%</span>
+            <span className="text-fg3">NVDA</span><span className="font-mono text-down">16.2%</span>
           </div>
           <div className="flex justify-between py-[5px] text-[11px]">
-            <span className="text-fg3">HOOD</span><span className="font-mono">11.4%</span>
+            <span className="text-fg3">HOOD</span><span className="font-mono text-down">11.4%</span>
           </div>
           <div className="flex justify-between py-[5px] text-[11px]">
             <span className="text-fg3">AMC</span><span className="font-mono">9.8%</span>

@@ -39,7 +39,7 @@ export default async function TerminalFloatPage() {
 
         <div className="flex flex-col" style={{ flexShrink: 0 }}>
           <div className="text-[10px] text-fg3">Gripped over 10%</div>
-          <div className="font-mono text-[13px] text-fg" style={{ marginTop: 2 }}>{grippedOver10Count}</div>
+          <div className="font-mono text-[13px] text-down" style={{ marginTop: 2 }}>{grippedOver10Count}</div>
         </div>
 
         <div className="flex flex-col" style={{ flexShrink: 0 }}>

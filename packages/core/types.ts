@@ -15,7 +15,7 @@ export interface Pool {
   token0: Address;
   token1: Address;
   stockSide: 0 | 1;
-  createdAt: number;
+  createdAt: number | null;
   liquidityUsd: number;
   lpBurned: boolean;
   venue: string;
@@ -53,6 +53,8 @@ export interface SplitResponse {
     stock: StockToken;
     pool: Pool;
     window: Window;
+    clamped: boolean;
+    windowLabel: string;
     priceUsd: number | null;
     prices: {
       stockNow: number | null;

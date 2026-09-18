@@ -1,10 +1,11 @@
 .sidebar {
   min-width: 0;
   overflow: hidden;
+  background: var(--color-pane);
 }
 
 .navSection {
-  padding: 9px 0 !important;
+  padding: 12px 8px 11px !important;
 }
 
 .sidebarHeader {
@@ -12,7 +13,7 @@
   align-items: center;
   justify-content: space-between;
   min-height: 25px;
-  padding: 0 14px 7px;
+  padding: 0 8px 8px;
 }
 
 .sectionLabel {
@@ -52,6 +53,9 @@
 .navItem {
   min-width: 0;
   white-space: nowrap;
+  margin: 1px 0;
+  border-radius: 3px;
+  padding: 8px 10px !important;
 }
 
 .navIcon {
@@ -74,11 +78,25 @@
 
 .watchSection {
   min-width: 0;
+  padding: 8px;
+}
+
+.watchSection > div {
+  border-radius: 3px;
+}
+
+.watchSection > div:first-child {
+  padding: 8px 8px 6px !important;
+}
+
+.watchSection > div:nth-child(2) > div {
+  padding: 8px !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
 }
 
 .collapsed .sidebarHeader {
   justify-content: center;
-  padding: 0 0 7px;
+  padding: 0 0 8px;
 }
 
 .collapsed .toggleButton {
@@ -98,6 +116,7 @@
   justify-content: center;
   gap: 6px;
   min-height: 78px;
+  margin: 1px 0;
   padding: 7px 0 !important;
   border-left-width: 2px;
 }

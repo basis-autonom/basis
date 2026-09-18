@@ -48,7 +48,7 @@ export function FloatTable({ rows }: { rows: any[] }) {
           <div className="h-[8px] bg-pane2 rounded-[2px] overflow-hidden w-[120px]">
             <i
               className="block h-full"
-              style={{ width: `${Math.min(r.gripPct, 100)}%`, backgroundColor: "var(--color-fg3)" }}
+              style={{ width: `${Math.min(r.gripPct, 100)}%`, backgroundColor: "var(--color-down)" }}
             />
           </div>
         ) : (

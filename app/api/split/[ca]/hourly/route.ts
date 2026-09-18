@@ -5,7 +5,7 @@ import { getBlockByTimestamp } from "../../../../../packages/core/blocks";
 import { robinhoodChain, V4_STATE_VIEW } from "../../../../../packages/core/chain";
 import { getPoolForToken } from "../../../../../packages/core/pools";
 import { getStockTokenByAddress } from "../../../../../packages/core/registry";
-import { Address } from "../../../../../packages/core/types";
+import { Address, type Window } from "../../../../../packages/core/types";
 
 const client = createPublicClient({
   chain: robinhoodChain,
@@ -25,7 +25,6 @@ const feedAbi = parseAbi([
 
 const HOUR_MS = 60 * 60 * 1000;
 const POINT_COUNT = 12;
-const POINT_INTERVAL_MS = 2 * HOUR_MS;
 const FEED_ROUND_COUNT = 96;
 
 type Slot0 = readonly [bigint, number, number, number];
@@ -106,16 +105,22 @@ function priceAtOrBefore(
   return Number.isFinite(price) && price > 0 ? price : null;
 }
 
-async function readHourly(tokenAddress: Address): Promise<{
+async function readHourly(tokenAddress: Address, window: Window): Promise<{
   kind: "ok" | "no_pool" | "no_stock_leg";
   tokenAddress: Address;
-  interval: "2h";
+  window: Window;
+  clamped: boolean;
+  windowLabel: string;
+  interval: string;
   points: HourlyPoint[];
 }> {
   const empty = (kind: "no_pool" | "no_stock_leg") => ({
     kind,
     tokenAddress,
-    interval: "2h" as const,
+    window,
+    clamped: false,
+    windowLabel: window,
+    interval: "—",
     points: [],
   });
 
@@ -129,10 +134,24 @@ async function readHourly(tokenAddress: Address): Promise<{
   if (!stock) return empty("no_stock_leg");
 
   const now = Math.floor(Date.now() / HOUR_MS) * HOUR_MS;
-  const timestamps = Array.from(
-    { length: POINT_COUNT },
-    (_, index) => now - (POINT_COUNT - 1 - index) * POINT_INTERVAL_MS,
+  const requestedStart = now - (
+    window === "24h" ? 24 * HOUR_MS : window === "7d" ? 7 * 24 * HOUR_MS : 30 * 24 * HOUR_MS
   );
+  const clamped = pool.createdAt != null && pool.createdAt > requestedStart && pool.createdAt <= now;
+  const effectiveStart = clamped && pool.createdAt != null ? pool.createdAt : requestedStart;
+  const span = Math.max(HOUR_MS, now - effectiveStart);
+  const intervalMs = Math.max(
+    HOUR_MS,
+    Math.round(span / Math.max(POINT_COUNT - 1, 1) / HOUR_MS) * HOUR_MS,
+  );
+  const timestamps = Array.from({ length: POINT_COUNT }, (_, index) =>
+    index === POINT_COUNT - 1
+      ? now
+      : Math.min(now, effectiveStart + index * intervalMs),
+  );
+  const windowLabel = clamped
+    ? `since launch, ${Math.max(0, Math.floor((now - effectiveStart) / 86400000))}d`
+    : window;
 
   // Token decimals are part of the same current metadata batch; no made-up
   // 18-decimal fallback is used when either read fails.
@@ -244,27 +263,39 @@ async function readHourly(tokenAddress: Address): Promise<{
     };
   });
 
-  return { kind: "ok", tokenAddress, interval: "2h", points };
+  return {
+    kind: "ok",
+    tokenAddress,
+    window,
+    clamped,
+    windowLabel,
+    interval: `${Math.max(1, Math.round(intervalMs / HOUR_MS))}h`,
+    points,
+  };
 }
 
 const getCachedHourly = unstable_cache(
-  async (tokenAddress: Address) => readHourly(tokenAddress),
-  ["split-hourly-v4"],
+  async (tokenAddress: Address, window: Window) => readHourly(tokenAddress, window),
+  ["split-hourly-v5"],
   { revalidate: 300 },
 );
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ ca: string }> },
 ) {
   const { ca } = await params;
   const tokenAddress = ca.toLowerCase() as Address;
+  const requestedWindow = request.nextUrl.searchParams.get("window") || "24h";
+  if (requestedWindow !== "24h" && requestedWindow !== "7d" && requestedWindow !== "30d") {
+    return NextResponse.json({ error: "Invalid window" }, { status: 400 });
+  }
 
   try {
     // Response contract for TerminalChart:
-    // { kind, tokenAddress, interval: "2h", points: [{ t, meme, stock }] }
+    // { kind, tokenAddress, window, clamped, windowLabel, interval, points: [{ t, meme, stock }] }
     // meme/stock are percentage points; null means that point is unavailable.
-    const result = await getCachedHourly(tokenAddress);
+    const result = await getCachedHourly(tokenAddress, requestedWindow);
     return NextResponse.json(result, {
       headers: {
         "Cache-Control": "s-maxage=300, stale-while-revalidate=600",
@@ -273,7 +304,7 @@ export async function GET(
   } catch (error) {
     console.error(`Error reading hourly split for ${tokenAddress}:`, error);
     return NextResponse.json(
-      { kind: "error", tokenAddress, interval: "1h", points: [] },
+      { kind: "error", tokenAddress, window: requestedWindow, interval: "—", points: [] },
       { status: 500 },
     );
   }

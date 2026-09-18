@@ -19,32 +19,36 @@ export function TerminalChart({ seed, timeframe, onTimeframeChange }: TerminalCh
   const [response, setResponse] = useState<HourlyResponse | null>(null);
   const [loading, setLoading] = useState(Boolean(seed));
   const [error, setError] = useState(false);
-  const fetchedSeed = useRef<string | null>(null);
+  const fetchedKey = useRef<string | null>(null);
+
+  const chartWindow = timeframe === '7d' ? '7d' : timeframe === '30d' ? '30d' : '24h';
 
   useEffect(() => {
-    if (!seed || fetchedSeed.current === seed) return;
-    fetchedSeed.current = seed;
-    const requestedSeed = seed;
+    if (!seed) return;
+    const requestKey = `${seed}:${chartWindow}`;
+    if (fetchedKey.current === requestKey) return;
+    fetchedKey.current = requestKey;
+    const requestedWindow = chartWindow;
     setResponse(null);
     setLoading(true);
     setError(false);
 
-    fetch(`/api/split/${encodeURIComponent(seed)}/hourly`, {
+    fetch(`/api/split/${encodeURIComponent(seed)}/hourly?window=${requestedWindow}`, {
     })
       .then(async (result) => {
         if (!result.ok) throw new Error(`Hourly request failed: ${result.status}`);
         return (await result.json()) as HourlyResponse;
       })
       .then((nextResponse) => {
-        if (fetchedSeed.current === requestedSeed) setResponse(nextResponse);
+        if (fetchedKey.current === requestKey) setResponse(nextResponse);
       })
       .catch(() => {
-        if (fetchedSeed.current === requestedSeed) setError(true);
+        if (fetchedKey.current === requestKey) setError(true);
       })
       .finally(() => {
-        if (fetchedSeed.current === requestedSeed) setLoading(false);
+        if (fetchedKey.current === requestKey) setLoading(false);
       });
-  }, [seed]);
+  }, [chartWindow, seed]);
 
   const points = useMemo(() => {
     const all = response?.points ?? [];
@@ -61,13 +65,16 @@ export function TerminalChart({ seed, timeframe, onTimeframeChange }: TerminalCh
       >
         <div className="flex gap-[16px] font-mono text-[11px] text-fg3">
           {(['1h', '4h', '24h', '7d', '30d'] as Timeframe[]).map((tf) => (
-            <span
+            <button
               key={tf}
               onClick={() => onTimeframeChange(tf)}
-              className={`cursor-pointer hover:text-fg ${timeframe === tf ? 'text-fg font-medium bg-pane2 px-[5px] py-[2px] rounded-[3px] -ml-[5px]' : 'py-[2px]'}`}
+              type="button"
+              data-chart-window={tf}
+              aria-pressed={timeframe === tf}
+              className={`border-0 bg-transparent font-mono text-[11px] cursor-pointer hover:text-fg ${timeframe === tf ? 'text-fg font-medium bg-pane2 px-[5px] py-[2px] rounded-[3px] -ml-[5px]' : 'py-[2px]'}`}
             >
               {tf}
-            </span>
+            </button>
           ))}
         </div>
         <div className="flex gap-[16px] font-mono text-[10px] text-fg2">

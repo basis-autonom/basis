@@ -100,7 +100,16 @@ async function computeSplitUncached(
   // 3. Time windows
   const now = Date.now();
   const windowMs = windowToMs[window];
-  const targetTs = now - windowMs;
+  const requestedTargetTs = now - windowMs;
+  const poolCreatedAt = pool.createdAt;
+  const clamped =
+    poolCreatedAt != null &&
+    poolCreatedAt > requestedTargetTs &&
+    poolCreatedAt <= now;
+  const targetTs = clamped && poolCreatedAt != null ? poolCreatedAt : requestedTargetTs;
+  const windowLabel = clamped
+    ? `since launch, ${Math.max(0, Math.floor((now - targetTs) / 86400000))}d`
+    : window;
   const oldBlock = await getBlockByTimestamp(targetTs);
 
   // 4. Read the current report state in one multicall. The historical reads
@@ -221,6 +230,8 @@ async function computeSplitUncached(
       stock: reportStock,
       pool,
       window,
+      clamped,
+      windowLabel,
       priceUsd,
       prices: {
         stockNow: validStockNow,

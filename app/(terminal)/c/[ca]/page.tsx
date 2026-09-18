@@ -77,6 +77,7 @@ export default async function ReportPage({
   const stockComp = attribution.stockComponent;
   const total = attribution.total;
   const beta = attribution.beta;
+  const windowLabel = splitResponse.data.windowLabel;
   const stockAttributionReady = stockComp != null
     && prices.stockOld != null
     && prices.stockNow != null
@@ -175,6 +176,11 @@ export default async function ReportPage({
                   </a>
                 );
               })}
+              {splitResponse.data.clamped && (
+                <span className="ml-[6px] font-mono text-[10px] text-fg3" aria-label="Measured window">
+                  {windowLabel}
+                </span>
+              )}
             </nav>
           </div>
 
@@ -243,7 +249,7 @@ export default async function ReportPage({
               {prices.stockOld != null && prices.stockOld > 0 ? `$${prices.stockOld.toFixed(2)}` : '—'}{' '}
               to{' '}
               {prices.stockNow != null && prices.stockNow > 0 ? `$${prices.stockNow.toFixed(2)}` : '—'}{' '}
-              over the window. Holding the pool ratio flat, that alone lifts this token{' '}
+              over the {windowLabel} window. Holding the pool ratio flat, that alone lifts this token{' '}
               {(stockComp * 100).toFixed(1)}%.
             </div>
           )}
@@ -257,7 +263,7 @@ export default async function ReportPage({
               <h2 className="text-[12px] font-medium text-fg">Hourly contribution</h2>
               <span className="font-mono text-[10px] text-fg3">last 24h</span>
             </div>
-            <HourlyContributionChart tokenAddress={ca} className="h-[150px]" />
+            <HourlyContributionChart tokenAddress={ca} window={window} className="h-[150px]" />
             <div className={`lg flex gap-[12px] text-[10px] text-fg2 font-mono ${styles.chartLegend}`}>
               <span className="flex items-center gap-[6px]"><span className="block w-[10px] h-[10px] rounded-[2px] bg-meme" />meme</span>
               <span className="flex items-center gap-[6px]"><span className="block w-[10px] h-[10px] rounded-[2px] bg-stock" />stock</span>
