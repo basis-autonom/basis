@@ -66,3 +66,117 @@
 .mathNote {
   margin-top: 14px;
 }
+
+.noStockPage {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(28px, 7vw, 96px);
+  background: var(--color-bg);
+}
+
+.noStockCard {
+  position: relative;
+  width: min(100%, 620px);
+  padding: clamp(25px, 4vw, 42px);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  background: linear-gradient(145deg, var(--color-pane), var(--color-bg));
+  box-shadow: 0 20px 60px rgb(0 0 0 / 18%);
+  text-align: left;
+}
+
+.noStockCard::before {
+  position: absolute;
+  top: -1px;
+  right: 24px;
+  left: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-meme), var(--color-stock));
+  content: '';
+}
+
+.noStockEyebrow,
+.noStockSuggestionsLabel {
+  color: var(--color-fg3);
+  font-family: var(--font-ibm-plex-mono), monospace;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.noStockTitle {
+  margin: 14px 0 10px;
+  color: var(--color-fg);
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 500;
+  letter-spacing: -.03em;
+  line-height: 1.12;
+}
+
+.noStockMessage {
+  max-width: 48ch;
+  margin: 0;
+  color: var(--color-fg2);
+  font-family: var(--font-ibm-plex-mono), monospace;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.noStockMessage strong {
+  color: var(--color-stock);
+  font-weight: 500;
+}
+
+.noStockSuggestions {
+  margin-top: 28px;
+  padding: 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  background: rgb(0 0 0 / 12%);
+}
+
+.noStockSuggestionList {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.noStockSuggestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+  padding: 0 10px;
+  border-left: 2px solid transparent;
+  color: var(--color-fg2);
+  font-family: var(--font-ibm-plex-mono), monospace;
+  font-size: 12px;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.noStockSuggestion:hover,
+.noStockSuggestion:focus-visible {
+  border-left-color: var(--color-meme);
+  background: var(--color-memebg);
+  color: var(--color-fg);
+  outline: none;
+}
+
+.noStockSuggestionStock {
+  color: var(--color-stock);
+}
+
+@media (max-width: 640px) {
+  .noStockPage {
+    align-items: flex-start;
+    padding: 28px 16px;
+  }
+
+  .noStockCard {
+    padding: 24px 20px;
+  }
+}

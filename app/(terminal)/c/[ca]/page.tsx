@@ -41,25 +41,27 @@ export default async function ReportPage({
 
   if (splitResponse.kind === "no_stock_leg") {
     return (
-      <div className="flex flex-1 h-full items-center justify-center p-6 bg-bg">
-        <div className="flex w-full max-w-[520px] flex-col gap-[16px] text-center">
-          <div className="font-mono text-[14px] text-fg2">
-            This coin is quoted in {splitResponse.quoteSymbol ?? "—"}. There&apos;s no stock leg to separate.
-          </div>
+      <div className={styles.noStockPage}>
+        <div className={styles.noStockCard}>
+          <div className={styles.noStockEyebrow}>REPORT / NO STOCK LEG</div>
+          <h1 className={styles.noStockTitle}>Nothing to split from the stock side</h1>
+          <p className={styles.noStockMessage}>
+            This coin is quoted in <strong>{splitResponse.quoteSymbol ?? "—"}</strong>. There&apos;s no stock leg to separate.
+          </p>
           {splitResponse.suggestions && splitResponse.suggestions.length > 0 && (
-            <div className="text-left border border-line bg-pane p-[14px] rounded-[3px]">
-              <div className="font-mono text-[11px] text-fg3 mb-[9px]">
+            <div className={styles.noStockSuggestions}>
+              <div className={styles.noStockSuggestionsLabel}>
                 Try a busy stock-paired coin instead.
               </div>
-              <div className="flex flex-col gap-[7px]">
+              <div className={styles.noStockSuggestionList}>
                 {splitResponse.suggestions.map((suggestion) => (
                   <a
                     key={suggestion.tokenAddress}
                     href={`/c/${suggestion.tokenAddress}`}
-                    className="flex items-center justify-between font-mono text-[12px] text-fg2 hover:text-fg"
+                    className={styles.noStockSuggestion}
                   >
-                    <span>${suggestion.coinSymbol}</span>
-                    <span className="text-stock">{suggestion.stockPair}</span>
+                    <span className={styles.noStockSuggestionCoin}>${suggestion.coinSymbol}</span>
+                    <span className={styles.noStockSuggestionStock}>{suggestion.stockPair}</span>
                   </a>
                 ))}
               </div>
