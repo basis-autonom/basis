@@ -77,9 +77,6 @@ function totalFor(point: HourlyPoint) {
 }
 
 function statusFor(point: HourlyPoint) {
-  if (point.meme == null && point.stock == null) {
-    return 'No data for this hour';
-  }
   if (point.stock == null) {
     return 'No stock leg data — market closed';
   }
@@ -199,6 +196,7 @@ export function HourlyContributionChart({
       renderedHitAreas.push(
         <rect
           key={`hit-${point.t}`}
+          className="hourly-chart-hit-area"
           x={index * width}
           y={PLOT_TOP}
           width={width}
@@ -250,6 +248,7 @@ export function HourlyContributionChart({
 
     const bounds = surface.getBoundingClientRect();
     const localX = clamp(clientX - bounds.left, 0, bounds.width);
+    const localY = clamp(clientY - bounds.top, 0, bounds.height);
     const calculatedIndex = Math.min(
       points.length - 1,
       Math.max(0, Math.floor((localX / Math.max(bounds.width, 1)) * points.length)),
@@ -263,10 +262,22 @@ export function HourlyContributionChart({
     const belowTop = baseline + 10;
     const hasRoomAbove = aboveTop >= 8;
     const hasRoomBelow = belowTop + TOOLTIP_HEIGHT <= bounds.height - 8;
-    let top = hasRoomAbove ? aboveTop : hasRoomBelow ? belowTop : -TOOLTIP_HEIGHT - 8;
+    let top = hasRoomAbove
+      ? aboveTop
+      : hasRoomBelow
+        ? belowTop
+        : clamp(barTop - TOOLTIP_HEIGHT / 2, 8, Math.max(8, bounds.height - TOOLTIP_HEIGHT - 8));
 
-    const midpoint = ((bar?.x ?? localX) + (bar?.width ?? 0) / 2) / WIDTH * bounds.width;
-    let left = midpoint < bounds.width / 2 ? midpoint + 12 : midpoint - tooltipWidth - 12;
+    const barLeft = ((bar?.x ?? localX) / WIDTH) * bounds.width;
+    const barRight = (((bar?.x ?? localX) + (bar?.width ?? 0)) / WIDTH) * bounds.width;
+    const midpoint = (barLeft + barRight) / 2;
+    const rightCandidate = barRight + 12;
+    const leftCandidate = barLeft - tooltipWidth - 12;
+    const rightFits = rightCandidate + tooltipWidth <= bounds.width - 8;
+    const leftFits = leftCandidate >= 8;
+    let left = midpoint < bounds.width / 2
+      ? rightFits ? rightCandidate : leftCandidate
+      : leftFits ? leftCandidate : rightCandidate;
     left = clamp(left, 8, Math.max(8, bounds.width - tooltipWidth - 8));
     top = clamp(top, -TOOLTIP_HEIGHT - 8, Math.max(8, bounds.height - TOOLTIP_HEIGHT - 8));
 
@@ -298,7 +309,7 @@ export function HourlyContributionChart({
   return (
     <div
       ref={surfaceRef}
-      className={`hourly-chart-surface relative h-full w-full ${className ?? ''}`}
+      className={`hourly-chart-surface relative w-full ${className ?? ''}`}
       onPointerMove={handleSurfaceMove}
       onPointerLeave={handleLeave}
     >

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Address, SplitResponse } from '@/packages/core/types';
+import { Address, SplitResponse, type Window } from '@/packages/core/types';
 import { computeSplit } from '@/packages/core/attribution';
 import { EmptyState } from '@/components/primitives/EmptyState';
 import { HourlyContributionChart } from '@/components/charts/HourlyContributionChart';
@@ -23,10 +23,21 @@ function fmtRatio(r: number | null): string {
   return r.toFixed(4);
 }
 
-export default async function ReportPage({ params }: { params: Promise<{ ca: string }> }) {
+export default async function ReportPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ ca: string }>;
+  searchParams: Promise<{ window?: string | string[] }>;
+}) {
   const { ca } = await params;
+  const query = await searchParams;
+  const requestedWindow = Array.isArray(query.window) ? query.window[0] : query.window;
+  const window: Window = requestedWindow === '24h' || requestedWindow === '30d' || requestedWindow === '7d'
+    ? requestedWindow
+    : '7d';
   
-  const splitResponse: SplitResponse = await computeSplit(ca as Address, "7d");
+  const splitResponse: SplitResponse = await computeSplit(ca as Address, window);
 
   if (splitResponse.kind !== "success" || !splitResponse.data) {
     const errorMessages: Record<string, { title: string; message: string }> = {
@@ -150,11 +161,21 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
         <div className="cell bg-bg flex flex-col justify-between" style={{ padding: "16px 18px" }}>
           <div className={`flex items-baseline justify-between ${styles.sectionHeader}`}>
             <h2 className="text-[12px] font-medium text-fg">Attribution</h2>
-            <div className="flex gap-[2px]">
-              <span className={`font-mono text-[11px] text-fg3 rounded-[3px] cursor-pointer hover:text-fg ${styles.timeframe}`}>24h</span>
-              <span className={`font-mono text-[11px] text-fg bg-pane2 rounded-[3px] cursor-pointer ${styles.timeframe}`}>7d</span>
-              <span className={`font-mono text-[11px] text-fg3 rounded-[3px] cursor-pointer hover:text-fg ${styles.timeframe}`}>30d</span>
-            </div>
+            <nav className="flex gap-[2px]" aria-label="Attribution window">
+              {(['24h', '7d', '30d'] as Window[]).map((option) => {
+                const active = window === option;
+                return (
+                  <a
+                    key={option}
+                    href={`/c/${encodeURIComponent(ca)}?window=${option}`}
+                    aria-current={active ? 'page' : undefined}
+                    className={`font-mono text-[11px] rounded-[3px] ${styles.timeframe} ${active ? 'text-fg bg-pane2' : 'text-fg3 hover:text-fg'}`}
+                  >
+                    {option}
+                  </a>
+                );
+              })}
+            </nav>
           </div>
 
           <div style={{ fontSize: 26, lineHeight: 1.28, fontWeight: 500, letterSpacing: "-0.02em", maxWidth: "22ch", color: "var(--color-fg)" }}>
@@ -170,14 +191,14 @@ export default async function ReportPage({ params }: { params: Promise<{ ca: str
               <>
                 {stock.symbol} did {stockComp >= 0 ? '+' : ''}{(stockComp * 100).toFixed(1)}%.{' '}
                 <em className="not-italic text-fg2 font-normal">
-                  The historical meme state is incomplete for the standard 7d window.
+                  The historical meme state is incomplete for the {window} window.
                 </em>
               </>
             ) : (
               <>
                 Attribution pending.{' '}
                 <em className="not-italic text-fg2 font-normal">
-                  Historical state or feed data incomplete for standard 7d window.
+                  Historical state or feed data incomplete for the {window} window.
                 </em>
               </>
             )}

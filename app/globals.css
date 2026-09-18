@@ -63,6 +63,10 @@ body {
   overflow: visible;
 }
 
+.hourly-chart-hit-area:focus {
+  outline: none;
+}
+
 .hourly-chart-tooltip {
   position: absolute;
   z-index: 20;

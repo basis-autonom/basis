@@ -100,22 +100,30 @@ async function readAssets(): Promise<Asset[]> {
   return body.assets;
 }
 
-async function readHistory(token: TokenSnapshot) {
+async function readHistory(tokens: TokenSnapshot[]) {
+  if (tokens.length === 0) return [];
+
+  const tokensByAddress = new Map(
+    tokens.map((token) => [token.address.toLowerCase(), token]),
+  );
   const logs = await robinhoodClient.getLogs({
-    address: token.address,
+    address: tokens.map((token) => token.address),
     event: updateEventAbi[0],
     fromBlock: 0n,
     toBlock: "latest",
   });
 
-  return logs.map((log) => {
+  return logs.flatMap((log) => {
+    const token = tokensByAddress.get(log.address.toLowerCase());
+    if (!token) return [];
+
     const [oldRaw, newRaw] = decodeAbiParameters(
       [{ type: "uint256" }, { type: "uint256" }],
       log.data,
     );
     const oldMultiplier = rawMultiplier(oldRaw);
     const newMultiplier = rawMultiplier(newRaw);
-    return {
+    return [{
       symbol: token.symbol,
       address: token.address,
       type: classify(oldMultiplier, newMultiplier),
@@ -127,7 +135,7 @@ async function readHistory(token: TokenSnapshot) {
           : null,
       date: null,
       blockNumber: log.blockNumber,
-    };
+    }];
   });
 }
 
@@ -186,11 +194,14 @@ async function readActions() {
         token.pendingMultiplier !== token.currentMultiplier,
     );
 
-    const historyResults = await Promise.allSettled(snapshots.map(readHistory));
-    const historyUnavailable = historyResults.some((result) => result.status === "rejected");
-    const history = historyResults.flatMap((result) =>
-      result.status === "fulfilled" ? result.value : [],
-    );
+    let history: Awaited<ReturnType<typeof readHistory>> = [];
+    let historyUnavailable = false;
+    try {
+      history = await readHistory(snapshots);
+    } catch (error) {
+      historyUnavailable = true;
+      console.error("Corporate-action history read failed:", error);
+    }
     const blockNumbers = [...new Set(
       history.flatMap((row) => row.blockNumber == null ? [] : [row.blockNumber]),
     )];

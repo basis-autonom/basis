@@ -85,7 +85,7 @@ export function TerminalChart({ seed, timeframe, onTimeframeChange }: TerminalCh
         <HourlyContributionChart
           points={points}
           state={loading ? 'loading' : error ? 'error' : 'ready'}
-          className="absolute inset-0"
+          className="absolute inset-0 h-full"
         />
       </div>
     </div>
