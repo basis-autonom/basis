@@ -64,7 +64,9 @@ export function DriftStrip({ tokenAddress }: DriftStripProps) {
     () => points.filter((point) => point.meme != null),
     [points],
   );
+  const positiveCount = observed.filter((point) => (point.meme ?? 0) >= 0).length;
   const redCount = observed.filter((point) => (point.meme ?? 0) < 0).length;
+  const unavailableCount = points.length - observed.length;
   const activePoint = activeIndex == null ? null : points[activeIndex] ?? null;
 
   if (state === 'loading') {
@@ -116,31 +118,41 @@ export function DriftStrip({ tokenAddress }: DriftStripProps) {
         <div
           role="status"
           aria-live="polite"
-          className="absolute bottom-[40px] z-20 w-[218px] rounded-[3px] border border-line2 bg-pane px-[10px] py-[8px] font-mono text-[10px] shadow-[0_8px_24px_rgb(0_0_0_/35%)]"
+          className="drift-tooltip"
           style={{
             left: `${((activeIndex + 0.5) / points.length) * 100}%`,
             transform: `translateX(${activeIndex < points.length / 2 ? '0' : '-100%'})`,
           }}
         >
-          <div className="mb-[6px] text-fg">{formatDate(activePoint.t)}</div>
-          <div className="flex justify-between text-meme">
+          <div className="drift-tooltip__time">{formatDate(activePoint.t)}</div>
+          <div className={`drift-tooltip__row ${activePoint.meme != null && activePoint.meme < 0 ? 'text-down' : 'text-meme'}`}>
             <span>meme component</span><strong>{formatPercent(activePoint.meme)}</strong>
           </div>
-          <div className="flex justify-between text-stock">
+          <div className="drift-tooltip__row text-stock">
             <span>stock component</span><strong>{formatPercent(activePoint.stock)}</strong>
           </div>
-          <div className="flex justify-between text-fg2">
+          <div className="drift-tooltip__row text-fg2">
             <span>total</span><strong className="text-fg">{formatPercent(totalFor(activePoint))}</strong>
           </div>
           {activePoint.stock == null && (
-            <div className="mt-[6px] border-t border-line pt-[5px] text-fg3">No stock leg data — market closed</div>
+            <div className="drift-tooltip__status">No stock leg data — market closed</div>
           )}
         </div>
       )}
 
+      <div className="drift-strip__legend" aria-label="30-day drift legend">
+        <span><i className="drift-strip__swatch drift-strip__swatch--positive" /> positive</span>
+        <span><i className="drift-strip__swatch drift-strip__swatch--negative" /> negative</span>
+        <span><i className="drift-strip__swatch drift-strip__swatch--unavailable" /> unavailable</span>
+      </div>
+
       <div className="mt-[6px] flex justify-between font-mono text-[10px] text-fg3">
         <span>30d ago</span>
-        <span>{observed.length ? `${redCount} red intervals of ${observed.length} observed` : 'No observed intervals'}</span>
+        <span>
+          {observed.length
+            ? `${positiveCount} positive · ${redCount} negative · ${unavailableCount} unavailable`
+            : 'No observed intervals'}
+        </span>
         <span>today</span>
       </div>
     </div>
