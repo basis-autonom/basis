@@ -5,11 +5,14 @@ type ActiveTab = 'all' | 'greenStock' | 'highGrip';
 interface TerminalControlsProps {
   activeTab: ActiveTab;
   filterLiq10k: boolean;
+  hideLpLive: boolean;
+  liveLpCount: number;
   rowCount: number;
   greenStockCount: number;
   highGripCount: number;
   onTabChange: (tab: ActiveTab) => void;
   onLiquidityToggle: () => void;
+  onHideLpLiveToggle: () => void;
 }
 
 const tabs: Array<{ id: ActiveTab; label: string; countKey: 'rowCount' | 'greenStockCount' | 'highGripCount' }> = [
@@ -21,11 +24,14 @@ const tabs: Array<{ id: ActiveTab; label: string; countKey: 'rowCount' | 'greenS
 export function TerminalControls({
   activeTab,
   filterLiq10k,
+  hideLpLive,
+  liveLpCount,
   rowCount,
   greenStockCount,
   highGripCount,
   onTabChange,
   onLiquidityToggle,
+  onHideLpLiveToggle,
 }: TerminalControlsProps) {
   const counts = { rowCount, greenStockCount, highGripCount };
 
@@ -63,32 +69,38 @@ export function TerminalControls({
         <button
           type="button"
           onClick={onLiquidityToggle}
+          aria-pressed={filterLiq10k}
           className="chip"
           style={{
-            border: '1px solid',
+            border: filterLiq10k ? '2px solid var(--color-meme)' : '1px solid var(--color-line2)',
             borderColor: filterLiq10k ? 'var(--color-meme)' : 'var(--color-line2)',
-            color: filterLiq10k ? 'var(--color-meme)' : 'var(--color-fg3)',
+            color: filterLiq10k ? 'var(--color-fg)' : 'var(--color-fg3)',
             borderRadius: '3px',
             padding: '3px 8px',
             cursor: 'pointer',
-            background: 'transparent',
+            background: filterLiq10k ? 'var(--color-memebg)' : 'transparent',
+            fontWeight: filterLiq10k ? 600 : 400,
           }}
         >
           Liq &gt; $10K
         </button>
         <button
           type="button"
+          onClick={onHideLpLiveToggle}
+          aria-pressed={hideLpLive}
           className="chip"
           style={{
-            border: '1px solid var(--color-line2)',
-            color: 'var(--color-fg3)',
+            border: hideLpLive ? '2px solid var(--color-stock)' : '1px solid var(--color-line2)',
+            borderColor: hideLpLive ? 'var(--color-stock)' : 'var(--color-line2)',
+            color: hideLpLive ? 'var(--color-fg)' : 'var(--color-fg3)',
             borderRadius: '3px',
             padding: '3px 8px',
             cursor: 'pointer',
-            background: 'transparent',
+            background: hideLpLive ? 'var(--color-stockbg)' : 'transparent',
+            fontWeight: hideLpLive ? 600 : 400,
           }}
         >
-          Hide LP live
+          Hide LP live{hideLpLive ? ` · ${liveLpCount} hidden` : ''}
         </button>
       </div>
     </div>

@@ -376,6 +376,7 @@ const EXCLUDED_ADDRS = new Set([
       grip,
       liquidity: pool.liquidityUsd ?? null,
       vol24h: pool.vol24hUsd ?? null,
+      lpBurned: pool.lpBurned,
     });
   }
 
