@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { DataTable, Column } from "@/components/primitives/DataTable";
 import { SplitBar } from "@/components/primitives/SplitBar";
 import { Sparkline } from "@/components/primitives/Sparkline";
@@ -34,10 +34,23 @@ interface BoardTableProps {
   rows: any[];
   selectedCa?: string;
   onSelectRow?: (row: any) => void;
+  onContentHeightChange?: (height: number) => void;
 }
 
-export function BoardTable({ rows, selectedCa, onSelectRow }: BoardTableProps) {
+export function BoardTable({
+  rows,
+  selectedCa,
+  onSelectRow,
+  onContentHeightChange,
+}: BoardTableProps) {
   const router = useRouter();
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (tableRef.current && onContentHeightChange) {
+      onContentHeightChange(tableRef.current.scrollHeight);
+    }
+  }, [onContentHeightChange, rows.length]);
 
   const columns: Column<any>[] = [
     {
@@ -148,20 +161,22 @@ export function BoardTable({ rows, selectedCa, onSelectRow }: BoardTableProps) {
   ];
 
   return (
-    <DataTable
-      columns={columns}
-      rows={rows}
-      onRowClick={(r) => {
-        if (onSelectRow) {
-          onSelectRow(r);
-          return;
-        }
+    <div ref={tableRef}>
+      <DataTable
+        columns={columns}
+        rows={rows}
+        onRowClick={(r) => {
+          if (onSelectRow) {
+            onSelectRow(r);
+            return;
+          }
 
-        const pathname = `/c/${r.ca || r.poolId}`;
-        startBasisRouteTransition(pathname);
-        router.push(pathname);
-      }}
-      activeRowFn={(r) => (selectedCa ? r.ca === selectedCa || r.poolId === selectedCa : false)}
-    />
+          const pathname = `/c/${r.ca || r.poolId}`;
+          startBasisRouteTransition(pathname);
+          router.push(pathname);
+        }}
+        activeRowFn={(r) => (selectedCa ? r.ca === selectedCa || r.poolId === selectedCa : false)}
+      />
+    </div>
   );
 }

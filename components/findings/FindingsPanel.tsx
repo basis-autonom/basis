@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Finding = {
   id: number;
@@ -30,10 +30,9 @@ function formatTime(value: string) {
   }).format(date);
 }
 
-function formatPercent(value: number | null) {
+function formatNarrativeNumber(value: number | null) {
   if (value == null) return "—";
-  const formatted = value.toFixed(Math.abs(value) < 0.1 ? 2 : 1);
-  return value > 0 ? `+${formatted}` : formatted;
+  return value.toFixed(Math.abs(value) < 0.1 ? 2 : 1);
 }
 
 function movementClass(value: number | null) {
@@ -41,11 +40,17 @@ function movementClass(value: number | null) {
   return value > 0 ? "text-up" : "text-down";
 }
 
-export function FindingsPanel({ poolCount }: { poolCount: number }) {
+type FindingsPanelProps = {
+  poolCount: number;
+  onContentHeightChange?: (height: number) => void;
+};
+
+export function FindingsPanel({ poolCount, onContentHeightChange }: FindingsPanelProps) {
   const [state, setState] = useState<FindingsState>({
     status: "loading",
     findings: [],
   });
+  const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,12 +87,27 @@ export function FindingsPanel({ poolCount }: { poolCount: number }) {
     };
   }, []);
 
+  const sortedFindings = useMemo(
+    () =>
+      [...state.findings].sort(
+        (a, b) =>
+          new Date(b.detectedAt).getTime() - new Date(a.detectedAt).getTime(),
+      ),
+    [state.findings],
+  );
+
+  useEffect(() => {
+    if (!onContentHeightChange) return;
+    const listHeight = listRef.current?.scrollHeight ?? 0;
+    onContentHeightChange(Math.max(42, listHeight + 6));
+  }, [onContentHeightChange, sortedFindings.length, state.status]);
+
   return (
     <section
       aria-labelledby="findings-heading"
-      className="flex min-h-[42px] min-w-0 flex-shrink-0 border-b border-line bg-pane"
+      className="flex h-full min-h-[42px] min-w-0 flex-shrink-0 border-b border-line bg-pane"
     >
-      <div className="flex w-[116px] flex-shrink-0  items-center justify-between border-r border-line px-[12px]!">
+      <div className="flex w-[116px] flex-shrink-0 items-start justify-between border-r border-line px-[12px]! pt-[13px]">
         <h2
           id="findings-heading"
           className="font-mono text-[10px] uppercase tracking-[0.09em] text-fg3 "
@@ -114,38 +134,40 @@ export function FindingsPanel({ poolCount }: { poolCount: number }) {
         </p>
       ) : (
         <ul
+          ref={listRef}
           aria-label="Latest findings"
-          className="flex min-w-0 flex-1 overflow-x-auto"
+          className="h-full min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto py-[3px]"
         >
-          {state.findings.map((finding) => (
+          {sortedFindings.map((finding) => (
             <li
               key={finding.id}
-              className="flex flex-shrink-0 border-r border-line last:border-r-0"
+              className="border-b border-line last:border-b-0"
             >
               <Link
                 href={`/c/${finding.tokenAddress}`}
-                className="flex items-center gap-[12px] px-[14px] py-[8px] font-mono text-[11px] transition-colors hover:bg-pane2 focus-visible:bg-pane2"
+                aria-label={`${finding.symbol ?? "Unknown coin"} finding report`}
+                className="flex min-w-0 items-baseline gap-[14px] px-[14px] py-[7px] font-mono text-[11px] transition-colors hover:bg-pane2 focus-visible:bg-pane2"
               >
                 <time
                   dateTime={finding.detectedAt}
-                  className="flex-shrink-0 text-[10px] tabular-nums text-fg3"
+                  className="w-[42px] flex-shrink-0 text-[10px] tabular-nums text-fg3"
                 >
                   {formatTime(finding.detectedAt)}
                 </time>
-                <span className="flex-shrink-0 text-fg">
-                  ${finding.symbol ?? "—"}
-                  <span className="ml-[5px] text-stock">
-                    / {finding.stockPair ?? "—"}
-                  </span>
-                </span>
-                <span className={movementClass(finding.priceMovement)}>
-                  price {formatPercent(finding.priceMovement)}%
-                </span>
-                <span className="text-meme">
-                  meme {formatPercent(finding.memeComponent)}%
-                </span>
-                <span className="text-stock">
-                  stock {formatPercent(finding.stockComponent)}%
+                <span className="min-w-0 text-fg">
+                  ${finding.symbol ?? "—"} moved{" "}
+                  <strong className={movementClass(finding.priceMovement)}>
+                    {formatNarrativeNumber(finding.priceMovement)}%
+                  </strong>
+                  . Its meme did{" "}
+                  <strong className="text-meme">
+                    {formatNarrativeNumber(finding.memeComponent)}
+                  </strong>
+                  . The rest is{" "}
+                  <strong className="text-stock">
+                    {finding.stockPair ?? "—"}
+                  </strong>
+                  .
                 </span>
               </Link>
             </li>

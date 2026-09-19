@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { BoardTable } from "@/components/board/BoardTable";
 import { useTerminalRows } from "@/components/shell/TerminalDataProvider";
 import { PairSummary } from "./PairSummary";
@@ -22,6 +22,8 @@ export function TerminalView() {
   const [timeframe, setTimeframe] = useState<
     "1h" | "4h" | "24h" | "7d" | "30d"
   >("24h");
+  const [findingsContentHeight, setFindingsContentHeight] = useState(42);
+  const [tableContentHeight, setTableContentHeight] = useState(160);
 
   const filteredRows = useMemo(() => {
     let result = [...(rows || [])];
@@ -55,6 +57,16 @@ export function TerminalView() {
     (row) => (row.grip ?? 0) >= 10,
   ).length;
 
+  const handleFindingsContentHeightChange = useCallback((height: number) => {
+    setFindingsContentHeight(height);
+  }, []);
+
+  const handleTableContentHeightChange = useCallback((height: number) => {
+    setTableContentHeight(Math.max(160, height + 48));
+  }, []);
+
+  const lowerContentHeight = findingsContentHeight + tableContentHeight + 1;
+
   const handleCopy = () => {
     if (!selectedRow) return;
     navigator.clipboard.writeText(
@@ -79,24 +91,53 @@ export function TerminalView() {
           <Separator
             className="relative z-10 h-px flex-shrink-0 cursor-row-resize bg-line transition-colors hover:bg-meme active:bg-meme after:absolute after:-inset-y-[6px] after:inset-x-0 after:content-['']"
           />
-          <Panel defaultSize="50%" minSize="20%" className="flex flex-col min-h-0">
-            <FindingsPanel poolCount={rows.length} />
-            <TerminalControls
-              activeTab={activeTab}
-              filterLiq10k={filterLiq10k}
-              rowCount={(rows || []).length}
-              greenStockCount={greenStockCount}
-              highGripCount={highGripCount}
-              onTabChange={setActiveTab}
-              onLiquidityToggle={() => setFilterLiq10k((value) => !value)}
-            />
-            <div className="min-h-0 flex-1 overflow-auto bg-bg">
-              <BoardTable
-                rows={filteredRows}
-                selectedCa={selectedRow?.ca || selectedRow?.poolId}
-                onSelectRow={(row) => setSelectedCa(row.ca || row.poolId)}
+          <Panel
+            defaultSize="50%"
+            minSize="20%"
+            maxSize={lowerContentHeight}
+            className="flex flex-col min-h-0"
+          >
+            <Group orientation="vertical" className="min-h-0 flex-1">
+              <Panel
+                defaultSize="16%"
+                minSize={42}
+                maxSize={findingsContentHeight}
+                className="min-h-0"
+              >
+                <FindingsPanel
+                  poolCount={rows.length}
+                  onContentHeightChange={handleFindingsContentHeightChange}
+                />
+              </Panel>
+              <Separator
+                aria-label="Resize findings and stock-paired pools"
+                className="relative z-10 h-px flex-shrink-0 cursor-row-resize bg-line transition-colors hover:bg-meme active:bg-meme after:absolute after:-inset-y-[6px] after:inset-x-0 after:content-['']"
               />
-            </div>
+              <Panel
+                defaultSize="84%"
+                minSize={160}
+                maxSize={tableContentHeight}
+                className="flex min-h-0 flex-col"
+              >
+                <TerminalControls
+                  activeTab={activeTab}
+                  filterLiq10k={filterLiq10k}
+                  rowCount={(rows || []).length}
+                  greenStockCount={greenStockCount}
+                  highGripCount={highGripCount}
+                  onTabChange={setActiveTab}
+                  onLiquidityToggle={() => setFilterLiq10k((value) => !value)}
+                />
+                <div className="min-h-0 flex-1 overflow-auto bg-bg">
+                  <BoardTable
+                    rows={filteredRows}
+                    selectedCa={selectedRow?.ca || selectedRow?.poolId}
+                    onSelectRow={(row) => setSelectedCa(row.ca || row.poolId)}
+                    onContentHeightChange={handleTableContentHeightChange}
+                  />
+                </div>
+              </Panel>
+            </Group>
           </Panel>
         </Group>
       </Panel>
