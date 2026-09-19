@@ -25,14 +25,14 @@ export function SplitBar({ memePct, stockPct, size = 'small', quoteSymbol }: Spl
   // large variant (used in inspector/report)
   return (
     <div className="flex h-[34px] rounded-[3px] overflow-hidden my-[14px] mx-0">
-      <div 
-        className="flex items-center px-[10px] font-mono text-[11px] bg-memebg text-[#9BBDF7] border-l-2 border-meme" 
+      <div
+        className="split-bar-label flex items-center px-[10px] font-mono text-[11px] bg-memebg border-l-2 border-meme"
         style={{ width: `${m}%` }}
       >
         meme
       </div>
       <div 
-        className="flex items-center px-[10px] font-mono text-[11px] bg-stockbg text-[#E0BC7C] justify-end border-r-2 border-stock" 
+        className="split-bar-label flex items-center px-[10px] font-mono text-[11px] bg-stockbg justify-end border-r-2 border-stock"
         style={{ width: `${s}%` }}
       >
         {quoteSymbol || 'STOCK'}

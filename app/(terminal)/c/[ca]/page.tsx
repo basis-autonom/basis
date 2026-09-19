@@ -5,6 +5,7 @@ import { Address, SplitResponse, type Window } from '@/packages/core/types';
 import { computeSplit } from '@/packages/core/attribution';
 import { EmptyState } from '@/components/primitives/EmptyState';
 import { HourlyContributionChart } from '@/components/charts/HourlyContributionChart';
+import { DriftStrip } from '@/components/charts/DriftStrip';
 import { ReportActions } from '@/components/report/ReportActions';
 import styles from './ReportPage.module.css';
 
@@ -95,6 +96,21 @@ function fmtRatio(r: number | null): string {
   if (r < 0.0001) return r.toExponential(3);
   if (r < 1) return r.toFixed(6);
   return r.toFixed(4);
+}
+
+function fmtAmount(value: number | null): string {
+  if (value == null || !Number.isFinite(value)) return '—';
+  return value.toLocaleString('en-US', { maximumFractionDigits: 6 });
+}
+
+function fmtUsd(value: number | null): string {
+  if (value == null || !Number.isFinite(value)) return '—';
+  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function fmtWeight(value: number | null, total: number): string {
+  if (value == null || !Number.isFinite(value) || total <= 0) return '—';
+  return `${((value / total) * 100).toFixed(1)}%`;
 }
 
 export default async function ReportPage({
@@ -204,6 +220,19 @@ export default async function ReportPage({
   }
 
   const displayStockName = stock.name || stock.symbol;
+  const memeAmount = pool.stockSide === 0 ? pool.liquidityQuote : pool.liquidityBase;
+  const stockAmount = pool.stockSide === 0 ? pool.liquidityBase : pool.liquidityQuote;
+  const memeValue = memeAmount != null && priceUsd != null ? memeAmount * priceUsd : null;
+  const stockValue = stockAmount != null && prices.stockNow != null
+    ? stockAmount * prices.stockNow
+    : null;
+  const compositionTotalValue = [memeValue, stockValue]
+    .filter((value): value is number => value != null && Number.isFinite(value))
+    .reduce((sum, value) => sum + value, 0);
+  const compositionRows = [
+    { label: `$${coinSymbol}`, amount: memeAmount, value: memeValue, tone: 'meme' },
+    { label: stock.symbol, amount: stockAmount, value: stockValue, tone: 'stock' },
+  ];
 
   return (
     <div className="main flex-1 flex flex-col overflow-y-auto bg-bg">
@@ -316,13 +345,13 @@ export default async function ReportPage({
             <>
               <div className={`flex h-[40px] rounded-[3px] overflow-hidden mx-0 ${styles.bigSplit}`}>
                 <div 
-                  className={`flex items-center font-mono text-[12px] bg-memebg text-[#9BBDF7] border-l-2 border-meme ${styles.bigSplitItem}`}
+                  className={`split-bar-label flex items-center font-mono text-[12px] bg-memebg border-l-2 border-meme ${styles.bigSplitItem}`}
                   style={{ width: `${memeBarPct}%` }}
                 >
                   meme
                 </div>
                 <div 
-                  className={`flex items-center justify-end font-mono text-[12px] bg-stockbg text-[#E0BC7C] border-r-2 border-stock ${styles.bigSplitItem}`}
+                  className={`split-bar-label flex items-center justify-end font-mono text-[12px] bg-stockbg border-r-2 border-stock ${styles.bigSplitItem}`}
                   style={{ width: `${stockBarPct}%` }}
                 >
                   {stock.symbol}
@@ -424,26 +453,11 @@ export default async function ReportPage({
               <h2 className="text-[12px] font-medium text-fg">30-day drift</h2>
               <span className="font-mono text-[10px] text-fg3">meme component per day</span>
             </div>
-            <div className={`drift flex ${styles.drift}`}>
-              {[1,1,0,1,0,0,1,1,1,0,1,1,0,1,1,1,0,0,1,1,1,0,1,1,0,1,1,1,1,1].map((v, i) => (
-                <i
-                  key={i}
-                  className="flex-1 h-[30px]"
-                  style={{
-                    background: v ? 'var(--color-memebg)' : '#3A1A1A',
-                    borderTop: `2px solid ${v ? 'var(--color-meme)' : 'var(--color-down)'}`
-                  }}
-                />
-              ))}
-            </div>
+            <DriftStrip tokenAddress={ca} />
             <div className={`kv flex justify-between border-b border-line text-[12px] ${styles.kv}`}><div className="k text-fg3">beta</div><div className="v text-fg">{beta != null ? beta.toFixed(2) : '—'}</div></div>
-            <div className={`dax flex justify-between text-[10px] text-fg3 font-mono ${styles.dax}`}>
-              <span>30d ago</span>
-              <span>today</span>
-            </div>
           </div>
           <div className={`mini text-[11px] text-fg3 leading-[1.6] ${styles.sectionNote}`}>
-            The meme component closed red on 11 of 30 days while the token itself closed green. On those days every dollar of gain came from {displayStockName}.
+            Each bar is one observed daily interval from the historical pool and stock-feed read. Hover a bar to inspect the exact components; gray intervals mean the stock market was closed or unavailable.
           </div>
         </div>
 {/* Cell 5: Pool composition */}
@@ -464,24 +478,14 @@ export default async function ReportPage({
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', color: 'var(--color-meme)', fontFamily: 'var(--font-mono)' }}>${coinSymbol}</td>
-                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                    —
-                  </td>
-                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                    —
-                  </td>
-                  <td style={{ padding: '7px 0', fontSize: 12, borderBottom: '1px solid var(--color-line)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>—</td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '7px 0', fontSize: 12, color: 'var(--color-stock)', fontFamily: 'var(--font-mono)' }}>{stock.symbol}</td>
-                  <td style={{ padding: '7px 0', fontSize: 12, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>—</td>
-                  <td style={{ padding: '7px 0', fontSize: 12, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                    —
-                  </td>
-                  <td style={{ padding: '7px 0', fontSize: 12, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>—</td>
-                </tr>
+                {compositionRows.map((item, index) => (
+                  <tr key={item.label}>
+                    <td style={{ padding: '7px 0', fontSize: 12, borderBottom: index === 0 ? '1px solid var(--color-line)' : undefined, color: item.tone === 'meme' ? 'var(--color-meme)' : 'var(--color-stock)', fontFamily: 'var(--font-mono)' }}>{item.label}</td>
+                    <td style={{ padding: '7px 0', fontSize: 12, borderBottom: index === 0 ? '1px solid var(--color-line)' : undefined, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{fmtAmount(item.amount)}</td>
+                    <td style={{ padding: '7px 0', fontSize: 12, borderBottom: index === 0 ? '1px solid var(--color-line)' : undefined, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{fmtUsd(item.value)}</td>
+                    <td style={{ padding: '7px 0', fontSize: 12, borderBottom: index === 0 ? '1px solid var(--color-line)' : undefined, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{fmtWeight(item.value, compositionTotalValue)}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

@@ -27,7 +27,7 @@ const HOUR_MS = 60 * 60 * 1000;
 const POINT_COUNT_BY_WINDOW: Record<Window, number> = {
   "24h": 24,
   "7d": 14,
-  "30d": 15,
+  "30d": 30,
 };
 const FEED_ROUND_COUNT = 96;
 
@@ -278,7 +278,7 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
 
 const getCachedHourly = unstable_cache(
   async (tokenAddress: Address, window: Window) => readHourly(tokenAddress, window),
-  ["split-hourly-v6"],
+  ["split-hourly-v7"],
   { revalidate: 300 },
 );
 

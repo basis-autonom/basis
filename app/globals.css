@@ -96,6 +96,12 @@ body {
   color: var(--color-fg);
 }
 
+.split-bar-label {
+  color: var(--color-fg);
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 45%);
+}
+
 .hourly-chart-surface {
   touch-action: none;
   overflow: visible;
