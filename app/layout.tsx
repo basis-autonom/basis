@@ -15,7 +15,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Basis",
+  title: "Basis Analytics",
   description: "Terminal forensik untuk memecoin di Robinhood Chain",
 };
 
@@ -26,7 +26,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${instrumentSans.variable} ${ibmPlexMono.variable} antialiased`}>
+      <body
+        className={`${instrumentSans.variable} ${ibmPlexMono.variable} antialiased`}
+      >
         <BasisTransition />
         {children}
       </body>
