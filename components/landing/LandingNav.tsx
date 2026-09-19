@@ -23,6 +23,7 @@ export function LandingNav() {
             style={{ width: "auto", height: "20px" }}
           />
           <span>sis</span>
+          <span className="text-stock font-mono tracking-widest text-[10px] uppercase ml-[8px]" style={{ fontWeight: 'normal', transform: 'translateY(3px)' }}>Analytics</span>
         </Link>
         <div className="landing-nav-links">
           <Link href="/terminal">Terminal</Link>

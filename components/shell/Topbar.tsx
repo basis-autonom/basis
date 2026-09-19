@@ -64,8 +64,18 @@ export function Topbar() {
           style={{ height: "46px", fontSize: "16px" }}
         >
           <span>ba</span>
-          <img src="/logo.png" alt="/" style={{ width: 'auto', height: '20px' }} />
+          <img
+            src="/logo.png"
+            alt="/"
+            style={{ width: "auto", height: "20px" }}
+          />
           <span>sis</span>
+          <span
+            className="text-stock font-mono tracking-widest text-[10px] uppercase ml-[10px]"
+            style={{ fontWeight: "normal", transform: "translateY(3px)" }}
+          >
+            Analytics
+          </span>
         </Link>
 
         {/* search trigger */}

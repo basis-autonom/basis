@@ -2125,3 +2125,20 @@ body {
     gap: 8px;
   }
 }
+
+@keyframes glitch-blue {
+  0% { transform: translate(0); color: var(--color-stock); text-shadow: none; }
+  20% { transform: translate(0); color: var(--color-stock); text-shadow: none; }
+  21% { transform: translate(-2px, 1px); color: var(--color-meme); text-shadow: 2px 0 #00ffff, -2px 0 #ff00ff; }
+  23% { transform: translate(2px, -1px); color: var(--color-stock); text-shadow: -2px 0 #00ffff, 2px 0 #ff00ff; }
+  25% { transform: translate(0); color: var(--color-stock); text-shadow: none; }
+  60% { transform: translate(0); color: var(--color-stock); text-shadow: none; }
+  61% { transform: translate(1px, 2px); color: var(--color-meme); text-shadow: -1px 0 var(--color-meme); }
+  62% { transform: translate(-1px, -1px); color: var(--color-stock); text-shadow: 2px 0 var(--color-meme); }
+  63% { transform: translate(0); color: var(--color-stock); text-shadow: none; }
+  100% { transform: translate(0); color: var(--color-stock); text-shadow: none; }
+}
+
+.animate-glitch-blue {
+  animation: glitch-blue 4s infinite linear;
+}
