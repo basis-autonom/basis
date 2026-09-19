@@ -58,6 +58,44 @@ body {
   outline-offset: 2px;
 }
 
+.basis-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 29px;
+  padding: 0 13px;
+  border-radius: 4px;
+  font-family: var(--font-instrument-sans), system-ui, sans-serif;
+  font-size: 12px !important;
+  font-weight: 500;
+  line-height: 1 !important;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.basis-action-button--primary {
+  border: 0;
+  background: var(--color-fg);
+  color: var(--color-bg);
+  transition: opacity 160ms ease;
+}
+
+.basis-action-button--primary:hover {
+  opacity: .9;
+}
+
+.basis-action-button--secondary {
+  border: 1px solid var(--color-line2);
+  background: transparent;
+  color: var(--color-fg2);
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.basis-action-button--secondary:hover {
+  border-color: var(--color-line);
+  color: var(--color-fg);
+}
+
 .hourly-chart-surface {
   touch-action: none;
   overflow: visible;

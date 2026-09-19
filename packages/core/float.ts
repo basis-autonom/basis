@@ -140,8 +140,8 @@ export async function getFloatGrip(stockToken: StockToken, poolAddress: Address)
 
 /**
  * Read the active stock-paired pools and their current stock-side USD value.
- * Pool amounts come from the same DexScreener-backed pool directory used by
- * the board; the stock price comes from the token's Chainlink feed.
+ * Pool amounts come from the same combined indexer directory used by the
+ * board; the stock price comes from the token's Chainlink feed.
  */
 export async function getCorporateActionPoolExposure(
   stockTokens: CorporateActionToken[],

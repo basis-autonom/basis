@@ -81,8 +81,8 @@ async function fetchGeckoPools(registry: Array<{ address: Address }>): Promise<I
         createdAt: Number.isFinite(createdAt) ? createdAt : null,
         liquidityUsd: reserveUsd ?? 0,
         // GeckoTerminal does not expose the two reserve amounts in this
-        // endpoint. Keep them null rather than inventing a split; callers
-        // that require exact token-side amounts can fall back to DexScreener.
+        // endpoint. Keep them null rather than inventing a token-side split;
+        // exact side-value calculations remain unavailable for Gecko-only rows.
         liquidityBase: null,
         liquidityQuote: null,
         vol24hUsd: volume24h ?? 0,
@@ -111,7 +111,7 @@ export async function getPoolForToken(
     }
   }
 
-  // 1. First check known pools from getRobinhoodPools (same directory used by the board)
+  // 1. First check the combined indexer directory used by the board.
   try {
     const allPools = await getRobinhoodPools(100);
     const matched = allPools.find(
@@ -128,7 +128,8 @@ export async function getPoolForToken(
     console.error("Error searching getRobinhoodPools", e);
   }
 
-  // 2. If not found in top 100, fetch from DexScreener (supporting pairAddress or tokenAddress)
+  // 2. If not found in the combined top-100 directory, fetch from DexScreener
+  // directly (supporting pairAddress or tokenAddress).
   try {
     const url =
       lowerCa.length === 66
