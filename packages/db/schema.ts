@@ -71,6 +71,7 @@ export const xPostRecords = pgTable(
     findingId: integer("finding_id").notNull(),
     postedOn: date("posted_on").notNull(),
     content: text("content").notNull(),
+    status: text("status").notNull().default("reserved"),
     externalId: text("external_id"),
     createdAt: timestamp("created_at", {
       withTimezone: true,

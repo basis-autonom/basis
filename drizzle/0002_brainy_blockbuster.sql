@@ -1,0 +1,1 @@
+ALTER TABLE "x_post_records" ADD COLUMN "status" text DEFAULT 'reserved' NOT NULL;

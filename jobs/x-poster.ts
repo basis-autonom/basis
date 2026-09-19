@@ -1,4 +1,9 @@
-import { countXPostsForDay, hasXPostForFinding, recordXPost } from "../packages/db/x-posts";
+import {
+  completeXPost,
+  countXPostsForDay,
+  failXPost,
+  reserveXPostSlots,
+} from "../packages/db/x-posts";
 import type { Finding } from "../packages/db/schema";
 
 const MAX_POSTS_PER_DAY = 3;
@@ -151,28 +156,57 @@ export async function postFindingsToX(
 ) {
   const now = options.now ?? new Date();
   const postedOn = utcDay(now);
-  const alreadyPosted = await countXPostsForDay(postedOn);
-  const available = Math.max(0, MAX_POSTS_PER_DAY - alreadyPosted);
-  const candidates = buildXPostPlan(findings, { ...options, now, limit: available });
+  const candidates = buildXPostPlan(findings, {
+    ...options,
+    now,
+    limit: MAX_POSTS_PER_DAY,
+  });
   const results: Array<{ findingId: number; dryRun: boolean; externalId: string | null }> = [];
 
-  for (const candidate of candidates) {
-    if (await hasXPostForFinding(candidate.finding.id)) continue;
-    const result = await sendToX(candidate.text);
-    if (!result.dryRun) {
-      await recordXPost({
-        findingId: candidate.finding.id,
-        postedOn,
-        content: candidate.text,
-        externalId: result.externalId,
-      });
+  // Dry-run never reserves or consumes a production slot. It still applies
+  // the same daily limit so the preview mirrors the real candidate set.
+  if (dryRunEnabled()) {
+    const alreadyPosted = await countXPostsForDay(postedOn);
+    const available = Math.max(0, MAX_POSTS_PER_DAY - alreadyPosted);
+    for (const candidate of candidates.slice(0, available)) {
+      const result = await sendToX(candidate.text, true);
+      results.push({ findingId: candidate.finding.id, ...result });
     }
-    results.push({ findingId: candidate.finding.id, ...result });
+    return {
+      attempted: results.length,
+      skippedForDailyLimit: Math.max(0, candidates.length - results.length),
+      results,
+    };
+  }
+
+  // Reserve the slots while holding a DB lock before any network request.
+  const reservations = await reserveXPostSlots(
+    candidates.map((candidate) => ({
+      findingId: candidate.finding.id,
+      postedOn,
+      content: candidate.text,
+    })),
+    postedOn,
+    MAX_POSTS_PER_DAY,
+  );
+
+  for (const reservation of reservations) {
+    try {
+      const result = await sendToX(reservation.content);
+      await completeXPost(reservation.recordId, result.externalId);
+      results.push({ findingId: reservation.findingId, ...result });
+    } catch (error) {
+      await failXPost(reservation.recordId);
+      console.error(
+        `[x] post failed for finding ${reservation.findingId}:`,
+        error,
+      );
+    }
   }
 
   return {
     attempted: results.length,
-    skippedForDailyLimit: Math.max(0, findings.length - candidates.length),
+    skippedForDailyLimit: Math.max(0, candidates.length - reservations.length),
     results,
   };
 }
