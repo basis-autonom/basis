@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import type { Window } from '@/packages/core/types';
 
 export type HourlyPoint = {
@@ -53,33 +53,45 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function formatTimestamp(timestamp: number) {
+function getBrowserTimeZone() {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+}
+
+function subscribeToBrowserTimeZone() {
+  return () => {};
+}
+
+function formatTimestamp(timestamp: number, timeZone: string) {
   const date = new Date(timestamp);
   const datePart = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
+    timeZone,
   }).format(date);
   const timePart = new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     second: '2-digit',
     hour12: true,
+    timeZone,
   }).format(date).toLowerCase();
   return `${datePart} ${timePart}`;
 }
 
-function formatAxisTimestamp(timestamp: number, spanMs: number) {
+function formatAxisTimestamp(timestamp: number, spanMs: number, timeZone: string) {
   if (spanMs > 48 * 60 * 60 * 1000) {
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
+      timeZone,
     }).format(new Date(timestamp));
   }
 
   return new Intl.DateTimeFormat('en-US', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone,
   }).format(new Date(timestamp));
 }
 
@@ -115,6 +127,13 @@ export function HourlyContributionChart({
   const [remotePoints, setRemotePoints] = useState<HourlyPoint[] | null>(null);
   const [remoteState, setRemoteState] = useState<ChartState>(tokenAddress ? 'loading' : 'ready');
   const [hover, setHover] = useState<HoverState | null>(null);
+  // The server snapshot is deterministic; the hydrated client snapshot is
+  // the visitor's own timezone. Never hardcode WIB/UTC for the UI.
+  const browserTimeZone = useSyncExternalStore(
+    subscribeToBrowserTimeZone,
+    getBrowserTimeZone,
+    () => 'UTC',
+  );
   const surfaceRef = useRef<HTMLDivElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -232,7 +251,7 @@ export function HourlyContributionChart({
           height={PLOT_BOTTOM - PLOT_TOP}
           fill="transparent"
           tabIndex={0}
-          aria-label={`Hourly contribution at ${formatTimestamp(point.t)}`}
+          aria-label={`Hourly contribution at ${formatTimestamp(point.t, browserTimeZone ?? 'UTC')}`}
           onPointerMove={(event) => {
             handleMove(event.clientX, event.clientY, index);
           }}
@@ -257,7 +276,7 @@ export function HourlyContributionChart({
           fontSize="10"
           fontFamily="var(--font-mono)"
         >
-          {formatAxisTimestamp(timestamp, domainSpan)}
+          {formatAxisTimestamp(timestamp, domainSpan, browserTimeZone ?? 'UTC')}
         </text>,
       );
     });
@@ -270,7 +289,7 @@ export function HourlyContributionChart({
       geometry: nextGeometry,
       hasData: points.some((point) => point.meme != null || point.stock != null),
     };
-  }, [points]);
+  }, [browserTimeZone, points]);
 
   function handleMove(clientX: number, clientY: number, forcedIndex: number | null) {
     if (hideTimer.current) clearTimeout(hideTimer.current);
@@ -371,7 +390,7 @@ export function HourlyContributionChart({
           className={`hourly-chart-tooltip ${hover.visible ? 'is-visible' : ''}`}
           style={{ left: hover.left, top: hover.top, width: `min(${TOOLTIP_WIDTH}px, calc(100% - 16px))` }}
         >
-          <div className="hourly-chart-tooltip__time">{formatTimestamp(activePoint.t)}</div>
+          <div className="hourly-chart-tooltip__time">{formatTimestamp(activePoint.t, browserTimeZone ?? 'UTC')}</div>
           <div className="hourly-chart-tooltip__row">
             <span className="text-meme">meme component</span>
             <strong className="text-meme">{formatPercent(activePoint.meme)}</strong>

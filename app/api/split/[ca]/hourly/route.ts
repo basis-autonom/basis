@@ -137,7 +137,10 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
   const stock = await getStockTokenByAddress(stockAddress);
   if (!stock) return empty("no_stock_leg");
 
-  const now = Math.floor(Date.now() / HOUR_MS) * HOUR_MS;
+  // Keep the last returned sample at the newest available time. The response
+  // itself is still cached for five minutes, so it remains a bounded snapshot
+  // rather than forcing a full historical RPC scan on every repaint.
+  const now = Date.now();
   const requestedStart = now - (
     window === "24h" ? 24 * HOUR_MS : window === "7d" ? 7 * 24 * HOUR_MS : 30 * 24 * HOUR_MS
   );
@@ -275,7 +278,7 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
 
 const getCachedHourly = unstable_cache(
   async (tokenAddress: Address, window: Window) => readHourly(tokenAddress, window),
-  ["split-hourly-v5"],
+  ["split-hourly-v6"],
   { revalidate: 300 },
 );
 
