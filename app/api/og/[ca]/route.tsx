@@ -1,12 +1,11 @@
 import { ImageResponse } from 'next/og';
-import { Address, SplitResponse } from '@/packages/core/types';
+import { Address, SplitResponse, type Window } from '@/packages/core/types';
 import { computeSplit } from '@/packages/core/attribution';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const alt = 'Basis split attribution report';
-export const size = { width: 1200, height: 630 };
-export const contentType = 'image/png';
+
+const size = { width: 1200, height: 630 };
 
 function formatPercent(value: number | null): string {
   return value == null || !Number.isFinite(value)
@@ -22,16 +21,20 @@ function valueOrDash(value: string | null | undefined): string {
   return value && value.trim() ? value : '—';
 }
 
-export default async function Image({
-  params,
-}: {
-  params: Promise<{ ca: string }>;
-}) {
+function requestedWindow(value: string | null): Window {
+  return value === '24h' || value === '30d' || value === '7d' ? value : '7d';
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ ca: string }> },
+) {
   const { ca } = await params;
+  const window = requestedWindow(new URL(request.url).searchParams.get('window'));
   let splitResponse: SplitResponse;
 
   try {
-    splitResponse = await computeSplit(ca as Address, '7d');
+    splitResponse = await computeSplit(ca as Address, window);
   } catch {
     splitResponse = { kind: 'unknown_token' };
   }

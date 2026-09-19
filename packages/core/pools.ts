@@ -10,6 +10,93 @@ const client = createPublicClient({
 
 const cache = new Map<string, { pool: Pool | null; timestamp: number }>();
 const CACHE_TTL = 15 * 60 * 1000; // 15 mins
+const GECKO_NETWORK = "robinhood";
+const GECKO_ACCEPT = "application/json;version=20230203";
+
+type IndexedPool = Pool & {
+  baseSymbol?: string;
+  quoteSymbol?: string;
+  vol24hUsd?: number;
+};
+
+let directoryCache: { pools: IndexedPool[]; timestamp: number } | null = null;
+
+function finiteNumber(value: unknown): number | null {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+async function fetchGeckoPools(registry: Array<{ address: Address }>): Promise<IndexedPool[]> {
+  try {
+    // GeckoTerminal's public endpoint returns 20 pools per page. Five pages
+    // gives the directory a bounded top-100 view while staying below its
+    // approximate public rate limit. DexScreener remains the primary source
+    // when both indexers report the same pool.
+    const pages = await Promise.all(
+      [1, 2, 3, 4, 5].map(async (page) => {
+        const response = await fetch(
+          `https://api.geckoterminal.com/api/v2/networks/${GECKO_NETWORK}/pools?page=${page}`,
+          { headers: { Accept: GECKO_ACCEPT } },
+        );
+        if (!response.ok) return [];
+        const body = await response.json() as { data?: any[] };
+        return body.data ?? [];
+      }),
+    );
+
+    const stockAddresses = new Set(registry.map((token) => token.address.toLowerCase()));
+    const pools: IndexedPool[] = [];
+
+    for (const record of pages.flat()) {
+      const attributes = record?.attributes;
+      const relationships = record?.relationships;
+      const dexId = relationships?.dex?.data?.id;
+      const baseAddress = relationships?.base_token?.data?.id?.split("_").pop()?.toLowerCase();
+      const quoteAddress = relationships?.quote_token?.data?.id?.split("_").pop()?.toLowerCase();
+      const address = attributes?.address?.toLowerCase();
+
+      if (
+        dexId !== "uniswap-v4-robinhood" ||
+        typeof address !== "string" ||
+        address.length !== 66 ||
+        typeof baseAddress !== "string" ||
+        typeof quoteAddress !== "string" ||
+        !stockAddresses.has(baseAddress) && !stockAddresses.has(quoteAddress)
+      ) {
+        continue;
+      }
+
+      const createdAt = typeof attributes.pool_created_at === "string"
+        ? Date.parse(attributes.pool_created_at)
+        : NaN;
+      const reserveUsd = finiteNumber(attributes.reserve_in_usd);
+      const volume24h = finiteNumber(attributes.volume_usd?.h24);
+      const stockSide: 0 | 1 = stockAddresses.has(baseAddress) ? 0 : 1;
+
+      pools.push({
+        address: address as Address,
+        token0: baseAddress as Address,
+        token1: quoteAddress as Address,
+        stockSide,
+        createdAt: Number.isFinite(createdAt) ? createdAt : null,
+        liquidityUsd: reserveUsd ?? 0,
+        // GeckoTerminal does not expose the two reserve amounts in this
+        // endpoint. Keep them null rather than inventing a split; callers
+        // that require exact token-side amounts can fall back to DexScreener.
+        liquidityBase: null,
+        liquidityQuote: null,
+        vol24hUsd: volume24h ?? 0,
+        lpBurned: true,
+        venue: "Uniswap v4",
+      });
+    }
+
+    return pools;
+  } catch (error) {
+    console.warn("Failed to fetch GeckoTerminal pools", error);
+    return [];
+  }
+}
 
 export async function getPoolForToken(
   tokenOrPoolAddress: Address,
@@ -127,6 +214,11 @@ export async function getPoolForToken(
 }
 
 export async function getRobinhoodPools(limit: number = 50) {
+  const now = Date.now();
+  if (directoryCache && now - directoryCache.timestamp < CACHE_TTL) {
+    return directoryCache.pools.slice(0, limit);
+  }
+
   try {
     const { fetchRegistry } = await import("./registry");
     const registry = await fetchRegistry();
@@ -154,7 +246,7 @@ export async function getRobinhoodPools(limit: number = 50) {
       }
     }
 
-    let rhPools = Array.from(uniquePairs.values()).filter(
+    const dexPools = Array.from(uniquePairs.values()).filter(
       (p: any) =>
         p.chainId === "robinhood" &&
         p.dexId === "uniswap" &&
@@ -163,19 +255,12 @@ export async function getRobinhoodPools(limit: number = 50) {
         p.pairAddress?.length === 66,
     );
 
-    // We only want the top pool per stock to avoid clutter, or just top overall?
-    // The user wants top 50 pools overall based on liquidity.
-    rhPools.sort(
-      (a: any, b: any) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0),
-    );
-    rhPools = rhPools.slice(0, limit);
-
-    return rhPools.map((bestPool: any) => {
+    const dexNormalized: IndexedPool[] = dexPools.map((bestPool: any) => {
       const poolId = bestPool.pairAddress.toLowerCase() as Address;
       const token0 = bestPool.baseToken.address.toLowerCase() as Address;
       const token1 = bestPool.quoteToken.address.toLowerCase() as Address;
 
-      const stockSide: 0 | 1 = registry.some((t) => t.address === token0) ? 0 : 1;
+      const stockSide: 0 | 1 = registry.some((t) => t.address.toLowerCase() === token0) ? 0 : 1;
 
       return {
         address: poolId,
@@ -197,6 +282,23 @@ export async function getRobinhoodPools(limit: number = 50) {
         quoteSymbol: bestPool.quoteToken.symbol,
       };
     });
+
+    const normalizedByAddress = new Map<string, IndexedPool>();
+    for (const pool of dexNormalized) normalizedByAddress.set(pool.address.toLowerCase(), pool);
+
+    const geckoPools = await fetchGeckoPools(registry);
+    for (const pool of geckoPools) {
+      // Prefer DexScreener's richer reserve fields when both sources know the
+      // same pool. GeckoTerminal still fills gaps for pools DexScreener misses.
+      if (!normalizedByAddress.has(pool.address.toLowerCase())) {
+        normalizedByAddress.set(pool.address.toLowerCase(), pool);
+      }
+    }
+
+    const normalized = Array.from(normalizedByAddress.values());
+    normalized.sort((a, b) => (b.liquidityUsd || 0) - (a.liquidityUsd || 0));
+    directoryCache = { pools: normalized, timestamp: now };
+    return normalized.slice(0, limit);
   } catch (e) {
     console.error(`Failed to fetch pools`, e);
     return [];

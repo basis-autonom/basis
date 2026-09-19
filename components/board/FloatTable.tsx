@@ -47,7 +47,7 @@ export function FloatTable({ rows }: { rows: any[] }) {
         r.gripPct != null ? (
           <div className="h-[8px] bg-pane2 rounded-[2px] overflow-hidden w-[120px]">
             <i
-              className="block h-full"
+              className="block h-full animate-fill-bar"
               style={{ width: `${Math.min(r.gripPct, 100)}%`, backgroundColor: "var(--color-down)" }}
             />
           </div>

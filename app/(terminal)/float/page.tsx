@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { FloatTable } from "@/components/board/FloatTable";
+import { FloatActions } from "@/components/float/FloatActions";
 import { getFloatBoardData } from "@/packages/core/float";
 
 export const dynamic = "force-dynamic";
@@ -51,20 +52,7 @@ export default async function TerminalFloatPage() {
           </div>
         </div>
 
-        <div className="flex flex-shrink-0" style={{ marginLeft: "auto", gap: 7 }}>
-          <button
-            className="bg-transparent text-fg2 border border-line2 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:text-fg hover:border-line transition-colors"
-            style={{ height: 29, padding: "0 13px" }}
-          >
-            Export CSV
-          </button>
-          <button
-            className="bg-fg text-bg border-0 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:opacity-90 transition-opacity"
-            style={{ height: 29, padding: "0 13px" }}
-          >
-            Copy board
-          </button>
-        </div>
+        <FloatActions rows={rows} />
       </div>
 
       <div className="flex-1 overflow-y-auto">

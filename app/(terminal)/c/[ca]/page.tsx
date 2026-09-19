@@ -5,6 +5,7 @@ import { Address, SplitResponse, type Window } from '@/packages/core/types';
 import { computeSplit } from '@/packages/core/attribution';
 import { EmptyState } from '@/components/primitives/EmptyState';
 import { HourlyContributionChart } from '@/components/charts/HourlyContributionChart';
+import { ReportActions } from '@/components/report/ReportActions';
 import styles from './ReportPage.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -19,12 +20,6 @@ function getWindow(value: string | string[] | undefined): Window {
   return requested === '24h' || requested === '30d' || requested === '7d'
     ? requested
     : '7d';
-}
-
-function formatSharePercent(value: number | null): string {
-  return value == null || !Number.isFinite(value)
-    ? '—'
-    : `${value >= 0 ? '+' : ''}${(value * 100).toFixed(1)}%`;
 }
 
 function shortAddress(address: string): string {
@@ -43,7 +38,7 @@ export async function generateMetadata({ params, searchParams }: ReportRouteProp
   const query = await searchParams;
   const window = getWindow(query.window);
   const origin = await requestOrigin();
-  const imagePath = `/c/${encodeURIComponent(ca)}/opengraph-image`;
+  const imagePath = `/api/og/${encodeURIComponent(ca)}`;
   const imageUrl = origin ? `${origin}${imagePath}` : undefined;
 
   try {
@@ -54,7 +49,7 @@ export async function generateMetadata({ params, searchParams }: ReportRouteProp
       ? `${coinLabel} / ${data.stock.symbol} split report | Basis`
       : `${coinLabel} report | Basis`;
     const description = data
-      ? `${coinLabel} quoted in ${data.stock.symbol}. Meme ${formatSharePercent(data.attribution.memeComponent)}, stock ${formatSharePercent(data.attribution.stockComponent)}, total ${formatSharePercent(data.attribution.total)} over ${data.windowLabel}.`
+      ? `${coinLabel} quoted in ${data.stock.symbol}. On-chain split attribution for ${data.windowLabel}.`
       : splitResponse.kind === 'no_stock_leg'
         ? `${coinLabel} is quoted in ${splitResponse.quoteSymbol ?? 'a cash asset'}. There is no stock leg to separate.`
         : 'On-chain split attribution for a Robinhood Chain pool.';
@@ -251,14 +246,15 @@ export default async function ReportPage({
           </div>
         </div>
 
-        <div className={styles.headerActions}>
-          <button className={`btn bg-fg text-bg border-0 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:opacity-90 transition-opacity ${styles.headerButton}`}>
-            Copy split card
-          </button>
-          <button className={`btn ghost bg-transparent text-fg2 border border-line2 rounded-[4px] font-sans text-[12px] font-medium cursor-pointer hover:text-fg hover:border-line transition-colors ${styles.headerButton}`}>
-            Share
-          </button>
-        </div>
+        <ReportActions
+          ca={ca}
+          coinSymbol={coinSymbol}
+          stockSymbol={stock.symbol}
+          windowLabel={windowLabel}
+          memeComponent={memeComp}
+          stockComponent={stockComp}
+          total={total}
+        />
       </div>
 
       {/* Grid container */}
