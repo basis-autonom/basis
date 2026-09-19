@@ -10,6 +10,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node jobs/db-migrate.ts",
     "watcher": "bun jobs/watcher.ts",
+    "x:dry-run": "bun jobs/x-dry-run.ts",
     "findings:reset-today": "FINDINGS_RESET_TODAY=true bun jobs/reset-findings-today.ts"
   },
   "dependencies": {

@@ -54,3 +54,34 @@ export const findings = pgTable(
 
 export type Finding = typeof findings.$inferSelect;
 export type NewFinding = typeof findings.$inferInsert;
+
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+    mode: "date",
+  }).notNull().defaultNow(),
+});
+
+export const xPostRecords = pgTable(
+  "x_post_records",
+  {
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+    findingId: integer("finding_id").notNull(),
+    postedOn: date("posted_on").notNull(),
+    content: text("content").notNull(),
+    externalId: text("external_id"),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("x_post_records_finding_id_idx").on(table.findingId),
+    index("x_post_records_posted_on_idx").on(table.postedOn),
+  ],
+);
+
+export type AppSetting = typeof appSettings.$inferSelect;
+export type XPostRecord = typeof xPostRecords.$inferSelect;

@@ -1,7 +1,9 @@
 import { getBoardData } from "../packages/core/board";
 import { closeDb } from "../packages/db/client";
 import { insertFindingIfNew } from "../packages/db/findings";
+import { getWatcherPostXEnabled } from "../packages/db/settings";
 import type { Finding } from "../packages/db/schema";
+import { postFindingsToX } from "./x-poster";
 import { fileURLToPath } from "node:url";
 
 const PRICE_MOVEMENT_THRESHOLD = 3;
@@ -25,6 +27,11 @@ export type WatcherRunResult = {
   stored: number;
   duplicates: number;
   findings: Finding[];
+  xPosting: {
+    enabled: boolean;
+    attempted: number;
+    skippedForDailyLimit: number;
+  };
 };
 
 function watcherEnabled() {
@@ -84,6 +91,7 @@ export async function runWatcher(): Promise<WatcherRunResult> {
       stored: 0,
       duplicates: 0,
       findings: [],
+      xPosting: { enabled: false, attempted: 0, skippedForDailyLimit: 0 },
     };
   }
 
@@ -102,6 +110,11 @@ export async function runWatcher(): Promise<WatcherRunResult> {
     if (inserted) findings.push(inserted);
   }
 
+  const xEnabled = await getWatcherPostXEnabled();
+  const xPosting = xEnabled
+    ? await postFindingsToX(findings)
+    : { attempted: 0, skippedForDailyLimit: 0 };
+
   return {
     enabled: true,
     scanned: board.length,
@@ -109,6 +122,11 @@ export async function runWatcher(): Promise<WatcherRunResult> {
     stored: findings.length,
     duplicates: candidates.length - findings.length,
     findings,
+    xPosting: {
+      enabled: xEnabled,
+      attempted: xPosting.attempted,
+      skippedForDailyLimit: xPosting.skippedForDailyLimit,
+    },
   };
 }
 
@@ -121,6 +139,7 @@ async function main() {
       detected: result.detected,
       stored: result.stored,
       duplicates: result.duplicates,
+      xPosting: result.xPosting,
       findings: result.findings,
     }),
   );

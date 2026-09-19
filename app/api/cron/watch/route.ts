@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
         detected: watcher.detected,
         stored: watcher.stored,
         duplicates: watcher.duplicates,
+        xPosting: watcher.xPosting,
       },
       refresh: {
         boardRows: board.length,
