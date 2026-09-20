@@ -5,6 +5,7 @@ import {
   reserveXPostSlots,
 } from "../packages/db/x-posts";
 import type { Finding } from "../packages/db/schema";
+import { getPublicSiteUrl } from "../packages/core/site";
 
 const MAX_POSTS_PER_DAY = 3;
 
@@ -39,13 +40,7 @@ function utcDay(date: Date) {
 }
 
 function publicBaseUrl() {
-  const configured = process.env.BASIS_PUBLIC_URL?.trim();
-  if (configured) return configured.replace(/\/$/, "");
-
-  const vercelUrl = process.env.VERCEL_URL?.trim();
-  if (vercelUrl) return `https://${vercelUrl}`;
-
-  return "https://basis-eight-zeta.vercel.app";
+  return getPublicSiteUrl();
 }
 
 function isPostable(finding: XPostFinding): boolean {

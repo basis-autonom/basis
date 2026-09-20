@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Instrument_Sans, IBM_Plex_Mono } from "next/font/google";
 import { BasisTransition } from "@/components/shell/BasisTransition";
+import { getPublicSiteUrl } from "@/packages/core/site";
 import "./globals.css";
 
 const instrumentSans = Instrument_Sans({
@@ -15,6 +16,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getPublicSiteUrl()),
   title: "Basis Analytics",
   description: "Terminal forensik untuk memecoin di Robinhood Chain",
 };

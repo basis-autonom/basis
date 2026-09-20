@@ -1,8 +1,8 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { Address, SplitResponse, type Window } from '@/packages/core/types';
 import { computeSplit } from '@/packages/core/attribution';
+import { getPublicSiteUrl } from '@/packages/core/site';
 import { EmptyState } from '@/components/primitives/EmptyState';
 import { HourlyContributionChart } from '@/components/charts/HourlyContributionChart';
 import { DriftStrip } from '@/components/charts/DriftStrip';
@@ -27,18 +27,11 @@ function shortAddress(address: string): string {
   return address.length > 12 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address;
 }
 
-async function requestOrigin(): Promise<string | null> {
-  const requestHeaders = await headers();
-  const host = requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
-  const protocol = requestHeaders.get('x-forwarded-proto');
-  return host && protocol ? `${protocol}://${host}` : null;
-}
-
 export async function generateMetadata({ params, searchParams }: ReportRouteProps): Promise<Metadata> {
   const { ca } = await params;
   const query = await searchParams;
   const window = getWindow(query.window);
-  const origin = await requestOrigin();
+  const origin = getPublicSiteUrl();
   const imagePath = `/api/og/${encodeURIComponent(ca)}`;
   const imageUrl = origin ? `${origin}${imagePath}` : undefined;
 
