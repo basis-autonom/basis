@@ -54,7 +54,7 @@ export interface CorporateAction {
 }
 
 export interface SplitResponse {
-  kind: "success" | "unknown_token" | "no_stock_leg" | "no_pool" | "no_feed" | "too_new";
+  kind: "success" | "unknown_token" | "no_stock_leg" | "no_pool" | "pool_lookup_unavailable" | "no_feed" | "too_new";
   quoteSymbol?: string;
   suggestions?: SplitSuggestion[];
   data?: {

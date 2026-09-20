@@ -4,7 +4,7 @@ import { createPublicClient, http, parseAbi, erc20Abi } from "viem";
 import { unstable_cache } from "next/cache";
 import { robinhoodChain, V4_STATE_VIEW } from "./chain";
 import { getStockTokenByAddress } from "./registry";
-import { getPoolForToken } from "./pools";
+import { getPoolForToken, PoolLookupUnavailableError } from "./pools";
 import { getBoardData } from "./board";
 import { getBlockByTimestamp } from "./blocks";
 import { getPrices } from "./prices";
@@ -90,7 +90,15 @@ async function computeSplitUncached(
   window: Window,
 ): Promise<SplitResponse> {
   // 1. Fetch Pool
-  const pool = await getPoolForToken(tokenAddress);
+  let pool;
+  try {
+    pool = await getPoolForToken(tokenAddress);
+  } catch (error) {
+    if (error instanceof PoolLookupUnavailableError) {
+      return { kind: "pool_lookup_unavailable" };
+    }
+    throw error;
+  }
   if (!pool) {
     return { kind: "no_pool" };
   }

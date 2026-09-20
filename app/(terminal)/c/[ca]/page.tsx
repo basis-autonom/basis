@@ -162,6 +162,10 @@ export default async function ReportPage({
         title: "No stock-paired pool",
         message: "No active Uniswap v4 pool on Robinhood Chain found for this contract address. Make sure the token is paired with a stock token.",
       },
+      pool_lookup_unavailable: {
+        title: "Pool lookup unavailable",
+        message: "The pool indexers or chain read did not respond after retries. This is not evidence that the pool is absent; try again shortly.",
+      },
       unknown_token: {
         title: "Unknown stock token",
         message: "This pool is not paired with a verified stock token in the Robinhood Chain directory.",
