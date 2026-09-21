@@ -1,13 +1,9 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import type { Window } from '@/packages/core/types';
+import type { HourlyPoint, Window } from '@/packages/core/types';
 
-export type HourlyPoint = {
-  t: number;
-  meme: number | null;
-  stock: number | null;
-};
+export type { HourlyGapReason, HourlyPoint } from '@/packages/core/types';
 
 type HourlyResponse = {
   kind: 'ok' | 'no_pool' | 'no_stock_leg' | 'error';
@@ -107,8 +103,14 @@ function totalFor(point: HourlyPoint) {
 }
 
 function statusFor(point: HourlyPoint) {
-  if (point.stock == null) {
+  if (point.gap === 'fetch_failed') {
+    return 'Data unavailable — fetch failed after retries';
+  }
+  if (point.gap === 'market_closed') {
     return 'No stock leg data — market closed';
+  }
+  if (point.stock == null) {
+    return 'No stock leg data — unavailable';
   }
   if (point.meme == null) {
     return 'No meme component data — pool history unavailable';
@@ -144,11 +146,22 @@ export function HourlyContributionChart({
     setRemotePoints(null);
     setRemoteState('loading');
 
-    fetch(`/api/split/${encodeURIComponent(tokenAddress)}/hourly?window=${window}`)
-      .then(async (response) => {
-        if (!response.ok) throw new Error(`Hourly request failed: ${response.status}`);
-        return (await response.json()) as HourlyResponse;
-      })
+    const fetchHourly = async () => {
+      let lastError: unknown;
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const response = await fetch(`/api/split/${encodeURIComponent(tokenAddress)}/hourly?window=${window}`);
+          if (!response.ok) throw new Error(`Hourly request failed: ${response.status}`);
+          return (await response.json()) as HourlyResponse;
+        } catch (error) {
+          lastError = error;
+          if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 350 * (attempt + 1)));
+        }
+      }
+      throw lastError instanceof Error ? lastError : new Error('Hourly request failed');
+    };
+
+    fetchHourly()
       .then((response) => {
         if (cancelled) return;
         setRemotePoints(response.points ?? []);
@@ -211,6 +224,24 @@ export function HourlyContributionChart({
       const stockHeight = point.stock == null ? 0 : Math.abs(point.stock * scale);
       const top = PLOT_BOTTOM - memeHeight - stockHeight;
       nextGeometry.push({ x, width: barWidth, memeHeight, stockHeight, top, hitX, hitWidth });
+
+      if (point.gap) {
+        const isFetchFailure = point.gap === 'fetch_failed';
+        renderedBars.push(
+          <rect
+            key={`gap-${point.t}`}
+            x={x}
+            y={PLOT_TOP}
+            width={barWidth}
+            height={PLOT_BOTTOM - PLOT_TOP}
+            fill={isFetchFailure ? 'var(--color-downbg)' : 'var(--color-pane2)'}
+            stroke={isFetchFailure ? 'var(--color-down)' : 'var(--color-fg3)'}
+            strokeDasharray={isFetchFailure ? '3 2' : undefined}
+            strokeWidth="1"
+            opacity="0.42"
+          />,
+        );
+      }
 
       if (point.meme != null) {
         renderedBars.push(

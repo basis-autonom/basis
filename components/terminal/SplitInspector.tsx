@@ -187,7 +187,7 @@ export function SplitInspector({ row, copied, onCopy }: SplitInspectorProps) {
               {copied ? 'Copied split link' : 'Copy split card'}
             </button>
             <Link
-              href={`/c/${row.ca || row.poolId}`}
+              href={`/c/${(row.ca || row.poolId).trim().toLowerCase()}`}
               className="flex items-center justify-center font-sans text-[12px] font-medium text-fg2 transition-colors hover:border-line hover:text-fg"
               style={{ width: '100%', height: 33, background: 'none', border: '1px solid var(--color-line2)', borderRadius: 4, marginTop: 7, textDecoration: 'none' }}
             >

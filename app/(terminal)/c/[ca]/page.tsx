@@ -29,16 +29,17 @@ function shortAddress(address: string): string {
 
 export async function generateMetadata({ params, searchParams }: ReportRouteProps): Promise<Metadata> {
   const { ca } = await params;
+  const normalizedCa = ca.trim().toLowerCase();
   const query = await searchParams;
   const window = getWindow(query.window);
   const origin = getPublicSiteUrl();
-  const imagePath = `/api/og/${encodeURIComponent(ca)}`;
+  const imagePath = `/api/og/${encodeURIComponent(normalizedCa)}`;
   const imageUrl = origin ? `${origin}${imagePath}` : undefined;
 
   try {
-    const splitResponse = await computeSplit(ca as Address, window);
+    const splitResponse = await computeSplit(normalizedCa as Address, window);
     const data = splitResponse.kind === 'success' ? splitResponse.data : null;
-    const coinLabel = data ? `$${data.coinSymbol}` : shortAddress(ca);
+    const coinLabel = data ? `$${data.coinSymbol}` : shortAddress(normalizedCa);
     const title = data
       ? `${coinLabel} / ${data.stock.symbol} split report | Basis`
       : `${coinLabel} report | Basis`;
@@ -67,7 +68,7 @@ export async function generateMetadata({ params, searchParams }: ReportRouteProp
     };
   } catch {
     return {
-      title: `${shortAddress(ca)} report | Basis`,
+      title: `${shortAddress(normalizedCa)} report | Basis`,
       description: 'On-chain split attribution for a Robinhood Chain pool.',
       openGraph: imageUrl ? { images: [`${imageUrl}?window=${window}`] } : undefined,
       twitter: imageUrl ? { card: 'summary_large_image', images: [`${imageUrl}?window=${window}`] } : undefined,
@@ -111,10 +112,11 @@ export default async function ReportPage({
   searchParams,
 }: ReportRouteProps) {
   const { ca } = await params;
+  const normalizedCa = ca.trim().toLowerCase();
   const query = await searchParams;
   const window = getWindow(query.window);
   
-  const splitResponse: SplitResponse = await computeSplit(ca as Address, window);
+  const splitResponse: SplitResponse = await computeSplit(normalizedCa as Address, window);
 
   if (splitResponse.kind === "no_stock_leg") {
     return (
@@ -134,7 +136,7 @@ export default async function ReportPage({
                 {splitResponse.suggestions.map((suggestion) => (
                   <a
                     key={suggestion.tokenAddress}
-                    href={`/c/${suggestion.tokenAddress}`}
+                    href={`/c/${suggestion.tokenAddress.toLowerCase()}`}
                     className={styles.noStockSuggestion}
                   >
                     <span className={styles.noStockSuggestionCoin}>${suggestion.coinSymbol}</span>
@@ -273,7 +275,7 @@ export default async function ReportPage({
         </div>
 
         <ReportActions
-          ca={ca}
+          ca={normalizedCa}
           coinSymbol={coinSymbol}
           stockSymbol={stock.symbol}
           windowLabel={windowLabel}
@@ -296,7 +298,7 @@ export default async function ReportPage({
                 return (
                   <a
                     key={option}
-                    href={`/c/${encodeURIComponent(ca)}?window=${option}`}
+                    href={`/c/${encodeURIComponent(normalizedCa)}?window=${option}`}
                     aria-current={active ? 'page' : undefined}
                     className={`font-mono text-[11px] rounded-[3px] ${styles.timeframe} ${active ? 'text-fg bg-pane2' : 'text-fg3 hover:text-fg'}`}
                   >
@@ -393,11 +395,14 @@ export default async function ReportPage({
                 {splitResponse.data.clamped ? windowLabel : `last ${window}`}
               </span>
             </div>
-            <HourlyContributionChart tokenAddress={ca} window={window} className="h-[150px]" />
+            <HourlyContributionChart tokenAddress={normalizedCa} window={window} className="h-[150px]" />
             <div className={`lg flex gap-[12px] text-[10px] text-fg2 font-mono ${styles.chartLegend}`}>
               <span className="flex items-center gap-[6px]"><span className="block w-[10px] h-[10px] rounded-[2px] bg-meme" />meme</span>
               <span className="flex items-center gap-[6px]"><span className="block w-[10px] h-[10px] rounded-[2px] bg-stock" />stock</span>
-              <span style={{ marginLeft: 'auto', color: 'var(--color-fg3)' }}>gap = Nasdaq closed</span>
+              <span className="flex items-center gap-[10px]" style={{ marginLeft: 'auto' }}>
+                <span className="flex items-center gap-[5px]"><span className="block h-[8px] w-[8px] rounded-[2px] bg-pane2 border border-fg3" />market closed</span>
+                <span className="flex items-center gap-[5px]"><span className="block h-[8px] w-[8px] rounded-[2px] bg-downbg border border-down" />data unavailable</span>
+              </span>
             </div>
           </div>
         </div>
@@ -450,11 +455,11 @@ export default async function ReportPage({
               <h2 className="text-[12px] font-medium text-fg">30-day drift</h2>
               <span className="font-mono text-[10px] text-fg3">meme component per day</span>
             </div>
-            <DriftStrip tokenAddress={ca} />
+            <DriftStrip tokenAddress={normalizedCa} />
             <div className={`kv flex justify-between border-b border-line text-[12px] ${styles.kv}`}><div className="k text-fg3">beta</div><div className="v text-fg">{beta != null ? beta.toFixed(2) : '—'}</div></div>
           </div>
           <div className={`mini text-[11px] text-fg3 leading-[1.6] ${styles.sectionNote}`}>
-            Each bar is one observed daily interval from the historical pool and stock-feed read. Hover a bar to inspect the exact components; gray intervals mean the stock market was closed or unavailable.
+            Each bar is one observed daily interval from the historical pool and stock-feed read. Hover a bar to inspect the exact components; gray intervals mean the stock market was closed, while red outlined intervals mean the data read failed after retries.
           </div>
         </div>
 {/* Cell 5: Pool composition */}

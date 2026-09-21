@@ -1,5 +1,13 @@
 export type Address = `0x${string}`;
 export type Window = "24h" | "7d" | "30d";
+export type HourlyGapReason = "market_closed" | "fetch_failed";
+
+export interface HourlyPoint {
+  t: number;
+  meme: number | null;
+  stock: number | null;
+  gap?: HourlyGapReason | null;
+}
 
 export interface SplitSuggestion {
   tokenAddress: Address;

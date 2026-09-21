@@ -30,17 +30,18 @@ export async function GET(
   { params }: { params: Promise<{ ca: string }> },
 ) {
   const { ca } = await params;
+  const normalizedCa = ca.trim().toLowerCase();
   const window = requestedWindow(new URL(request.url).searchParams.get('window'));
   let splitResponse: SplitResponse;
 
   try {
-    splitResponse = await computeSplit(ca as Address, window);
+    splitResponse = await computeSplit(normalizedCa as Address, window);
   } catch {
     splitResponse = { kind: 'unknown_token' };
   }
 
   const data = splitResponse.kind === 'success' ? splitResponse.data : null;
-  const coin = data ? `$${data.coinSymbol}` : shortAddress(ca);
+  const coin = data ? `$${data.coinSymbol}` : shortAddress(normalizedCa);
   const quote = data?.stock.symbol ?? (splitResponse.kind === 'no_stock_leg' ? splitResponse.quoteSymbol : null);
   const meme = data ? formatPercent(data.attribution.memeComponent) : '—';
   const stock = data ? formatPercent(data.attribution.stockComponent) : '—';

@@ -32,7 +32,7 @@ export function Hero({ rows }: { rows: LandingBoardRow[] }) {
           {sampleRows.length === 0 ? <span>no live examples</span> : sampleRows.map((row, index) => (
             <React.Fragment key={row.ca || row.poolId || index}>
               {index > 0 && ' · '}
-              <Link href={`/c/${row.ca || row.poolId || ''}`}>{displaySymbol(row.coin)} / {row.quote || '—'}</Link>
+              <Link href={`/c/${(row.ca || row.poolId || '').trim().toLowerCase()}`}>{displaySymbol(row.coin)} / {row.quote || '—'}</Link>
             </React.Fragment>
           ))}
         </div>

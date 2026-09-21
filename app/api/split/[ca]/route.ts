@@ -8,6 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ ca: string }> },
 ) {
   const { ca } = await params;
+  const normalizedCa = ca.trim().toLowerCase();
   const searchParams = req.nextUrl.searchParams;
   const windowParam = searchParams.get("window") || "7d";
 
@@ -17,7 +18,7 @@ export async function GET(
 
   try {
     const result = await computeSplit(
-      ca as Address,
+      normalizedCa as Address,
       windowParam as "24h" | "7d" | "30d",
     );
 
@@ -27,7 +28,7 @@ export async function GET(
       },
     });
   } catch (error: any) {
-    console.error(`Error computing split for ${ca}:`, error);
+    console.error(`Error computing split for ${normalizedCa}:`, error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },

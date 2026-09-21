@@ -41,11 +41,22 @@ export function DriftStrip({ tokenAddress }: DriftStripProps) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/split/${encodeURIComponent(tokenAddress)}/hourly?window=30d`)
-      .then(async (response) => {
-        if (!response.ok) throw new Error(`Drift request failed: ${response.status}`);
-        return (await response.json()) as DriftResponse;
-      })
+    const fetchDrift = async () => {
+      let lastError: unknown;
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const response = await fetch(`/api/split/${encodeURIComponent(tokenAddress)}/hourly?window=30d`);
+          if (!response.ok) throw new Error(`Drift request failed: ${response.status}`);
+          return (await response.json()) as DriftResponse;
+        } catch (error) {
+          lastError = error;
+          if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 350 * (attempt + 1)));
+        }
+      }
+      throw lastError instanceof Error ? lastError : new Error('Drift request failed');
+    };
+
+    fetchDrift()
       .then((response) => {
         if (cancelled) return;
         setPoints(response.points ?? []);
@@ -134,7 +145,10 @@ export function DriftStrip({ tokenAddress }: DriftStripProps) {
           <div className="drift-tooltip__row text-fg2">
             <span>total</span><strong className="text-fg">{formatPercent(totalFor(activePoint))}</strong>
           </div>
-          {activePoint.stock == null && (
+          {activePoint.gap === 'fetch_failed' && (
+            <div className="drift-tooltip__status">Data unavailable — fetch failed after retries</div>
+          )}
+          {activePoint.gap === 'market_closed' && (
             <div className="drift-tooltip__status">No stock leg data — market closed</div>
           )}
         </div>

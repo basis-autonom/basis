@@ -144,7 +144,7 @@ export function FindingsPanel({ poolCount, onContentHeightChange }: FindingsPane
               className="border-b border-line last:border-b-0"
             >
               <Link
-                href={`/c/${finding.tokenAddress}`}
+                href={`/c/${finding.tokenAddress.trim().toLowerCase()}`}
                 aria-label={`${finding.symbol ?? "Unknown coin"} finding report`}
                 className="flex min-w-0 items-baseline gap-[14px] px-[14px] py-[7px] font-mono text-[11px] transition-colors hover:bg-pane2 focus-visible:bg-pane2"
               >
