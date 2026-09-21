@@ -318,7 +318,7 @@ export function HourlyContributionChart({
       labels: renderedLabels,
       hitAreas: renderedHitAreas,
       geometry: nextGeometry,
-      hasData: points.some((point) => point.meme != null || point.stock != null),
+      hasData: points.length > 0,
     };
   }, [browserTimeZone, points]);
 
