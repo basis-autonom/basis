@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useBlockHeight } from "./useBlockHeight";
+import { usePathname } from "next/navigation";
 import { SearchCommandPalette } from "./SearchCommandPalette";
 import styles from "./Topbar.module.css";
 
@@ -27,6 +28,7 @@ function getIsMobile() {
 
 export function Topbar() {
   const blockHeight = useBlockHeight();
+  const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
   const isMac = useSyncExternalStore(subscribeToPlatform, getIsMac, () => true);
   const isMobile = useSyncExternalStore(
@@ -50,6 +52,10 @@ export function Topbar() {
   }, [isMac, isMobile]);
 
   const shortcutLabel = isMac ? "⌘ K" : "Ctrl K";
+
+  const blockscoutLink = pathname?.startsWith("/c/") && pathname.length > 4
+    ? `https://robinhoodchain.blockscout.com/address/${pathname.replace("/c/", "")}`
+    : "https://robinhoodchain.blockscout.com";
 
   return (
     <>
@@ -138,7 +144,7 @@ export function Topbar() {
         >
           {/* chainpill */}
           <a
-            href="https://robinhoodchain.blockscout.com"
+            href={blockscoutLink}
             target="_blank"
             rel="noreferrer"
             className="flex items-center border border-up/30 bg-up/10 text-up rounded-full transition-colors hover:border-up/60"

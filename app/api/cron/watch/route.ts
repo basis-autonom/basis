@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getBoardData } from "@/packages/core/board";
 import { getFloatBoardData } from "@/packages/core/float";
 import { runWatcher } from "@/jobs/watcher";
+import { capturePoolSnapshots } from "@/packages/core/snapshots";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const watcher = await runWatcher();
+    const snapshotsStored = await capturePoolSnapshots();
 
     // Refresh both existing upstream snapshots on the same 15-minute tick.
     const [board, float] = await Promise.all([

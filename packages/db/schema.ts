@@ -86,3 +86,28 @@ export const xPostRecords = pgTable(
 
 export type AppSetting = typeof appSettings.$inferSelect;
 export type XPostRecord = typeof xPostRecords.$inferSelect;
+
+export const poolSnapshots = pgTable(
+  "pool_snapshots",
+  {
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+    poolAddress: text("pool_address").notNull(),
+    timestamp: timestamp("timestamp", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    sqrtPriceX96: text("sqrt_price_x96").notNull(),
+    tick: integer("tick").notNull(),
+  },
+  (table) => [
+    index("pool_snapshots_pool_address_idx").on(table.poolAddress),
+    index("pool_snapshots_timestamp_idx").on(table.timestamp),
+    uniqueIndex("pool_snapshots_pool_address_timestamp_idx").on(
+      table.poolAddress,
+      table.timestamp,
+    ),
+  ],
+);
+
+export type PoolSnapshot = typeof poolSnapshots.$inferSelect;
+export type NewPoolSnapshot = typeof poolSnapshots.$inferInsert;

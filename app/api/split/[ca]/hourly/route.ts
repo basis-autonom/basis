@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { parseAbi } from "viem";
 import { getBlockByTimestamp } from "../../../../../packages/core/blocks";
 import { client, robinhoodChain, V4_STATE_VIEW } from "../../../../../packages/core/chain";
+import { getSnapshotsForPool } from "../../../../../packages/db/queries";
 import { getPoolForToken } from "../../../../../packages/core/pools";
 import { getStockTokenByAddress } from "../../../../../packages/core/registry";
 import { Address, type HourlyGapReason, type HourlyPoint, type Window } from "../../../../../packages/core/types";
@@ -131,7 +132,7 @@ function priceAtOrBefore(
   const targetSeconds = BigInt(Math.floor(targetMs / 1000));
   const round = rounds
     .filter((candidate) => candidate[3] <= targetSeconds)
-    .sort((a, b) => Number(b[3] - a[3]))[0];
+    .sort((a: any, b: any) => Number(b[3] - a[3]))[0];
 
   if (!round) return null;
   const price = Number(round[1]) / 1e8;
@@ -208,45 +209,25 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
   const decimalsFailed = token0Decimals === null || token1Decimals === null;
 
 
-  // A time-travelled eth_call can only use one block number per multicall.
-  // Therefore each historical block gets one viem multicall containing all
-  // StateView reads for that block (one call here), with low concurrency to
-  // avoid creating a 429 burst. No point is interpolated.
-  const blocks = await mapWithConcurrency(
-    timestamps,
-    async (timestamp) => {
-      try {
-        return { block: await withRetry(() => getBlockByTimestamp(timestamp)), failed: false };
-      } catch {
-        return { block: null, failed: true };
-      }
-    },
-    4,
-  );
-  const slots = await mapWithConcurrency(
-    blocks,
-    async ({ block, failed }) : Promise<HistoricalSlot> => {
-      if (failed || block === null) return { slot: null, failed: true };
-      try {
-        const [result] = await withRetry(() => client.multicall({
-          contracts: [
-            {
-              address: V4_STATE_VIEW as Address,
-              abi: stateViewAbi,
-              functionName: "getSlot0" as const,
-              args: [pool.address],
-            },
-          ],
-          blockNumber: block,
-        }));
-        const slot = successful<Slot0>(result);
-        return { slot, failed: slot === null };
-      } catch {
-        return { slot: null, failed: true };
-      }
-    },
-    4,
-  );
+  // Load snapshots from the database instead of hitting the archive node
+  const minTime = new Date(timestamps[0] - HOUR_MS);
+  const snapshots = await getSnapshotsForPool(pool.address, minTime);
+  
+  const slots: HistoricalSlot[] = timestamps.map((targetTs) => {
+    // Find the latest snapshot AT OR BEFORE this timestamp
+    const matching = snapshots
+      .filter((s: any) => s.timestamp.getTime() <= targetTs)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())[0];
+      
+    if (!matching) {
+      return { slot: null, failed: true }; // we don't have it in DB, return failed so it shows red gap
+    }
+    
+    // Construct fake Slot0 tuple to satisfy ratioFromSlot
+    // [sqrtPriceX96, tick, protocolFee, lpFee]
+    const slot0 = [BigInt(matching.sqrtPriceX96), matching.tick, 0, 0] as unknown as Slot0;
+    return { slot: slot0, failed: false };
+  });
 
   let rounds: RoundData[] = [];
   let feedReadFailed = false;
