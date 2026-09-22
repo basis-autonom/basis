@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { BoardTable } from "@/components/board/BoardTable";
 import { useTerminalRows } from "@/components/shell/TerminalDataProvider";
 import { PairSummary } from "./PairSummary";
@@ -72,7 +72,9 @@ export function TerminalView() {
     (row) => row.lpBurned === false && (!filterLiq10k || (row.liquidity ?? 0) >= 10000),
   ).length;
 
-  const storage = typeof window === "undefined" ? memoryStorage : window.localStorage;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const storage = mounted && typeof window !== "undefined" ? window.localStorage : memoryStorage;
   const rootLayout = useDefaultLayout({
     id: "basis-terminal-root",
     panelIds: ["basis-main", "basis-inspector"],
