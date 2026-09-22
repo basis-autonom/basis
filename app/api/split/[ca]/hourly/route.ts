@@ -241,26 +241,34 @@ async function readHourly(
 
   const slots: HistoricalSlot[] = timestamps.map((targetTs) => {
     // Find the latest snapshot AT OR BEFORE this timestamp
+    const MAX_SNAPSHOT_DRIFT_MS = 90 * 60 * 1000; // 90 minutes
+
     let matching = snapshots
       .filter((s: any) => s.timestamp.getTime() <= targetTs)
       .sort(
         (a: any, b: any) => b.timestamp.getTime() - a.timestamp.getTime(),
       )[0];
 
-    // If no snapshot exists AT OR BEFORE the target timestamp,
-    // try to find the OLDEST snapshot available that is AFTER targetTs,
-    // but ONLY if it's reasonably close (e.g., we'll just take the earliest one available
-    // so that we can at least render the first partial bar for the last hour).
+    // Guard: snapshot too far in the past → treat as missing
+    if (matching && targetTs - matching.timestamp.getTime() > MAX_SNAPSHOT_DRIFT_MS) {
+      matching = undefined;
+    }
+
+    // If no snapshot AT OR BEFORE (or it was too old), try the earliest snapshot
+    // AFTER targetTs — only valid for the very first bars when DB is fresh.
     if (!matching) {
-      matching = snapshots
+      const after = snapshots
         .filter((s: any) => s.timestamp.getTime() > targetTs)
         .sort(
           (a: any, b: any) => a.timestamp.getTime() - b.timestamp.getTime(),
         )[0];
+      if (after && after.timestamp.getTime() - targetTs <= MAX_SNAPSHOT_DRIFT_MS) {
+        matching = after;
+      }
     }
 
     if (!matching) {
-      return { slot: null, failed: true }; // we don't have it in DB at all
+      return { slot: null, failed: true }; // no snapshot within tolerance
     }
 
     // Construct fake Slot0 tuple to satisfy ratioFromSlot
