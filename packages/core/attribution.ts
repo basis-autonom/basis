@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Address, SplitResponse, Window } from "./types";
-import { createPublicClient, http, parseAbi, erc20Abi } from "viem";
+import { parseAbi, erc20Abi } from "viem";
 import { unstable_cache } from "next/cache";
-import { robinhoodChain, V4_STATE_VIEW } from "./chain";
+import { client, robinhoodChain, V4_STATE_VIEW } from "./chain";
 import { getStockTokenByAddress } from "./registry";
 import { getPoolForToken, PoolLookupUnavailableError } from "./pools";
 import { getBoardData } from "./board";
@@ -10,10 +10,6 @@ import { getBlockByTimestamp } from "./blocks";
 import { getPrices } from "./prices";
 import { getReportSnapshot, makeFloatGrip, type ReportSnapshot } from "./float";
 
-const client = createPublicClient({
-  chain: robinhoodChain,
-  transport: http(process.env.RPC_URL),
-});
 
 const windowToMs: Record<Window, number> = {
   "24h": 24 * 60 * 60 * 1000,
@@ -65,8 +61,9 @@ async function readQuoteSymbol(address: Address) {
 
 async function getStockPairSuggestions() {
   try {
-    const rows = await getBoardData(3);
-    return rows
+    const result = await getBoardData(3);
+    if (result.kind === "error") return [];
+    return result.data
       .filter(
         (row) =>
           typeof row.ca === "string" &&

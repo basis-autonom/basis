@@ -1,4 +1,4 @@
-import { createPublicClient, http, defineChain } from 'viem';
+import { createPublicClient, http, fallback, defineChain } from 'viem';
 
 export const CHAIN_ID = 4663;
 export const RPC_URL = 'https://rpc.mainnet.chain.robinhood.com';
@@ -28,9 +28,12 @@ export const robinhoodChain = defineChain({
   },
 });
 
-export const publicClient = createPublicClient({
+export const client = createPublicClient({
   chain: robinhoodChain,
-  transport: http(RPC_URL),
+  transport: fallback([
+    http(process.env.RPC_URL),
+    http(RPC_URL)
+  ]),
 });
 
 // Addresses verified via recon from independent third-party sources

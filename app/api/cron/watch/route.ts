@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
       getBoardData(100),
       getFloatBoardData(),
     ]);
+    if (board.kind === "error") throw new Error("RPC error");
 
     return NextResponse.json({
       kind: "success",

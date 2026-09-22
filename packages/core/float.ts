@@ -1,12 +1,8 @@
 import { Address, FloatGrip, Pool, StockToken } from './types';
-import { createPublicClient, http, parseAbi } from 'viem';
-import { robinhoodChain, V4_POOL_MANAGER, V4_STATE_VIEW } from './chain';
+import { parseAbi } from 'viem';
+import { client, robinhoodChain, V4_POOL_MANAGER, V4_STATE_VIEW } from './chain';
 import { getRobinhoodPools } from './pools';
 
-const client = createPublicClient({
-  chain: robinhoodChain,
-  transport: http(process.env.RPC_URL),
-});
 
 const reportAbi = parseAbi([
   'function balanceOf(address) view returns (uint256)',

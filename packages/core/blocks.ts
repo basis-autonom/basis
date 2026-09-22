@@ -1,10 +1,6 @@
-import { createPublicClient, http } from 'viem';
-import { robinhoodChain } from './chain';
 
-const client = createPublicClient({
-  chain: robinhoodChain,
-  transport: http(process.env.RPC_URL),
-});
+import { client, robinhoodChain } from './chain';
+
 
 const blockCache = new Map<number, bigint>();
 

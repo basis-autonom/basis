@@ -13,7 +13,12 @@ export default async function TerminalLayout({ children }: { children: React.Rea
   try {
     // The current chain has only a small set of stock-paired pools; keep the
     // shared shell request bounded so every terminal page can reuse it safely.
-    boardRows = await getBoardData(12);
+    const result = await getBoardData(12);
+    if (result.kind === "error") {
+      isRpcError = true;
+    } else {
+      boardRows = result.data;
+    }
   } catch {
     isRpcError = true;
     // The shell should still render when the board request fails.

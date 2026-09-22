@@ -24,8 +24,9 @@ export async function GET() {
       });
     }
 
-    const data = await getBoardData(12);
-    return NextResponse.json({ kind: "success", data });
+    const result = await getBoardData(12);
+    if (result.kind === "error") throw new Error("RPC error");
+    return NextResponse.json({ kind: "success", data: result.data });
   } catch {
     return NextResponse.json({
       kind: "error",

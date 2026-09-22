@@ -1,12 +1,16 @@
 import { unstable_cache } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
-import { parseAbi } from "viem";
+import { createPublicClient, http, parseAbi } from "viem";
 import { getBlockByTimestamp } from "../../../../../packages/core/blocks";
-import { client, robinhoodChain, V4_STATE_VIEW } from "../../../../../packages/core/chain";
+import { robinhoodChain, V4_STATE_VIEW } from "../../../../../packages/core/chain";
 import { getPoolForToken } from "../../../../../packages/core/pools";
 import { getStockTokenByAddress } from "../../../../../packages/core/registry";
-import { Address, type HourlyGapReason, type HourlyPoint, type Window } from "../../../../../packages/core/types";
+import { Address, type Window } from "../../../../../packages/core/types";
 
+const client = createPublicClient({
+  chain: robinhoodChain,
+  transport: http(process.env.RPC_URL),
+});
 
 const stateViewAbi = parseAbi([
   "function getSlot0(bytes32 poolId) view returns (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee)",
@@ -29,43 +33,10 @@ const FEED_ROUND_COUNT = 96;
 
 type Slot0 = readonly [bigint, number, number, number];
 type RoundData = readonly [bigint, bigint, bigint, bigint, bigint];
-type HistoricalSlot = { slot: Slot0 | null; failed: boolean };
+type HourlyPoint = { t: number; meme: number | null; stock: number | null };
 
 function successful<T>(result: { status?: string; result?: unknown } | undefined): T | null {
   return result?.status === "success" ? (result.result as T) : null;
-}
-
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function withRetry<T>(operation: () => Promise<T>, attempts = 3): Promise<T> {
-  let lastError: unknown;
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    try {
-      return await operation();
-    } catch (error) {
-      lastError = error;
-      if (attempt < attempts - 1) await delay(250 * (attempt + 1));
-    }
-  }
-  throw lastError instanceof Error ? lastError : new Error("RPC request failed after retries");
-}
-
-function isNasdaqClosed(timestamp: number) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/New_York",
-    weekday: "short",
-    hour: "numeric",
-    minute: "numeric",
-    hour12: false,
-  }).formatToParts(new Date(timestamp));
-  const weekday = parts.find((part) => part.type === "weekday")?.value;
-  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? "0") % 24;
-  const minute = Number(parts.find((part) => part.type === "minute")?.value ?? "0");
-  const isWeekday = weekday !== "Sat" && weekday !== "Sun";
-  const minutes = hour * 60 + minute;
-  return !isWeekday || minutes < 9 * 60 + 30 || minutes >= 16 * 60;
 }
 
 async function mapWithConcurrency<T, R>(
@@ -189,7 +160,7 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
 
   // Token decimals are part of the same current metadata batch; no made-up
   // 18-decimal fallback is used when either read fails.
-  const decimalResults = await withRetry(() => client.multicall({
+  const decimalResults = await client.multicall({
     contracts: [
       {
         address: pool.token0,
@@ -202,11 +173,9 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
         functionName: "decimals" as const,
       },
     ],
-  }));
+  });
   const token0Decimals = successful<number>(decimalResults[0]);
   const token1Decimals = successful<number>(decimalResults[1]);
-  const decimalsFailed = token0Decimals === null || token1Decimals === null;
-
 
   // A time-travelled eth_call can only use one block number per multicall.
   // Therefore each historical block gets one viem multicall containing all
@@ -216,19 +185,19 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
     timestamps,
     async (timestamp) => {
       try {
-        return { block: await withRetry(() => getBlockByTimestamp(timestamp)), failed: false };
+        return await getBlockByTimestamp(timestamp);
       } catch {
-        return { block: null, failed: true };
+        return null;
       }
     },
     4,
   );
   const slots = await mapWithConcurrency(
     blocks,
-    async ({ block, failed }) : Promise<HistoricalSlot> => {
-      if (failed || block === null) return { slot: null, failed: true };
+    async (block) => {
+      if (block === null) return null;
       try {
-        const [result] = await withRetry(() => client.multicall({
+        const [result] = await client.multicall({
           contracts: [
             {
               address: V4_STATE_VIEW as Address,
@@ -238,24 +207,22 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
             },
           ],
           blockNumber: block,
-        }));
-        const slot = successful<Slot0>(result);
-        return { slot, failed: slot === null };
+        });
+        return successful<Slot0>(result);
       } catch {
-        return { slot: null, failed: true };
+        return null;
       }
     },
     4,
   );
 
   let rounds: RoundData[] = [];
-  let feedReadFailed = false;
   try {
-    const latest = await withRetry(() => client.readContract({
+    const latest = await client.readContract({
       address: stock.feed,
       abi: feedAbi,
       functionName: "latestRoundData",
-    })) as RoundData;
+    }) as RoundData;
     const roundCalls = Array.from({ length: FEED_ROUND_COUNT }, (_, index) => {
       const roundId = latest[0] - BigInt(index);
       return {
@@ -265,17 +232,15 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
         args: [roundId],
       };
     });
-    const roundResults = await withRetry(() => client.multicall({ contracts: roundCalls }));
+    const roundResults = await client.multicall({ contracts: roundCalls });
     rounds = [latest, ...roundResults
       .map((result) => successful<RoundData>(result))
       .filter((result): result is RoundData => result !== null)];
   } catch {
     rounds = [];
-    feedReadFailed = true;
   }
 
-  
-  const ratios = slots.map(({ slot }) =>
+  const ratios = slots.map((slot) =>
     ratioFromSlot(slot, pool, stockAddress, token0Decimals, token1Decimals),
   );
   const prices = timestamps.map((timestamp) => priceAtOrBefore(timestamp, rounds));
@@ -286,13 +251,6 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
     const currentRatio = ratios[sampleIndex];
     const previousPrice = prices[index];
     const currentPrice = prices[sampleIndex];
-    const fetchFailed = decimalsFailed || slots[index].failed || slots[sampleIndex].failed || feedReadFailed;
-    let gap: HourlyGapReason | null = null;
-    if (fetchFailed) {
-      gap = "fetch_failed";
-    } else if (currentPrice === null || previousPrice === null) {
-      gap = isNasdaqClosed(timestamps[sampleIndex]) ? "market_closed" : "fetch_failed";
-    }
 
     return {
       t: timestamps[sampleIndex],
@@ -304,7 +262,6 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
         previousPrice !== null && previousPrice > 0 && currentPrice !== null
           ? (currentPrice / previousPrice - 1) * 100
           : null,
-      gap,
     };
   });
 
@@ -321,7 +278,7 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
 
 const getCachedHourly = unstable_cache(
   async (tokenAddress: Address, window: Window) => readHourly(tokenAddress, window),
-  ["split-hourly-v8"],
+  ["split-hourly-v7"],
   { revalidate: 300 },
 );
 

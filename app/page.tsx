@@ -21,7 +21,12 @@ export default async function LandingPage() {
   let isRpcError = false;
 
   try {
-    board = await getBoardData(25);
+    const result = await getBoardData(25);
+    if (result.kind === "error") {
+      isRpcError = true;
+    } else {
+      board = result.data;
+    }
   } catch (error) {
     console.error("Error fetching landing board data", error);
     isRpcError = true;

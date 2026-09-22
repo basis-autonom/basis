@@ -4,7 +4,7 @@ import {
   parseAbi,
   type Address,
 } from "viem";
-import { publicClient as robinhoodClient } from "@/packages/core/chain";
+import { client as robinhoodClient } from "@/packages/core/chain";
 import { getCorporateActionPoolExposure } from "@/packages/core/float";
 import { getStockTokenByAddress } from "@/packages/core/registry";
 
@@ -125,7 +125,7 @@ async function readHistory(tokens: TokenSnapshot[], toBlock: bigint) {
     toBlock,
   });
 
-  return logs.flatMap((log) => {
+  return logs.flatMap((log: any) => {
     const token = tokensByAddress.get(log.address.toLowerCase());
     if (!token) return [];
 
@@ -230,20 +230,20 @@ async function readActions() {
   }
 
   const blockNumbers = [...new Set(
-    history.flatMap((row) => row.blockNumber == null ? [] : [row.blockNumber]),
+    history.flatMap((row: any) => row.blockNumber == null ? [] : [row.blockNumber]),
   )];
   const blockDates = new Map<bigint, number>();
   await Promise.all(blockNumbers.map(async (blockNumber) => {
     try {
       const block = await robinhoodClient.getBlock({ blockNumber });
-      blockDates.set(blockNumber, Number(block.timestamp) * 1000);
+      blockDates.set(blockNumber as bigint, Number(block.timestamp) * 1000);
     } catch {
       // A missing block timestamp makes only this event's date unknown.
     }
   }));
 
   const historyTokens = snapshots.filter((token) =>
-    history.some((row) => row.address.toLowerCase() === token.address.toLowerCase()),
+    history.some((row: any) => row.address.toLowerCase() === token.address.toLowerCase()),
   );
   const exposureTokens = await Promise.all(
     historyTokens.map(async (token) => {
@@ -253,7 +253,7 @@ async function readActions() {
   );
   const exposureByAddress = await getCorporateActionPoolExposure(exposureTokens);
 
-  const historyRows: HistoryRow[] = history.map((row) => {
+  const historyRows: HistoryRow[] = history.map((row: any) => {
     const exposure = exposureByAddress.get(row.address.toLowerCase());
     const valueAtRisk = row.type === "Split"
       ? null

@@ -1,12 +1,16 @@
 import { unstable_cache } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
-import { parseAbi } from "viem";
+import { createPublicClient, http, parseAbi } from "viem";
 import { getBlockByTimestamp } from "../../../../../packages/core/blocks";
-import { client, robinhoodChain, V4_STATE_VIEW } from "../../../../../packages/core/chain";
+import { robinhoodChain, V4_STATE_VIEW } from "../../../../../packages/core/chain";
 import { getPoolForToken } from "../../../../../packages/core/pools";
 import { getStockTokenByAddress } from "../../../../../packages/core/registry";
 import { Address, type HourlyGapReason, type HourlyPoint, type Window } from "../../../../../packages/core/types";
 
+const client = createPublicClient({
+  chain: robinhoodChain,
+  transport: http(process.env.RPC_URL),
+});
 
 const stateViewAbi = parseAbi([
   "function getSlot0(bytes32 poolId) view returns (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee)",
@@ -207,7 +211,6 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
   const token1Decimals = successful<number>(decimalResults[1]);
   const decimalsFailed = token0Decimals === null || token1Decimals === null;
 
-
   // A time-travelled eth_call can only use one block number per multicall.
   // Therefore each historical block gets one viem multicall containing all
   // StateView reads for that block (one call here), with low concurrency to
@@ -274,7 +277,6 @@ async function readHourly(tokenAddress: Address, window: Window): Promise<{
     feedReadFailed = true;
   }
 
-  
   const ratios = slots.map(({ slot }) =>
     ratioFromSlot(slot, pool, stockAddress, token0Decimals, token1Decimals),
   );

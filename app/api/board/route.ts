@@ -10,8 +10,9 @@ const getCachedBoardData = async () => {
 
 export async function GET() {
   try {
-    const data = await getCachedBoardData();
-    return NextResponse.json({ kind: "success", data });
+    const result = await getCachedBoardData();
+    if (result.kind === "error") return NextResponse.json(result, { status: 503 });
+    return NextResponse.json({ kind: "success", data: result.data });
   } catch (e: any) {
     return NextResponse.json(
       { kind: "error", error: e.message },

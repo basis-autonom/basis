@@ -1,13 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Address } from "./types";
 import type { LatestRoundData } from "./float";
-import { createPublicClient, http, parseAbi } from "viem";
-import { robinhoodChain } from "./chain";
+import { parseAbi } from "viem";
+import { client, robinhoodChain } from "./chain";
 
-const client = createPublicClient({
-  chain: robinhoodChain,
-  transport: http(process.env.RPC_URL),
-});
 
 const clAbi = parseAbi([
   "function latestRoundData() view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)",

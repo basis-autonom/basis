@@ -1,17 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Address } from "./types";
-import { createPublicClient, http, parseAbi } from "viem";
-import { robinhoodChain, V4_STATE_VIEW } from "./chain";
+import { parseAbi } from "viem";
+import { client, robinhoodChain, V4_STATE_VIEW } from "./chain";
 import { fetchRegistry } from "./registry";
 import { getRobinhoodPools } from "./pools";
 import { getBlockByTimestamp } from "./blocks";
 import { getPrices } from "./prices";
 import { getFloatGrip } from "./float";
 
-const client = createPublicClient({
-  chain: robinhoodChain,
-  transport: http(process.env.RPC_URL),
-});
 
 const windowToMs = {
   "24h": 24 * 60 * 60 * 1000,
@@ -35,11 +31,18 @@ function shortAddr(addr: string): string {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
-export async function getBoardData(limit = 25) {
-  const [allPools, registry] = await Promise.all([
-    getRobinhoodPools(100),
-    fetchRegistry(),
-  ]);
+export type BoardResult = { kind: "success"; data: any[] } | { kind: "error"; reason: "rpc_unavailable" | "pool_lookup_failed" };
+
+export async function getBoardData(limit = 25): Promise<BoardResult> {
+  let allPools, registry;
+  try {
+    [allPools, registry] = await Promise.all([
+      getRobinhoodPools(100),
+      fetchRegistry(),
+    ]);
+  } catch (error) {
+    return { kind: "error", reason: "pool_lookup_failed" };
+  }
 
   const stockMap = new Map(registry.map((s) => [s.address.toLowerCase(), s]));
   const now = Date.now();
@@ -381,7 +384,7 @@ const EXCLUDED_ADDRS = new Set([
   }
 
   if (selected.length > 0 && rows.length === 0) {
-    throw new Error("RPC data fetch failed for all pools");
+    return { kind: "error", reason: "rpc_unavailable" };
   }
-  return rows;
+  return { kind: "success", data: rows };
 }

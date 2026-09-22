@@ -1,13 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Address, Pool } from "./types";
-import { createPublicClient, http, parseAbi } from "viem";
-import { robinhoodChain, V4_STATE_VIEW } from "./chain";
+import { parseAbi } from "viem";
+import { client, robinhoodChain, V4_STATE_VIEW } from "./chain";
 import { fetchRegistry } from "./registry";
 
-const client = createPublicClient({
-  chain: robinhoodChain,
-  transport: http(process.env.RPC_URL),
-});
 
 const cache = new Map<string, { pool: Pool | null; timestamp: number }>();
 const CACHE_TTL = 15 * 60 * 1000; // 15 mins for discovered pools

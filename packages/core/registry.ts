@@ -1,16 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createPublicClient, http, parseAbi } from "viem";
-import { robinhoodChain } from "./chain";
+import { parseAbi } from "viem";
+import { client, robinhoodChain } from "./chain";
 import { Address, StockToken } from "./types";
 
 let cachedRegistry: StockToken[] | null = null;
 let lastFetchTime = 0;
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
-const client = createPublicClient({
-  chain: robinhoodChain,
-  transport: http(process.env.RPC_URL),
-});
 
 
 async function fetchWithRetry(url: string, retries = 3): Promise<any> {
