@@ -328,9 +328,7 @@ async function readHourly(
       decimalsFailed ||
       slots[index].failed ||
       slots[sampleIndex].failed ||
-      feedReadFailed ||
-      (slots[index].snapshotTs &&
-        slots[index].snapshotTs === slots[sampleIndex].snapshotTs);
+      feedReadFailed;
     let gap: HourlyGapReason | null = null;
     if (fetchFailed) {
       gap = "fetch_failed";
