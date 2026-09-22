@@ -243,18 +243,19 @@ async function readHourly(
     // Find the latest snapshot AT OR BEFORE this timestamp
     const MAX_SNAPSHOT_DRIFT_MS = 90 * 60 * 1000; // 90 minutes
 
-    let matching = snapshots
+    const candidate = snapshots
       .filter((s: any) => s.timestamp.getTime() <= targetTs)
       .sort(
         (a: any, b: any) => b.timestamp.getTime() - a.timestamp.getTime(),
       )[0];
 
-    // Guard: snapshot too far in the past → treat as missing
-    if (matching && targetTs - matching.timestamp.getTime() > MAX_SNAPSHOT_DRIFT_MS) {
-      matching = undefined;
-    }
+    // Use candidate only if it's within the tolerance window
+    let matching: typeof candidate | undefined =
+      candidate && targetTs - candidate.timestamp.getTime() <= MAX_SNAPSHOT_DRIFT_MS
+        ? candidate
+        : undefined;
 
-    // If no snapshot AT OR BEFORE (or it was too old), try the earliest snapshot
+    // If no snapshot AT OR BEFORE within tolerance, try the earliest snapshot
     // AFTER targetTs — only valid for the very first bars when DB is fresh.
     if (!matching) {
       const after = snapshots
