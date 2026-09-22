@@ -162,6 +162,9 @@ export function BoardTable({
     },
   ];
 
+  // Show accumulating notice if ANY row is missing 24h data
+  const is24hMissing = rows.some((r) => r.chg24h == null);
+
   return (
     <div ref={tableRef}>
       <DataTable
@@ -180,6 +183,11 @@ export function BoardTable({
         }}
         activeRowFn={(r) => (selectedCa ? r.ca === selectedCa || r.poolId === selectedCa : false)}
       />
+      {is24hMissing && (
+        <p className="mt-2 px-3 font-mono text-[10px] text-fg3">
+          — 24h/7d data accumulating · available after first 24h
+        </p>
+      )}
     </div>
   );
 }
