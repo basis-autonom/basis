@@ -107,51 +107,51 @@ export function FindingsPanel({ poolCount, onContentHeightChange }: FindingsPane
       aria-labelledby="findings-heading"
       className="flex h-full min-h-[42px] min-w-0 flex-shrink-0 border-b border-line bg-pane"
     >
-      <div className="flex w-[160px] flex-shrink-0 items-start justify-between border-r border-up/20 bg-up/[0.02] px-[12px] pt-[10px] pb-[10px]">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-[6px] mb-[3px]">
+      <div className="flex w-[190px] flex-shrink-0 flex-col justify-center border-r border-up/20 bg-up/[0.02] pl-[20px] pr-[14px] py-[10px]">
+        <div className="flex items-center justify-between mb-[3px]">
+          <div className="flex items-center gap-[6px]">
             <span className="block rounded-full bg-up flex-shrink-0" style={{ width: 4, height: 4, boxShadow: "0 0 6px var(--color-up)" }} />
             <h2 id="findings-heading" className="font-mono text-[10px] uppercase tracking-[0.09em] text-up font-semibold">
               Live Findings
             </h2>
           </div>
-          <span className="font-mono text-[9px] text-fg2 leading-tight pr-2">
-            Auto-detected from chain
+          <span className="font-mono text-[10px] text-up/70 font-semibold pl-[8px]">
+            {state.status === "ready" ? state.findings.length : "—"}
           </span>
         </div>
-        <span className="font-mono text-[10px] text-up/70">
-          {state.status === "ready" ? state.findings.length : "—"}
+        <span className="font-mono text-[9px] text-fg2 leading-tight">
+          Auto-detected from chain
         </span>
       </div>
 
       {state.status === "error" ? (
-        <p className="flex min-w-0 items-center px-[14px] font-mono text-[10px] text-fg3">
+        <p className="flex min-w-0 items-center px-[16px] py-[12px] font-mono text-[11px] text-fg3">
           Findings unavailable right now.
         </p>
       ) : state.status === "ready" && state.findings.length === 0 ? (
-        <p className="flex min-w-0 items-center px-[14px] font-mono text-[10px] text-fg3">
+        <p className="flex min-w-0 items-center px-[16px] py-[12px] font-mono text-[11px] text-fg3">
           Watching {poolCount} stock-paired pools. Nothing moving on its stock
           right now.
         </p>
       ) : state.status === "loading" ? (
-        <p className="flex min-w-0 items-center px-[14px] font-mono text-[10px] text-fg3">
+        <p className="flex min-w-0 items-center px-[16px] py-[12px] font-mono text-[11px] text-fg3">
           Reading latest findings…
         </p>
       ) : (
         <ul
           ref={listRef}
           aria-label="Latest findings"
-          className="h-full min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto py-[3px]"
+          className="h-full min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto py-[4px]"
         >
           {sortedFindings.map((finding) => (
             <li
               key={finding.id}
-              className="border-b border-line last:border-b-0"
+              className="border-b border-line/40 last:border-b-0"
             >
               <Link
                 href={`/c/${finding.tokenAddress.trim().toLowerCase()}`}
                 aria-label={`${finding.symbol ?? "Unknown coin"} finding report`}
-                className="flex min-w-0 items-baseline gap-[14px] px-[14px] py-[7px] font-mono text-[11px] transition-colors hover:bg-pane2 focus-visible:bg-pane2"
+                className="flex min-w-0 items-center gap-[16px] px-[16px] py-[10px] font-mono text-[11px] transition-colors hover:bg-pane2 focus-visible:bg-pane2"
               >
                 <time
                   dateTime={finding.detectedAt}
@@ -165,11 +165,11 @@ export function FindingsPanel({ poolCount, onContentHeightChange }: FindingsPane
                     {formatNarrativeNumber(finding.priceMovement)}%
                   </strong>
                   . Its meme did{" "}
-                  <strong className="text-meme">
+                  <strong className="text-meme font-medium">
                     {formatNarrativeNumber(finding.memeComponent)}
                   </strong>
                   . The rest is{" "}
-                  <strong className="text-stock">
+                  <strong className="text-stock font-medium">
                     {finding.stockPair ?? "—"}
                   </strong>
                   .
