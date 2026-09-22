@@ -5,11 +5,29 @@ import { TerminalPreview } from './TerminalPreview';
 import { LandingBoardRow, displaySymbol } from './types';
 import { RotatingQuote } from './RotatingQuote';
 
-export function Hero({ rows }: { rows: LandingBoardRow[] }) {
+export function Hero({ rows, isRpcError }: { rows: LandingBoardRow[], isRpcError?: boolean }) {
   const featured = rows[0];
   const sampleRows = rows.slice(0, 3);
   const stockExposure = featured?.memeRatioPct == null ? null : 100 - featured.memeRatioPct;
   const quote = featured?.quote || '—';
+  if (isRpcError) {
+    return (
+      <header className="landing-hero">
+        <div className="landing-frame">
+          <h1 className="landing-h1">
+            You bought a memecoin.<br />
+            <span className="text-down">RPC connection unavailable.</span>
+          </h1>
+          <p className="landing-lede">The on-chain data provider is currently experiencing downtime or rate limits. Live pool data cannot be displayed at this moment. Please check back later.</p>
+          <div className="landing-exposure">
+            <span>status</span>
+            <strong className="text-down">Data unavailable</strong>
+          </div>
+          <ContractForm />
+        </div>
+      </header>
+    );
+  }
   
   const uniqueQuotes = Array.from(new Set(rows.map((r) => r.quote).filter(Boolean))) as string[];
   if (uniqueQuotes.length === 0) uniqueQuotes.push('—');

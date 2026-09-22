@@ -5,6 +5,7 @@ import { SplitBar } from '@/components/primitives/SplitBar';
 import { formatMillions, formatPrice } from './terminalFormat';
 
 interface SplitInspectorProps {
+  isRpcError?: boolean;
   row: any | null;
   copied: boolean;
   onCopy: () => void;
@@ -33,7 +34,7 @@ const FEED = [
   { time: '50:22', dir: 'sell', sym: '$SPACEHOOD',   amt: '$5.79K' },
 ];
 
-export function SplitInspector({ row, copied, onCopy }: SplitInspectorProps) {
+export function SplitInspector({ row, isRpcError, copied, onCopy }: SplitInspectorProps) {
   const total7d = row?.meme7d == null || row?.stock7d == null
     ? null
     : ((1 + row.meme7d / 100) * (1 + row.stock7d / 100) - 1) * 100;
@@ -200,7 +201,7 @@ export function SplitInspector({ row, copied, onCopy }: SplitInspectorProps) {
           className="font-mono text-[12px] text-fg3"
           style={{ padding: 14 }}
         >
-          No pool selected.
+          {isRpcError ? <span className="text-down">RPC connection unavailable. Data cannot be fetched.</span> : "No pool selected."}
         </div>
       )}
     </aside>

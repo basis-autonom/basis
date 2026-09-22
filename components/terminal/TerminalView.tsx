@@ -17,7 +17,7 @@ const memoryStorage = {
 type ActiveTab = "all" | "greenStock" | "highGrip";
 
 export function TerminalView() {
-  const { rows } = useTerminalRows();
+  const { rows, isRpcError } = useTerminalRows();
   const [selectedCa, setSelectedCa] = useState<string>(
     rows[0]?.ca || rows[0]?.poolId || "",
   );
@@ -168,6 +168,7 @@ export function TerminalView() {
                 />
                 <div className="min-h-0 flex-1 overflow-auto bg-bg">
                   <BoardTable
+                    isRpcError={isRpcError}
                     rows={filteredRows}
                     selectedCa={selectedRow?.ca || selectedRow?.poolId}
                     onSelectRow={(row) => setSelectedCa(row.ca || row.poolId)}
@@ -183,7 +184,7 @@ export function TerminalView() {
         className="relative z-10 w-px flex-shrink-0 cursor-col-resize bg-line transition-colors hover:bg-meme active:bg-meme after:absolute after:-inset-x-[6px] after:inset-y-0 after:content-['']"
       />
       <Panel id="basis-inspector" defaultSize="25%" minSize="15%" maxSize="40%" className="flex flex-col min-h-0 border-l border-line">
-        <SplitInspector row={selectedRow} copied={copied} onCopy={handleCopy} />
+        <SplitInspector row={selectedRow} isRpcError={isRpcError} copied={copied} onCopy={handleCopy} />
       </Panel>
     </Group>
   );

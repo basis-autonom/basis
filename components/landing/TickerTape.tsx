@@ -3,7 +3,7 @@
 import React from 'react';
 import { LandingBoardRow, displaySymbol } from './types';
 
-export function TickerTape({ rows }: { rows: LandingBoardRow[] }) {
+export function TickerTape({ rows, isRpcError }: { rows: LandingBoardRow[], isRpcError?: boolean }) {
   const tape = rows.slice(0, 12).map((row, index) => (
     <span key={`${row.ca || row.poolId || index}-${index}`}>
       {displaySymbol(row.coin)} <i>/</i> {row.quote || '—'}{' '}
@@ -12,7 +12,7 @@ export function TickerTape({ rows }: { rows: LandingBoardRow[] }) {
     </span>
   ));
 
-  const content = tape.length > 0 ? tape : <span>No live pool data</span>;
+  const content = tape.length > 0 ? tape : <span>{isRpcError ? "RPC connection unavailable" : "No live pool data"}</span>;
 
   return (
     <div className="landing-tape" aria-label="Live pool summary">

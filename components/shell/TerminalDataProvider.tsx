@@ -2,9 +2,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-const TerminalDataContext = createContext<{rows: any[], selectedCa: string, setSelectedCa: (ca: string) => void}>({rows: [], selectedCa: "", setSelectedCa: () => {}});
+const TerminalDataContext = createContext<{rows: any[], isRpcError: boolean, selectedCa: string, setSelectedCa: (ca: string) => void}>({rows: [], isRpcError: false, selectedCa: "", setSelectedCa: () => {}});
 
-export function TerminalDataProvider({ rows: initialRows, children }: { rows: any[]; children: React.ReactNode }) {
+export function TerminalDataProvider({ rows: initialRows, isRpcError = false, children }: { rows: any[]; isRpcError?: boolean; children: React.ReactNode }) {
   const [rows, setRows] = useState(initialRows);
   const [selectedCa, setSelectedCa] = useState(initialRows[0]?.ca || initialRows[0]?.poolId || "");
 
@@ -27,7 +27,7 @@ export function TerminalDataProvider({ rows: initialRows, children }: { rows: an
     return () => clearInterval(interval);
   }, []);
 
-  return <TerminalDataContext.Provider value={{rows, selectedCa, setSelectedCa}}>{children}</TerminalDataContext.Provider>;
+  return <TerminalDataContext.Provider value={{rows, isRpcError, selectedCa, setSelectedCa}}>{children}</TerminalDataContext.Provider>;
 }
 
 export function useTerminalRows() {

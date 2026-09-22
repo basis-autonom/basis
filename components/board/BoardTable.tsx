@@ -31,6 +31,7 @@ function fmtPrice(p: number | null): React.ReactNode {
 }
 
 interface BoardTableProps {
+  isRpcError?: boolean;
   rows: any[];
   selectedCa?: string;
   onSelectRow?: (row: any) => void;
@@ -39,6 +40,7 @@ interface BoardTableProps {
 
 export function BoardTable({
   rows,
+  isRpcError,
   selectedCa,
   onSelectRow,
   onContentHeightChange,
@@ -163,6 +165,7 @@ export function BoardTable({
   return (
     <div ref={tableRef}>
       <DataTable
+        isRpcError={isRpcError}
         columns={columns}
         rows={rows}
         onRowClick={(r) => {

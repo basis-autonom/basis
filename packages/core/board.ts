@@ -380,5 +380,8 @@ const EXCLUDED_ADDRS = new Set([
     });
   }
 
+  if (selected.length > 0 && rows.length === 0) {
+    throw new Error("RPC data fetch failed for all pools");
+  }
   return rows;
 }

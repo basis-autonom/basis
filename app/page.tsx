@@ -18,11 +18,13 @@ export const dynamic = "force-dynamic";
 
 export default async function LandingPage() {
   let board: LandingBoardRow[] = [];
+  let isRpcError = false;
 
   try {
     board = await getBoardData(25);
   } catch (error) {
     console.error("Error fetching landing board data", error);
+    isRpcError = true;
   }
 
   const greenStock = board.filter(
@@ -43,9 +45,9 @@ export default async function LandingPage() {
       <div className="landing-page">
         <LiveLandingRefresh />
         <LandingNav />
-        <TickerTape rows={board} />
+        <TickerTape rows={board} isRpcError={isRpcError} />
         <ScrollReveal className="landing-reveal-hero">
-          <Hero rows={board} />
+          <Hero rows={board} isRpcError={isRpcError} />
         </ScrollReveal>
         <ScrollReveal>
           <StatBand

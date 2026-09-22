@@ -9,13 +9,14 @@ export interface Column<T> {
 }
 
 interface DataTableProps<T> {
+  isRpcError?: boolean;
   columns: Column<T>[];
   rows: T[];
   onRowClick?: (row: T) => void;
   activeRowFn?: (row: T) => boolean;
 }
 
-export function DataTable<T>({ columns, rows, onRowClick, activeRowFn }: DataTableProps<T>) {
+export function DataTable<T>({ columns, rows, onRowClick, activeRowFn, isRpcError }: DataTableProps<T>) {
   return (
     <div className="w-full bg-pane">
       <table className="w-full border-collapse">
@@ -35,7 +36,13 @@ export function DataTable<T>({ columns, rows, onRowClick, activeRowFn }: DataTab
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, i) => {
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan={columns.length} className="text-center font-mono text-[11px] text-fg3" style={{ padding: "32px 14px" }}>
+                {isRpcError ? <span className="text-down">RPC connection unavailable. Data cannot be fetched.</span> : "No live pool data."}
+              </td>
+            </tr>
+          ) : rows.map((row, i) => {
             const isActive = activeRowFn ? activeRowFn(row) : false;
             return (
               <tr 
