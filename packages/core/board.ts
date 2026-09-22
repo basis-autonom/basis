@@ -108,7 +108,7 @@ const EXCLUDED_ADDRS = new Set([
     .sort((a, b) => (b.pool.liquidityUsd || 0) - (a.pool.liquidityUsd || 0))
     .slice(0, limit);
 
-  if (selected.length === 0) return [];
+  if (selected.length === 0) return { kind: "success", data: [] };
 
   // ── 2. Block numbers for time windows ────────────────────────────────────
   let block24h: bigint | undefined;

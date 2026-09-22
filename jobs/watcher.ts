@@ -97,7 +97,8 @@ export async function runWatcher(): Promise<WatcherRunResult> {
 
   // The watcher reads the finished board values. It does not calculate any
   // price or attribution component itself.
-  const board = (await getBoardData(100)) as BoardRow[];
+  const boardResult = await getBoardData(100);
+  const board = (boardResult.kind === "success" ? boardResult.data : []) as BoardRow[];
   const detectedAt = new Date();
   const candidates = board.filter(isFinding);
   const findings: Finding[] = [];

@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
         xPosting: watcher.xPosting,
       },
       refresh: {
-        boardRows: board.length,
+        boardRows: board.kind === "success" ? board.data.length : 0,
         floatRows: float.length,
       },
     });
