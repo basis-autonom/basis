@@ -107,14 +107,19 @@ export function FindingsPanel({ poolCount, onContentHeightChange }: FindingsPane
       aria-labelledby="findings-heading"
       className="flex h-full min-h-[42px] min-w-0 flex-shrink-0 border-b border-line bg-pane"
     >
-      <div className="flex w-[116px] flex-shrink-0 items-start justify-between border-r border-line px-[12px]! pt-[13px]">
-        <h2
-          id="findings-heading"
-          className="font-mono text-[10px] uppercase tracking-[0.09em] text-fg3 "
-        >
-          Findings
-        </h2>
-        <span className="font-mono text-[10px] text-fg3">
+      <div className="flex w-[160px] flex-shrink-0 items-start justify-between border-r border-up/20 bg-up/[0.02] px-[12px] pt-[10px] pb-[10px]">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-[6px] mb-[3px]">
+            <span className="block rounded-full bg-up flex-shrink-0" style={{ width: 4, height: 4, boxShadow: "0 0 6px var(--color-up)" }} />
+            <h2 id="findings-heading" className="font-mono text-[10px] uppercase tracking-[0.09em] text-up font-semibold">
+              Live Findings
+            </h2>
+          </div>
+          <span className="font-mono text-[9px] text-fg2 leading-tight pr-2">
+            Auto-detected from chain
+          </span>
+        </div>
+        <span className="font-mono text-[10px] text-up/70">
           {state.status === "ready" ? state.findings.length : "—"}
         </span>
       </div>

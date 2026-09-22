@@ -112,19 +112,30 @@ export function CorporateActionsView() {
   const history = data?.history ?? [];
 
   return (
-    <div className="actions-page">
-      <header className="actions-header">
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: "22px", padding: "0 18px", height: 58, minWidth: "100%" }}>
         <div>
-          <h1>Corporate actions</h1>
-          <p>Dividends and splits, read from the token multiplier before they take effect</p>
+          <h1 className="text-[16px] font-semibold text-fg">Corporate actions</h1>
+          <div className="text-[12px] text-fg3">Dividends and splits, read from the token multiplier before they take effect</div>
         </div>
-        <div className="actions-stat"><span>Scheduled</span><strong>{data ? scheduled.length : "—"}</strong></div>
-        <div className="actions-stat"><span>Since chain launch</span><strong>{data?.historyStatus === "complete" ? history.length : "—"}</strong></div>
-        <div className="actions-stat"><span>Pools exposed</span><strong>{rows.length || "—"}</strong></div>
-        <p className="actions-header-note">Scheduled and history are read from all 194 stock tokens on this chain. Pools exposed counts the active memecoin pools among them.</p>
-      </header>
 
-      <section className="actions-grid">
+        <div className="flex flex-col flex-shrink-0">
+          <div className="text-[10px] text-fg3">Scheduled</div>
+          <div className="font-mono text-[13px] text-fg mt-[2px]">{data ? scheduled.length : "—"}</div>
+        </div>
+
+        <div className="flex flex-col flex-shrink-0">
+          <div className="text-[10px] text-fg3">Since chain launch</div>
+          <div className="font-mono text-[13px] text-fg mt-[2px]">{data?.historyStatus === "complete" ? history.length : "—"}</div>
+        </div>
+
+        <div className="flex flex-col flex-shrink-0">
+          <div className="text-[10px] text-fg3">Pools exposed</div>
+          <div className="font-mono text-[13px] text-fg mt-[2px]">{rows.length || "—"}</div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto"><section className="actions-grid">
         <article className="actions-cell">
           <div className="actions-heading"><h2>Scheduled</h2><span>read from newUIMultiplier and effectiveAt</span></div>
           {data?.kind === "error" ? (
@@ -197,6 +208,6 @@ export function CorporateActionsView() {
           <p className="actions-note actions-note--large">Corporate actions on this chain are rare and their value impact is usually small. This page exists because scheduled multiplier changes are readable on chain and can matter to the pools they touch—not because it is expected to produce a daily signal.</p>
         </article>
       </section>
-    </div>
+    </div></div>
   );
 }

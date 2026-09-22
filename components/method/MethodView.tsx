@@ -2,17 +2,25 @@ import React from "react";
 
 export function MethodView() {
   return (
-    <div className="method-page">
-      <header className="method-header">
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: "22px", padding: "0 18px", height: 58, minWidth: "100%" }}>
         <div>
-          <h1>Method</h1>
-          <p>Every number on Basis, and exactly where it comes from</p>
+          <h1 className="text-[16px] font-semibold text-fg">Method</h1>
+          <div className="text-[12px] text-fg3">Every number on Basis, and exactly where it comes from</div>
         </div>
-        <div className="method-stat"><span>Chain</span><strong>Robinhood Chain</strong></div>
-        <div className="method-stat"><span>Mode</span><strong>read-only</strong></div>
-      </header>
 
-      <section className="method-grid">
+        <div className="flex flex-col flex-shrink-0">
+          <div className="text-[10px] text-fg3">Chain</div>
+          <div className="font-mono text-[13px] text-fg mt-[2px]">Robinhood Chain</div>
+        </div>
+
+        <div className="flex flex-col flex-shrink-0">
+          <div className="text-[10px] text-fg3">Mode</div>
+          <div className="font-mono text-[13px] text-fg mt-[2px]">read-only</div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto"><section className="method-grid">
         <article className="method-cell method-cell--full">
           <div className="method-heading"><h2>The split</h2><span>the attribution identity</span></div>
           <div className="method-formula">
@@ -65,6 +73,6 @@ export function MethodView() {
           <p className="method-note">The command reads the same public RPC and feed contracts. It does not write to the chain or store a query.</p>
         </article>
       </section>
-    </div>
+    </div></div>
   );
 }

@@ -137,20 +137,24 @@ export function Topbar() {
           style={{ marginLeft: "auto", gap: 16 }}
         >
           {/* chainpill */}
-          <div
-            className="flex items-center border border-line2 rounded-[4px]"
-            style={{ gap: 7, padding: "4px 9px" }}
+          <a
+            href="https://robinhoodchain.blockscout.com"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center border border-up/30 bg-up/10 text-up rounded-full transition-colors hover:border-up/60"
+            style={{ gap: 6, padding: "3px 10px", fontWeight: 500 }}
+            title="View on Robinhood Chain Explorer"
           >
             <span
               className="block rounded-full bg-up flex-shrink-0"
               style={{
-                width: 5,
-                height: 5,
-                boxShadow: "0 0 6px var(--color-up)",
+                width: 6,
+                height: 6,
+                boxShadow: "0 0 8px var(--color-up)",
               }}
             />
-            Robinhood Chain
-          </div>
+            LIVE · Robinhood Chain Mainnet
+          </a>
           <span className="font-mono">{blockHeight}</span>
           <a
             href="#"

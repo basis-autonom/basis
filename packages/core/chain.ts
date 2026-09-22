@@ -34,6 +34,7 @@ export const client = createPublicClient({
     http(process.env.RPC_URL),
     http(RPC_URL)
   ]),
+  batch: { multicall: { batchSize: 20, wait: 20 } },
 });
 
 // Addresses verified via recon from independent third-party sources

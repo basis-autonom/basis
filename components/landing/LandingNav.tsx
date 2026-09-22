@@ -26,6 +26,24 @@ export function LandingNav() {
           <span className="text-stock font-mono tracking-widest text-[10px] uppercase ml-[8px]" style={{ fontWeight: 'normal', transform: 'translateY(3px)' }}>Analytics</span>
         </Link>
         <div className="landing-nav-links">
+          <a
+            href="https://robinhoodchain.blockscout.com"
+            target="_blank"
+            rel="noreferrer"
+            className="hidden sm:flex items-center border border-up/30 bg-up/10 text-up rounded-full transition-colors hover:border-up/60 font-mono text-[11px]"
+            style={{ gap: 6, padding: "3px 10px", fontWeight: 500, marginRight: 8 }}
+            title="View on Robinhood Chain Explorer"
+          >
+            <span
+              className="block rounded-full bg-up flex-shrink-0"
+              style={{
+                width: 6,
+                height: 6,
+                boxShadow: "0 0 8px var(--color-up)",
+              }}
+            />
+            LIVE · Robinhood Chain Mainnet
+          </a>
           <Link href="/terminal">Terminal</Link>
           <Link href="#hours">Market hours</Link>
           <Link href="#method">Method</Link>

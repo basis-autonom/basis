@@ -164,36 +164,37 @@ export function MarketHoursView() {
     : "syncing";
 
   return (
-    <div className="hours-page">
-      <header className="hours-header">
-        <div className="hours-title">
-          <h1>Market hours</h1>
-          <p>When the stock leg can reprice, and what the meme did while it could not</p>
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex items-center border-b border-line bg-pane sticky top-0 z-10 whitespace-nowrap overflow-x-auto flex-shrink-0" style={{ gap: "22px", padding: "0 18px", height: 58, minWidth: "100%" }}>
+        <div>
+          <h1 className="text-[16px] font-semibold text-fg">Market hours</h1>
+          <div className="text-[12px] text-fg3">When the stock leg can reprice, and what the meme did while it could not</div>
         </div>
 
-        <div className="hours-stats" aria-label="Market hours summary">
-          <div className="hours-stat">
-            <span>Now</span>
-            <strong className={`hours-value hours-value--${aggregateState}`}>
-              {aggregateState === "unavailable" ? "unknown" : aggregateState}
-            </strong>
-          </div>
-          <div className="hours-stat">
-            <span>Latest feed</span>
-            <strong>{latestUpdate && now ? `${formatAge(now - latestUpdate)} ago` : "—"}</strong>
-          </div>
-          <div className="hours-stat">
-            <span>Feed coverage</span>
-            <strong>{feedRows.length ? `${liveCount}/${feedRows.length} live` : "—"}</strong>
-          </div>
-          <div className="hours-stat">
-            <span>Tracked pools</span>
-            <strong>{visibleRows.length}</strong>
+        <div className="flex flex-col flex-shrink-0">
+          <div className="text-[10px] text-fg3">Now</div>
+          <div className={`font-mono text-[13px] mt-[2px] ${aggregateState === "live" ? "text-up" : aggregateState === "frozen" ? "text-fg" : "text-fg3"}`}>
+            {aggregateState === "unavailable" ? "unknown" : aggregateState}
           </div>
         </div>
-      </header>
 
-      <section className="hours-panel hours-week-panel">
+        <div className="flex flex-col flex-shrink-0">
+          <div className="text-[10px] text-fg3">Latest feed</div>
+          <div className="font-mono text-[13px] text-fg mt-[2px]">{latestUpdate && now ? `${formatAge(now - latestUpdate)} ago` : "—"}</div>
+        </div>
+
+        <div className="flex flex-col flex-shrink-0">
+          <div className="text-[10px] text-fg3">Feed coverage</div>
+          <div className="font-mono text-[13px] text-fg mt-[2px]">{feedRows.length ? `${liveCount}/${feedRows.length} live` : "—"}</div>
+        </div>
+
+        <div className="flex flex-col flex-shrink-0">
+          <div className="text-[10px] text-fg3">Tracked pools</div>
+          <div className="font-mono text-[13px] text-fg mt-[2px]">{visibleRows.length}</div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto"><section className="hours-panel hours-week-panel">
         <div className="hours-panel-head">
           <div>
             <h2>This week</h2>
@@ -321,6 +322,6 @@ export function MarketHoursView() {
           <div className="hours-rule"><span>Pool price</span><strong>pool ratio × stock feed</strong></div>
         </article>
       </section>
-    </div>
+    </div></div>
   );
 }
