@@ -18,11 +18,16 @@ export function Hero({
   const stockExposure =
     featured?.memeRatioPct == null ? null : 100 - featured.memeRatioPct;
   const quote = featured?.quote || "—";
+  // ========================================================
+  // CA RESMI TOKEN (Tinggal ganti string di bawah ini):
+  // ========================================================
+  const contractAddress = "0x91a2dae9699f0b82540b5886b0d8759c22820ba3"; 
+
   const featuredCa =
-    process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
+    contractAddress ||
     featured?.ca ||
     sampleRows[0]?.ca ||
-    "0x91a2dae9699f0b82540b5886b0d8759c22820ba3";
+    "";
 
   if (isRpcError) {
     return (
