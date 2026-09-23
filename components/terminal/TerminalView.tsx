@@ -107,7 +107,7 @@ export function TerminalView() {
   const handleCopy = () => {
     if (!selectedRow) return;
     navigator.clipboard.writeText(
-      `${window.location.origin}/c/${selectedRow.ca || selectedRow.poolId}`,
+      `${window.location.origin}/c/${selectedRow.poolId || selectedRow.ca}`,
     );
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);

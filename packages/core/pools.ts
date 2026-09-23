@@ -211,18 +211,31 @@ export async function getPoolForToken(
     const pairs = data?.pairs || (data?.pair ? [data.pair] : []);
 
     if (pairs && pairs.length > 0) {
-      // Find the largest pool on Robinhood Chain (V4 only)
+      const registry = await fetchRegistry();
+      const stockSet = new Set(registry.map((s) => s.address.toLowerCase()));
+
+      // Find pools on Robinhood Chain (V4 only)
       const rhPools = pairs.filter(
         (p: any) =>
           p.chainId === "robinhood" &&
           p.dexId === "uniswap" &&
           p.pairAddress?.length === 66,
       );
-      if (rhPools.length > 0) {
-        rhPools.sort(
+
+      // Prefer stock-paired pool over cash/stable pool
+      const stockPaired = rhPools.filter((p: any) => {
+        const t0 = p.baseToken?.address?.toLowerCase();
+        const t1 = p.quoteToken?.address?.toLowerCase();
+        return stockSet.has(t0) || stockSet.has(t1);
+      });
+
+      const candidatePools = stockPaired.length > 0 ? stockPaired : rhPools;
+
+      if (candidatePools.length > 0) {
+        candidatePools.sort(
           (a: any, b: any) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0),
         );
-        const bestPool = rhPools[0];
+        const bestPool = candidatePools[0];
         const poolId = bestPool.pairAddress.toLowerCase() as Address;
 
         // Verify it exists in StateView
@@ -240,8 +253,7 @@ export async function getPoolForToken(
         if (slot0[0] !== BigInt(0)) {
           const token0 = bestPool.baseToken.address.toLowerCase() as Address;
           const token1 = bestPool.quoteToken.address.toLowerCase() as Address;
-          const registry = await fetchRegistry();
-          const stockSide: 0 | 1 = registry.some((t) => t.address.toLowerCase() === token0) ? 0 : 1;
+          const stockSide: 0 | 1 = stockSet.has(token0) ? 0 : 1;
 
           const pool: Pool = {
             address: poolId,

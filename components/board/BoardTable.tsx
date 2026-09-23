@@ -177,7 +177,7 @@ export function BoardTable({
             return;
           }
 
-          const pathname = `/c/${r.ca || r.poolId}`;
+          const pathname = `/c/${r.poolId || r.ca}`;
           startBasisRouteTransition(pathname);
           router.push(pathname);
         }}
