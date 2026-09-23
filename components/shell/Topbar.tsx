@@ -53,9 +53,10 @@ export function Topbar() {
 
   const shortcutLabel = isMac ? "⌘ K" : "Ctrl K";
 
-  const blockscoutLink = pathname?.startsWith("/c/") && pathname.length > 4
-    ? `https://robinhoodchain.blockscout.com/address/${pathname.replace("/c/", "")}`
-    : "https://robinhoodchain.blockscout.com";
+  const blockscoutLink =
+    pathname?.startsWith("/c/") && pathname.length > 4
+      ? `https://robinhoodchain.blockscout.com/address/${pathname.replace("/c/", "")}`
+      : "https://robinhoodchain.blockscout.com";
 
   return (
     <>

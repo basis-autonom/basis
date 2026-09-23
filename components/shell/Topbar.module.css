@@ -15,7 +15,9 @@
   align-items: center;
   justify-content: center;
   color: var(--color-fg2);
-  transition: color 160ms ease, opacity 160ms ease;
+  transition:
+    color 160ms ease,
+    opacity 160ms ease;
 }
 
 .socialLink svg,
@@ -32,7 +34,8 @@
 
 .socialLinkDisabled {
   cursor: not-allowed;
-  opacity: .34;
+  opacity: 0.34;
+  display: none;
 }
 
 @media (min-width: 1280px) {

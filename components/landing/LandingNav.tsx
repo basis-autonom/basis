@@ -23,7 +23,12 @@ export function LandingNav() {
             style={{ width: "auto", height: "20px" }}
           />
           <span>sis</span>
-          <span className="text-stock font-mono tracking-widest text-[10px] uppercase ml-[8px]" style={{ fontWeight: 'normal', transform: 'translateY(3px)' }}>Analytics</span>
+          <span
+            className="text-stock font-mono tracking-widest text-[10px] uppercase ml-[8px]"
+            style={{ fontWeight: "normal", transform: "translateY(3px)" }}
+          >
+            Analytics
+          </span>
         </Link>
         <div className="landing-nav-links">
           <a
@@ -31,7 +36,12 @@ export function LandingNav() {
             target="_blank"
             rel="noreferrer"
             className="hidden sm:flex items-center border border-up/30 bg-up/10 text-up rounded-full transition-colors hover:border-up/60 font-mono text-[11px]"
-            style={{ gap: 6, padding: "3px 10px", fontWeight: 500, marginRight: 8 }}
+            style={{
+              gap: 6,
+              padding: "3px 10px",
+              fontWeight: 500,
+              marginRight: 8,
+            }}
             title="View on Robinhood Chain Explorer"
           >
             <span
@@ -52,7 +62,7 @@ export function LandingNav() {
               href="#"
               target="_blank"
               rel="noreferrer"
-              className="text-fg3 hover:text-fg transition-colors w-[15px] h-[15px] flex items-center justify-center cursor-not-allowed"
+              className="hidden text-fg3 hover:text-fg transition-colors w-[15px] h-[15px] flex items-center justify-center cursor-not-allowed"
               aria-label="GitHub repository"
             >
               <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
