@@ -42,7 +42,6 @@ export function Hero({ rows, isRpcError }: { rows: LandingBoardRow[], isRpcError
           <div className="flex justify-center mb-6">
             <CopyCaPill
               address={featuredCa}
-              symbol={featured?.coin ? `$${featured.coin}` : undefined}
             />
           </div>
         )}
