@@ -21,13 +21,9 @@ export function Hero({
   // ========================================================
   // CA RESMI TOKEN (Tinggal ganti string di bawah ini):
   // ========================================================
-  const contractAddress = "0x91a2dae9699f0b82540b5886b0d8759c22820ba3"; 
+  const contractAddress = "basis";
 
-  const featuredCa =
-    contractAddress ||
-    featured?.ca ||
-    sampleRows[0]?.ca ||
-    "";
+  const featuredCa = contractAddress || featured?.ca || sampleRows[0]?.ca || "";
 
   if (isRpcError) {
     return (
