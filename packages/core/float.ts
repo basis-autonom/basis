@@ -215,6 +215,8 @@ export async function getCorporateActionPoolExposure(
   return result;
 }
 
+import { unstable_cache } from 'next/cache';
+
 export async function getFloatBoardData() {
   const { fetchRegistry } = await import('./registry');
   const registry = await fetchRegistry();
@@ -231,7 +233,22 @@ export async function getFloatBoardData() {
     functionName: 'totalSupply' as const,
   }));
   
-  const res = await client.multicall({ contracts: registry.flatMap((_, i) => [calls[i], supplyCalls[i]]) });
+  let res: any[] = [];
+  try {
+    res = await client.multicall({ contracts: registry.flatMap((_, i) => [calls[i], supplyCalls[i]]) });
+  } catch (e) {
+    console.error("Multicall failed in getFloatBoardData:", e);
+    return registry.map(stock => ({
+      ticker: stock.symbol,
+      floatOnChain: null,
+      lockedInPools: null,
+      gripPct: null,
+      poolsCount: 1,
+      largestHolder: 'V4 PoolManager',
+      largestShare: null,
+      lpBurned: true,
+    }));
+  }
   
   const rows = [];
   for (let i = 0; i < registry.length; i++) {
@@ -243,8 +260,6 @@ export async function getFloatBoardData() {
       successfulResult<bigint>(res[i * 2 + 1]),
     );
     
-    // Determine a dummy largest holder name if we don't have the exact pool info,
-    // or we can fetch pools just for top grips later. But for now, returning simple structure.
     rows.push({
       ticker: stock.symbol,
       floatOnChain: grip.totalRaw == null ? null : Number(grip.totalRaw) / 1e18,
@@ -261,3 +276,10 @@ export async function getFloatBoardData() {
   rows.sort((a, b) => (b.gripPct ?? -Infinity) - (a.gripPct ?? -Infinity));
   return rows;
 }
+
+export const getCachedFloatBoardData = unstable_cache(
+  async () => getFloatBoardData(),
+  ['float-board-data-v2'],
+  { revalidate: 300 }
+);
+

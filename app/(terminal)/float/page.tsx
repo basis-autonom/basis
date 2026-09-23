@@ -2,7 +2,7 @@
 import React from "react";
 import { FloatTable } from "@/components/board/FloatTable";
 import { FloatActions } from "@/components/float/FloatActions";
-import { getFloatBoardData } from "@/packages/core/float";
+import { getCachedFloatBoardData } from "@/packages/core/float";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 300;
@@ -10,7 +10,7 @@ export const revalidate = 300;
 export default async function TerminalFloatPage() {
   let rows: any[] = [];
   try {
-    rows = await getFloatBoardData();
+    rows = await getCachedFloatBoardData();
   } catch (e: any) {
     return (
       <div className="flex h-full items-center justify-center text-down font-mono">
