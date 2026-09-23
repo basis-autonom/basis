@@ -168,10 +168,10 @@ export function Topbar() {
           </a>
           <span className="font-mono">{blockHeight}</span>
           <a
-            href="#"
+            href="https://github.com/basis-autonom/basis"
             target="_blank"
             rel="noreferrer"
-            className={styles.socialLinkDisabled}
+            className={styles.socialLink}
             aria-label="Open Basis GitHub repository"
             title="GitHub repository"
           >

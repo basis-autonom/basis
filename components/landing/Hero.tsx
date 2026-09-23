@@ -21,7 +21,7 @@ export function Hero({
   // ========================================================
   // CA RESMI TOKEN (Tinggal ganti string di bawah ini):
   // ========================================================
-  const contractAddress = "basis";
+  const contractAddress = "0x6eabf8e4152792cf1f6c3d69c8eba3d47121d0a5";
 
   const featuredCa = contractAddress || featured?.ca || sampleRows[0]?.ca || "";
 
@@ -58,7 +58,7 @@ export function Hero({
     <header className="landing-hero">
       <div className="landing-frame">
         {featuredCa && (
-          <div className="hidden  justify-center mb-6">
+          <div className="flex  justify-center mb-6">
             <CopyCaPill address={featuredCa} />
           </div>
         )}

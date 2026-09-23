@@ -59,10 +59,10 @@ export function LandingNav() {
           <Link href="#method">Method</Link>
           <div className="flex items-center gap-[16px] ml-[4px]">
             <a
-              href="#"
+              href="https://github.com/basis-autonom/basis"
               target="_blank"
               rel="noreferrer"
-              className="hidden text-fg3 hover:text-fg transition-colors w-[15px] h-[15px] flex items-center justify-center cursor-not-allowed"
+              className="text-fg3 hover:text-fg transition-colors w-[15px] h-[15px] flex items-center justify-center cursor-pointer"
               aria-label="GitHub repository"
             >
               <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
