@@ -58,7 +58,7 @@ export function Hero({
     <header className="landing-hero">
       <div className="landing-frame">
         {featuredCa && (
-          <div className="flex justify-center mb-6">
+          <div className="hidden  justify-center mb-6">
             <CopyCaPill address={featuredCa} />
           </div>
         )}
