@@ -4,12 +4,15 @@ import { ContractForm } from './ContractForm';
 import { TerminalPreview } from './TerminalPreview';
 import { LandingBoardRow, displaySymbol } from './types';
 import { RotatingQuote } from './RotatingQuote';
+import { CopyCaPill } from './CopyCaPill';
 
 export function Hero({ rows, isRpcError }: { rows: LandingBoardRow[], isRpcError?: boolean }) {
   const featured = rows[0];
   const sampleRows = rows.slice(0, 3);
   const stockExposure = featured?.memeRatioPct == null ? null : 100 - featured.memeRatioPct;
   const quote = featured?.quote || '—';
+  const featuredCa = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || featured?.ca || sampleRows[0]?.ca || '0x91a2dae9699f0b82540b5886b0d8759c22820ba3';
+
   if (isRpcError) {
     return (
       <header className="landing-hero">
@@ -35,6 +38,14 @@ export function Hero({ rows, isRpcError }: { rows: LandingBoardRow[], isRpcError
   return (
     <header className="landing-hero">
       <div className="landing-frame">
+        {featuredCa && (
+          <div className="flex justify-center mb-6">
+            <CopyCaPill
+              address={featuredCa}
+              symbol={featured?.coin ? `$${featured.coin}` : undefined}
+            />
+          </div>
+        )}
         <h1 className="landing-h1">
           You bought a memecoin.<br />
           You are holding <RotatingQuote quotes={uniqueQuotes.slice(0, 5)} />.
@@ -47,12 +58,26 @@ export function Hero({ rows, isRpcError }: { rows: LandingBoardRow[], isRpcError
         <ContractForm />
         <div className="landing-tryline">
           try{' '}
-          {sampleRows.length === 0 ? <span>no live examples</span> : sampleRows.map((row, index) => (
-            <React.Fragment key={row.ca || row.poolId || index}>
-              {index > 0 && ' · '}
-              <Link href={`/c/${(row.ca || row.poolId || '').trim().toLowerCase()}`}>{displaySymbol(row.coin)} / {row.quote || '—'}</Link>
-            </React.Fragment>
-          ))}
+          {sampleRows.length === 0 ? <span>no live examples</span> : sampleRows.map((row, index) => {
+            const rowCa = row.ca || row.poolId;
+            return (
+              <React.Fragment key={rowCa || index}>
+                {index > 0 && ' · '}
+                <span className="inline-flex items-center gap-1">
+                  <Link href={`/c/${(rowCa || '').trim().toLowerCase()}`}>
+                    {displaySymbol(row.coin)} / {row.quote || '—'}
+                  </Link>
+                  {rowCa && (
+                    <CopyCaPill
+                      address={rowCa}
+                      compact
+                      title={`Copy ${displaySymbol(row.coin)} CA (${rowCa})`}
+                    />
+                  )}
+                </span>
+              </React.Fragment>
+            );
+          })}
         </div>
         <TerminalPreview rows={rows} featured={featured} />
       </div>
