@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getBoardData } from "@/packages/core/board";
+import { getCachedBoardData } from "@/packages/core/board";
+import { getCachedWeekFeedObservations } from "@/packages/core/hours";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +25,17 @@ export async function GET() {
       });
     }
 
-    const result = await getBoardData(12);
-    if (result.kind === "error") throw new Error("RPC error");
-    return NextResponse.json({ kind: "success", data: result.data });
+    const [boardResult, weekHistory] = await Promise.all([
+      getCachedBoardData(12),
+      getCachedWeekFeedObservations(),
+    ]);
+
+    if (boardResult.kind === "error") throw new Error("RPC error");
+    return NextResponse.json({
+      kind: "success",
+      data: boardResult.data,
+      weekHistory,
+    });
   } catch {
     return NextResponse.json({
       kind: "error",
