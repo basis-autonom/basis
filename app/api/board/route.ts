@@ -1,14 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
-import { getBoardData } from "@/packages/core/board";
-import { unstable_cache } from "next/cache";
-
-// Per user instruction: Use unstable_cache with revalidate: 300 (5 mins) instead of KV or cron jobs.
-const getCachedBoardData = unstable_cache(
-  async () => getBoardData(50),
-  ["board-data-v2"],
-  { revalidate: 300 },
-);
+import { getCachedBoardData } from "@/packages/core/board";
 
 export async function GET() {
   try {

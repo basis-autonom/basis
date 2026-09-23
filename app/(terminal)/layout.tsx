@@ -4,7 +4,7 @@ import { Topbar } from '@/components/shell/Topbar';
 import { Sidebar } from '@/components/shell/Sidebar';
 import { StatusBar } from '@/components/shell/StatusBar';
 import { TerminalDataProvider } from '@/components/shell/TerminalDataProvider';
-import { getBoardData } from '@/packages/core/board';
+import { getCachedBoardData } from '@/packages/core/board';
 import { ResizableLayout } from '@/components/shell/ResizableLayout';
 
 export default async function TerminalLayout({ children }: { children: React.ReactNode }) {
@@ -13,7 +13,7 @@ export default async function TerminalLayout({ children }: { children: React.Rea
   try {
     // The current chain has only a small set of stock-paired pools; keep the
     // shared shell request bounded so every terminal page can reuse it safely.
-    const result = await getBoardData(12);
+    const result = await getCachedBoardData(12);
     if (result.kind === "error") {
       isRpcError = true;
     } else {

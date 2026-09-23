@@ -6,6 +6,7 @@ import { fetchRegistry } from "./registry";
 import { getRobinhoodPools } from "./pools";
 import { getPrices } from "./prices";
 import { getBaselineSnapshots, getEarliestSnapshots } from "../db/snapshots";
+import { unstable_cache } from "next/cache";
 
 // Max drift for board historical snapshots
 const DRIFT_24H_MS = 2 * 60 * 60 * 1000;  // 2 hours
@@ -427,3 +428,10 @@ const EXCLUDED_ADDRS = new Set([
   }
   return { kind: "success", data: rows };
 }
+
+export const getCachedBoardData = unstable_cache(
+  async (limit: number = 25) => getBoardData(limit),
+  ["board-data-v2"],
+  { revalidate: 300 }
+);
+
