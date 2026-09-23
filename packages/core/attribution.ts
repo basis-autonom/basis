@@ -1,14 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Address, SplitResponse, Window } from "./types";
-import { parseAbi, erc20Abi } from "viem";
+import { erc20Abi } from "viem";
 import { unstable_cache } from "next/cache";
-import { client, robinhoodChain, V4_STATE_VIEW } from "./chain";
+import { client } from "./chain";
 import { getStockTokenByAddress } from "./registry";
 import { getPoolForToken, PoolLookupUnavailableError } from "./pools";
 import { getBoardData } from "./board";
-import { getBlockByTimestamp } from "./blocks";
 import { getPrices } from "./prices";
 import { getReportSnapshot, makeFloatGrip, type ReportSnapshot } from "./float";
+import { getBaselineSnapshots } from "../db/snapshots";
+
+// Max drift: how far the baseline snapshot can be from targetTs before
+// we treat it as missing. Scaled per window so older windows get more slack.
+const DRIFT_MS: Record<Window, number> = {
+  "24h": 2 * 60 * 60 * 1000,   // 2 hours
+  "7d":  4 * 60 * 60 * 1000,   // 4 hours
+  "30d": 12 * 60 * 60 * 1000,  // 12 hours
+};
 
 
 const windowToMs: Record<Window, number> = {
@@ -82,7 +90,7 @@ async function getStockPairSuggestions() {
   }
 }
 
-async function computeSplitUncached(
+export async function computeSplitUncached(
   tokenAddress: Address,
   window: Window,
 ): Promise<SplitResponse> {
@@ -185,18 +193,14 @@ async function computeSplitUncached(
     poolCreatedAt != null &&
     poolCreatedAt > requestedTargetTs &&
     poolCreatedAt <= now;
+  // For clamped pools use createdAt as the baseline; the drift guard still
+  // applies so very new pools with no snapshot yet come back null cleanly.
   const targetTs = clamped && poolCreatedAt != null ? poolCreatedAt : requestedTargetTs;
   const windowLabel = clamped
     ? `since launch, ${Math.max(0, Math.floor((now - targetTs) / 86400000))}d`
     : window;
-  const oldBlock = await getBlockByTimestamp(targetTs);
 
-  // 4. Read the current report state in one multicall. The historical reads
-  // below are necessarily separate because they use a prior block/round.
-  const stateViewAbi = parseAbi([
-    "function getSlot0(bytes32 poolId) view returns (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee)",
-  ]);
-
+  // 4. Read the current report state in one multicall.
   const emptySnapshot: ReportSnapshot = {
     lockedRaw: null,
     totalRaw: null,
@@ -212,21 +216,24 @@ async function computeSplitUncached(
   }
 
   const slot0Now = reportSnapshot.slot0;
-  let slot0Old: any = null;
 
+  // Historical pool state comes from the DB snapshot table, NOT archive RPC.
+  // If no snapshot falls within the drift window, slot0Old stays null and
+  // memeComponent will be null (displayed as —).
+  let slot0Old: any = null;
   try {
-    const [oldSlotResult] = await client.multicall({
-      contracts: [{
-        address: V4_STATE_VIEW as Address,
-        abi: stateViewAbi,
-        functionName: "getSlot0" as const,
-        args: [pool.address],
-      }],
-      blockNumber: oldBlock,
-    });
-    if (oldSlotResult?.status === "success") slot0Old = oldSlotResult.result;
+    const baselineRows = await getBaselineSnapshots(
+      [pool.address],
+      new Date(targetTs),
+      DRIFT_MS[window],
+    );
+    const row = baselineRows[0];
+    if (row) {
+      // Reconstruct the [sqrtPriceX96, tick, protocolFee, lpFee] tuple
+      slot0Old = [BigInt(row.sqrt_price_x96), row.tick, 0, 0];
+    }
   } catch (e) {
-    console.error("Error fetching slot0Old:", e);
+    console.error("Error fetching slot0Old from DB:", e);
   }
 
   // Uniswap v4 invariant currency ordering: currency0 < currency1

@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Address } from "./types";
 import { parseAbi } from "viem";
-import { client, robinhoodChain, V4_STATE_VIEW } from "./chain";
+import { client, V4_STATE_VIEW, V4_POOL_MANAGER } from "./chain";
 import { fetchRegistry } from "./registry";
 import { getRobinhoodPools } from "./pools";
-import { getBlockByTimestamp } from "./blocks";
 import { getPrices } from "./prices";
-import { getFloatGrip } from "./float";
+import { getBaselineSnapshots, getEarliestSnapshots } from "../db/snapshots";
+
+// Max drift for board historical snapshots
+const DRIFT_24H_MS = 2 * 60 * 60 * 1000;  // 2 hours
+const DRIFT_7D_MS  = 4 * 60 * 60 * 1000;  // 4 hours
 
 
 const windowToMs = {
@@ -23,6 +26,11 @@ const erc20Abi = parseAbi([
 
 const stateViewAbi = parseAbi([
   "function getSlot0(bytes32 poolId) view returns (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee)",
+]);
+
+const gripAbi = parseAbi([
+  "function balanceOf(address) view returns (uint256)",
+  "function totalSupply() view returns (uint256)",
 ]);
 
 /** Shorten an address to "0x1234…abcd" display form */
@@ -110,16 +118,34 @@ const EXCLUDED_ADDRS = new Set([
 
   if (selected.length === 0) return { kind: "success", data: [] };
 
-  // ── 2. Block numbers for time windows ────────────────────────────────────
-  let block24h: bigint | undefined;
-  let block7d: bigint | undefined;
+  // ── 2. DB snapshot baselines for 24h and 7d (bulk fetch, single round-trip each) ──
+  const allPoolAddresses = selected.map((s) => s.pool.address);
+
+  let snapshots24hMap = new Map<string, any>();
+  let snapshots7dMap = new Map<string, any>();
   try {
-    [block24h, block7d] = await Promise.all([
-      getBlockByTimestamp(targetTs24h),
-      getBlockByTimestamp(targetTs7d),
-    ]);
+    const rows24h = await getBaselineSnapshots(
+      allPoolAddresses,
+      new Date(targetTs24h),
+      DRIFT_24H_MS,
+    );
+    for (const row of rows24h) {
+      snapshots24hMap.set(row.pool_address.toLowerCase(), row);
+    }
   } catch {
-    // ignore
+    // Stays empty; chg24h will be null for all rows
+  }
+  try {
+    const rows7d = await getBaselineSnapshots(
+      allPoolAddresses,
+      new Date(targetTs7d),
+      DRIFT_7D_MS,
+    );
+    for (const row of rows7d) {
+      snapshots7dMap.set(row.pool_address.toLowerCase(), row);
+    }
+  } catch {
+    // Stays empty; meme7d will be null for all rows
   }
 
   // ── 3. Current slot0 for all selected pools via multicall ────────────────
@@ -131,35 +157,6 @@ const EXCLUDED_ADDRS = new Set([
   }));
 
   const resNow = await client.multicall({ contracts: poolCalls });
-
-  // Historical slot0 calls with try/catch to handle public RPC limitations
-  let res24h: any[] = [];
-  if (block24h) {
-    try {
-      res24h = await client.multicall({
-        contracts: poolCalls,
-        blockNumber: block24h,
-      });
-    } catch {
-      res24h = selected.map(() => ({ status: "failure" }));
-    }
-  } else {
-    res24h = selected.map(() => ({ status: "failure" }));
-  }
-
-  let res7d: any[] = [];
-  if (block7d) {
-    try {
-      res7d = await client.multicall({
-        contracts: poolCalls,
-        blockNumber: block7d,
-      });
-    } catch {
-      res7d = selected.map(() => ({ status: "failure" }));
-    }
-  } else {
-    res7d = selected.map(() => ({ status: "failure" }));
-  }
 
   // ── 4. Token metadata (name, symbol, decimals) via multicall ─────────────
   const uniqueTokenAddrs = Array.from(
@@ -219,28 +216,85 @@ const EXCLUDED_ADDRS = new Set([
   const uniqueStockAddrs = Array.from(new Set(selected.map((s) => s.stockAddr)));
   const stockPrices = new Map<string, any>();
 
-  for (const addr of uniqueStockAddrs) {
-    const stock = stockMap.get(addr);
-    if (stock?.feed) {
-      try {
-        const [p24h, p7d] = await Promise.all([
-          getPrices(stock.feed, targetTs24h),
-          getPrices(stock.feed, targetTs7d),
-        ]);
-        stockPrices.set(addr, {
-          latest: p24h.latestPrice,
-          latestUpdatedAt: p24h.latestUpdatedAt,
-          old24h: p24h.oldPrice,
-          old7d: p7d.oldPrice,
-          stock,
-        });
-      } catch {
-        // Feed failed or rate limit
+  await Promise.all(
+    uniqueStockAddrs.map(async (addr) => {
+      const stock = stockMap.get(addr);
+      if (stock?.feed) {
+        try {
+          const [p24h, p7d] = await Promise.all([
+            getPrices(stock.feed, targetTs24h),
+            getPrices(stock.feed, targetTs7d),
+          ]);
+          stockPrices.set(addr, {
+            latest: p24h.latestPrice,
+            latestUpdatedAt: p24h.latestUpdatedAt,
+            old24h: p24h.oldPrice,
+            old7d: p7d.oldPrice,
+            stock,
+          });
+        } catch {
+          // Feed failed or rate limit
+        }
       }
+    })
+  );
+
+  // ── 6. Float grip for all unique stock tokens in ONE multicall ───────────
+  const gripCalls = uniqueStockAddrs.flatMap((addr) => [
+    {
+      address: addr as Address,
+      abi: gripAbi,
+      functionName: "balanceOf" as const,
+      args: [V4_POOL_MANAGER as Address],
+    },
+    {
+      address: addr as Address,
+      abi: gripAbi,
+      functionName: "totalSupply" as const,
+    },
+  ]);
+
+  const gripRes = await client.multicall({ contracts: gripCalls });
+  const stockGripMap = new Map<string, number | null>();
+  for (let i = 0; i < uniqueStockAddrs.length; i++) {
+    const addr = uniqueStockAddrs[i];
+    const locked =
+      gripRes[i * 2]?.status === "success"
+        ? (gripRes[i * 2].result as bigint)
+        : null;
+    const total =
+      gripRes[i * 2 + 1]?.status === "success"
+        ? (gripRes[i * 2 + 1].result as bigint)
+        : null;
+    const gripPct =
+      locked !== null && total !== null && total > BigInt(0)
+        ? (Number(locked) / Number(total)) * 100
+        : null;
+    stockGripMap.set(addr, gripPct);
+  }
+
+  // ── 7. Bulk fetch earliest snapshots for clamped pools in ONE query ─────
+  const clampedPoolAddrs = selected
+    .filter(
+      (s) =>
+        now - (s.pool.createdAt || 0) < windowMs7d &&
+        (s.pool.createdAt || 0) > 0,
+    )
+    .map((s) => s.pool.address);
+
+  const earliestSnapshotsMap = new Map<string, any>();
+  if (clampedPoolAddrs.length > 0) {
+    try {
+      const earliestRows = await getEarliestSnapshots(clampedPoolAddrs);
+      for (const row of earliestRows) {
+        earliestSnapshotsMap.set(row.pool_address.toLowerCase(), row);
+      }
+    } catch {
+      // ignore
     }
   }
 
-  // ── 6. Build rows ─────────────────────────────────────────────────────────
+  // ── 8. Build rows (100% in-memory computation) ─────────────────────────
   const rows: any[] = [];
 
   for (let i = 0; i < selected.length; i++) {
@@ -283,15 +337,16 @@ const EXCLUDED_ADDRS = new Set([
     const prices = stockPrices.get(stockAddr);
     const priceUsd = prices && ratioNow > 0 ? ratioNow * prices.latest : null;
 
-    // ── 24h change ──
+    // ── 24h change (from DB snapshot map) ──
     let chg24h: number | null = null;
     let meme24h: number | null = null;
     let stock24h: number | null = null;
-    if (prices && res24h[i]?.status === "success") {
-      const slot024h = res24h[i].result as any;
-      if (slot024h && slot024h[0] && slot024h[0] !== BigInt(0)) {
-        const ratio24h = getRatio(slot024h[0]);
-        if (ratio24h != null && ratio24h > 0) {
+    const snap24h = snapshots24hMap.get(pool.address.toLowerCase());
+    if (prices && snap24h) {
+      const sqrtPrice24h = BigInt(snap24h.sqrt_price_x96);
+      if (sqrtPrice24h && sqrtPrice24h !== BigInt(0)) {
+        const ratio24h = getRatio(sqrtPrice24h);
+        if (ratio24h != null && ratio24h > 0 && prices.old24h > 0) {
           meme24h = ratioNow / ratio24h - 1;
           stock24h = prices.latest / prices.old24h - 1;
           chg24h = ((1 + meme24h) * (1 + stock24h) - 1) * 100;
@@ -299,7 +354,7 @@ const EXCLUDED_ADDRS = new Set([
       }
     }
 
-    // ── 7d components — check pool age and clamping ──
+    // ── 7d components (from DB snapshot map) ──
     let meme7d: number | null = null;
     let stock7d: number | null = null;
     let memeRatioPct: number | null = null;
@@ -311,27 +366,19 @@ const EXCLUDED_ADDRS = new Set([
       ? `since launch, ${Math.max(0, Math.floor(poolAgeMs / 86400000))}d`
       : "7d";
 
-    let slotHist: any = null;
+    // For clamped pools (< 7d old), use the earliest snapshot ever recorded
+    // as the launch baseline. For older pools, use the 7d snapshot map.
+    let slotHistSqrt: bigint | null = null;
     if (clamped && poolCreatedAt > 0) {
-      try {
-        const blockLaunch = await getBlockByTimestamp(poolCreatedAt + 60_000);
-        const resLaunch = await client.readContract({
-          address: V4_STATE_VIEW as Address,
-          abi: stateViewAbi,
-          functionName: "getSlot0",
-          args: [pool.address as `0x${string}`],
-          blockNumber: blockLaunch,
-        });
-        slotHist = resLaunch;
-      } catch {
-        // Launch block state not available
-      }
-    } else if (res7d[i]?.status === "success") {
-      slotHist = res7d[i].result;
+      const earliest = earliestSnapshotsMap.get(pool.address.toLowerCase());
+      if (earliest) slotHistSqrt = BigInt(earliest.sqrt_price_x96);
+    } else {
+      const snap7d = snapshots7dMap.get(pool.address.toLowerCase());
+      if (snap7d) slotHistSqrt = BigInt(snap7d.sqrt_price_x96);
     }
 
-    if (slotHist && slotHist[0] && slotHist[0] !== BigInt(0)) {
-      const ratioHist = getRatio(slotHist[0]);
+    if (slotHistSqrt && slotHistSqrt !== BigInt(0)) {
+      const ratioHist = getRatio(slotHistSqrt);
       if (ratioHist != null && ratioHist > 0) {
         meme7d = (ratioNow / ratioHist - 1) * 100;
 
@@ -344,18 +391,10 @@ const EXCLUDED_ADDRS = new Set([
         }
       }
     }
-    // If slotHist is missing or 0, meme7d remains null (no -100%)
+    // If slotHistSqrt is null, meme7d remains null (displayed as —)
 
     // ── Float grip ──
-    let grip: number | null = null;
-    if (stock) {
-      try {
-        const gripData = await getFloatGrip(stock, pool.address as Address);
-        grip = gripData.gripPct;
-      } catch {
-        // ignore
-      }
-    }
+    const grip = stockGripMap.get(stockAddr) ?? null;
 
     rows.push({
       ca: memeAddr as Address, // Memecoin token contract address for /c/[ca]

@@ -48,6 +48,9 @@ async function fetchJsonWithRetry(
       const response = await fetch(url, init);
       if (response.status === 404) return null;
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("Indexer returned HTTP 429.");
+        }
         const retryAfter = Number(response.headers.get("retry-after"));
         retryAfterMs = Number.isFinite(retryAfter)
           ? Math.min(5_000, Math.max(250, retryAfter * 1_000))
@@ -57,6 +60,9 @@ async function fetchJsonWithRetry(
       return await response.json();
     } catch (error) {
       lastError = error;
+      if (error instanceof Error && error.message.includes("429")) {
+        break;
+      }
       if (attempt < INDEXER_ATTEMPTS - 1) {
         await sleep(retryAfterMs ?? 500 * 2 ** attempt);
       }
@@ -135,6 +141,9 @@ async function fetchGeckoPools(registry: Array<{ address: Address }>): Promise<I
     } catch (error) {
       lastError = error;
       console.warn(`GeckoTerminal directory page ${page} failed`, error);
+      if (error instanceof Error && error.message.includes("429")) {
+        break;
+      }
     }
   }
   if (successfulPages.length === 0) {
@@ -189,33 +198,78 @@ export async function getPoolForToken(
   let successfulSources = 0;
   let targetedSourceSucceeded = false;
 
-  // Report pages already know the exact token address. Query GeckoTerminal's
-  // token-scoped endpoint first so a long-tail pool is not dependent on the
-  // board's bounded directory scan.
-  if (lowerCa.length === 42) {
-    try {
-      const registry = await fetchRegistry();
-      if (registry.length === 0) {
-        throw new PoolLookupUnavailableError(
-          "Stock-token registry unavailable during pool lookup.",
+  // 1. Check DexScreener direct lookup first (fastest, most reliable, sub-200ms)
+  try {
+    const url =
+      lowerCa.length === 66
+        ? `https://api.dexscreener.com/latest/dex/pairs/robinhood/${lowerCa}`
+        : `https://api.dexscreener.com/latest/dex/tokens/${lowerCa}`;
+
+    const data = await fetchJsonWithRetry(url);
+    successfulSources += 1;
+    targetedSourceSucceeded = true;
+    const pairs = data?.pairs || (data?.pair ? [data.pair] : []);
+
+    if (pairs && pairs.length > 0) {
+      // Find the largest pool on Robinhood Chain (V4 only)
+      const rhPools = pairs.filter(
+        (p: any) =>
+          p.chainId === "robinhood" &&
+          p.dexId === "uniswap" &&
+          p.pairAddress?.length === 66,
+      );
+      if (rhPools.length > 0) {
+        rhPools.sort(
+          (a: any, b: any) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0),
         );
+        const bestPool = rhPools[0];
+        const poolId = bestPool.pairAddress.toLowerCase() as Address;
+
+        // Verify it exists in StateView
+        const stateViewAbi = parseAbi([
+          "function getSlot0(bytes32 poolId) view returns (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee)",
+        ]);
+
+        const slot0 = await client.readContract({
+          address: V4_STATE_VIEW as Address,
+          abi: stateViewAbi,
+          functionName: "getSlot0",
+          args: [poolId],
+        });
+
+        if (slot0[0] !== BigInt(0)) {
+          const token0 = bestPool.baseToken.address.toLowerCase() as Address;
+          const token1 = bestPool.quoteToken.address.toLowerCase() as Address;
+          const registry = await fetchRegistry();
+          const stockSide: 0 | 1 = registry.some((t) => t.address.toLowerCase() === token0) ? 0 : 1;
+
+          const pool: Pool = {
+            address: poolId,
+            token0,
+            token1,
+            stockSide,
+            createdAt: typeof bestPool.pairCreatedAt === "number" ? bestPool.pairCreatedAt : null,
+            liquidityUsd: bestPool.liquidity?.usd || 0,
+            liquidityBase: typeof bestPool.liquidity?.base === "number" && Number.isFinite(bestPool.liquidity.base)
+              ? bestPool.liquidity.base
+              : null,
+            liquidityQuote: typeof bestPool.liquidity?.quote === "number" && Number.isFinite(bestPool.liquidity.quote)
+              ? bestPool.liquidity.quote
+              : null,
+            lpBurned: true,
+            venue: "Uniswap v4",
+          };
+
+          cache.set(lowerCa, { pool, timestamp: now });
+          return pool;
+        }
       }
-      const geckoPools = await fetchGeckoPoolsForToken(tokenOrPoolAddress, registry);
-      targetedSourceSucceeded = true;
-      successfulSources += 1;
-      const matched = geckoPools.sort(
-        (a, b) => (b.liquidityUsd || 0) - (a.liquidityUsd || 0),
-      )[0];
-      if (matched) {
-        cache.set(lowerCa, { pool: matched, timestamp: now });
-        return matched;
-      }
-    } catch (e) {
-      console.error(`Failed targeted GeckoTerminal lookup for ${lowerCa}`, e);
     }
+  } catch (e) {
+    // Continue to next source
   }
 
-  // 1. First check the combined indexer directory used by the board.
+  // 2. Check the combined directory
   try {
     const allPools = await getRobinhoodPools(100);
     successfulSources += 1;
@@ -233,86 +287,25 @@ export async function getPoolForToken(
     console.error("Error searching getRobinhoodPools", e);
   }
 
-  // 2. If not found in the combined top-100 directory, fetch from DexScreener
-  // directly (supporting pairAddress or tokenAddress). A successful empty
-  // response is different from an unavailable indexer, so keep looking.
-  try {
-    const url =
-      lowerCa.length === 66
-        ? `https://api.dexscreener.com/latest/dex/pairs/robinhood/${lowerCa}`
-        : `https://api.dexscreener.com/latest/dex/tokens/${lowerCa}`;
-
-    const data = await fetchJsonWithRetry(url);
-    successfulSources += 1;
-    const pairs = data.pairs || (data.pair ? [data.pair] : []);
-
-    if (!pairs || pairs.length === 0) {
-      throw new Error("DexScreener returned no matching pairs.");
+  // 3. Fallback to targeted GeckoTerminal lookup if needed
+  if (lowerCa.length === 42) {
+    try {
+      const registry = await fetchRegistry();
+      if (registry.length > 0) {
+        const geckoPools = await fetchGeckoPoolsForToken(tokenOrPoolAddress, registry);
+        targetedSourceSucceeded = true;
+        successfulSources += 1;
+        const matched = geckoPools.sort(
+          (a, b) => (b.liquidityUsd || 0) - (a.liquidityUsd || 0),
+        )[0];
+        if (matched) {
+          cache.set(lowerCa, { pool: matched, timestamp: now });
+          return matched;
+        }
+      }
+    } catch (e) {
+      // GeckoTerminal rate-limited or error
     }
-
-    // Find the largest pool on Robinhood Chain (V4 only)
-    const rhPools = pairs.filter(
-      (p: any) =>
-        p.chainId === "robinhood" &&
-        p.dexId === "uniswap" &&
-        p.pairAddress?.length === 66,
-    );
-    if (rhPools.length === 0) {
-      throw new Error("DexScreener returned no Robinhood Uniswap v4 pair.");
-    }
-
-    // Sort by liquidity USD descending
-    rhPools.sort(
-      (a: any, b: any) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0),
-    );
-    const bestPool = rhPools[0];
-
-    const poolId = bestPool.pairAddress.toLowerCase() as Address;
-
-    // Verify it exists in StateView
-    const stateViewAbi = parseAbi([
-      "function getSlot0(bytes32 poolId) view returns (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee)",
-    ]);
-
-    const slot0 = await client.readContract({
-      address: V4_STATE_VIEW as Address,
-      abi: stateViewAbi,
-      functionName: "getSlot0",
-      args: [poolId],
-    });
-
-    if (slot0[0] === BigInt(0)) {
-      throw new Error("DexScreener pair has no live StateView slot.");
-    }
-
-    const token0 = bestPool.baseToken.address.toLowerCase() as Address;
-    const token1 = bestPool.quoteToken.address.toLowerCase() as Address;
-
-    const { fetchRegistry } = await import("./registry");
-    const registry = await fetchRegistry();
-    const stockSide: 0 | 1 = registry.some((t) => t.address.toLowerCase() === token0) ? 0 : 1;
-
-    const pool: Pool = {
-      address: poolId,
-      token0,
-      token1,
-      stockSide,
-      createdAt: typeof bestPool.pairCreatedAt === "number" ? bestPool.pairCreatedAt : null,
-      liquidityUsd: bestPool.liquidity?.usd || 0,
-      liquidityBase: typeof bestPool.liquidity?.base === "number" && Number.isFinite(bestPool.liquidity.base)
-        ? bestPool.liquidity.base
-        : null,
-      liquidityQuote: typeof bestPool.liquidity?.quote === "number" && Number.isFinite(bestPool.liquidity.quote)
-        ? bestPool.liquidity.quote
-        : null,
-      lpBurned: true,
-      venue: "Uniswap v4",
-    };
-
-    cache.set(lowerCa, { pool, timestamp: now });
-    return pool;
-  } catch (e) {
-    console.error(`Failed to fetch pool for ${lowerCa}`, e);
   }
 
   if (lowerCa.length === 42 && !targetedSourceSucceeded) {

@@ -149,7 +149,11 @@ export function Topbar() {
             rel="noreferrer"
             className="flex items-center border border-up/30 bg-up/10 text-up rounded-full transition-colors hover:border-up/60"
             style={{ gap: 6, padding: "3px 10px", fontWeight: 500 }}
-            title="View on Robinhood Chain Explorer"
+            title={
+              pathname?.startsWith("/c/") && pathname.length > 4
+                ? "View contract on Robinhood Chain Explorer"
+                : "View on Robinhood Chain Explorer"
+            }
           >
             <span
               className="block rounded-full bg-up flex-shrink-0"
