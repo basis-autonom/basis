@@ -84,7 +84,7 @@ export default async function LandingPage() {
         <footer className="landing-footer">
           <div className="landing-frame landing-footer-inner">
             <span>chain 4663 · read-only · MIT</span>
-            <span>basis.tools</span>
+            <span>basisanalytics.xyz</span>
           </div>
         </footer>
       </div>

@@ -49,7 +49,7 @@ export function TerminalPreview({
           <i />
           <i />
         </div>
-        <span className="landing-shot-url">basis.tools/terminal</span>
+        <span className="landing-shot-url">basisanalytics.xyz/terminal</span>
       </div>
       <div className="landing-shot-grid">
         <div className="landing-shot-pane">

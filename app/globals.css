@@ -1583,7 +1583,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 18px;
+  padding: 12px 18px;
   background: var(--color-pane);
   border-top: 1px solid var(--color-line);
   font-family: var(--font-ibm-plex-mono), monospace;

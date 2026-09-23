@@ -11,7 +11,7 @@ stablecoin. When the stock moves, the memecoin reprices even if nobody trades
 the pool. Basis separates those two effects so you can see which half of the
 move actually came from the meme.
 
-[**Live site**](https://basis.tools) · [**Robinhood Chain Explorer**](https://robinhoodchain.blockscout.com)
+[**Live site**](https://basisanalytics.xyz) · [**Robinhood Chain Explorer**](https://robinhoodchain.blockscout.com)
 
 ## What Basis shows
 
@@ -173,7 +173,7 @@ DATABASE_URL=                             # PostgreSQL connection string
 CRON_SECRET=                               # protects /api/cron/watch
 WATCHER_ENABLED=true                      # set false to disable findings
 WATCHER_POST_X=false                      # optional X posting switch
-NEXT_PUBLIC_SITE_URL=https://basis.tools
+NEXT_PUBLIC_SITE_URL=https://basisanalytics.xyz
 X_DRY_RUN=true                             # keep true while testing
 X_USER_ACCESS_TOKEN=                       # optional X API token
 ```

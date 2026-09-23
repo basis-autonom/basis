@@ -87,7 +87,7 @@ Format postingan:
 $X moved 6.2% today. Its meme did 0.1 of that.
 The rest is NVDA.
 
-basis.tools/c/0x...
+basisanalytics.xyz/c/0x...
 ```
 
 Aturan isi:

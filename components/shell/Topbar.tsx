@@ -179,12 +179,12 @@ export function Topbar() {
             </svg>
           </a>
           <a
-            href="#"
-            aria-disabled="true"
-            tabIndex={-1}
-            className={styles.socialLinkDisabled}
-            title="X account not available yet"
-            onClick={(event) => event.preventDefault()}
+            href="https://x.com/basisanalyticss"
+            target="_blank"
+            rel="noreferrer"
+            className={styles.socialLink}
+            aria-label="Basis on X"
+            title="Basis on X"
           >
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
               <path d="M18.9 2.5h2.95l-6.45 7.37L23 21.5h-5.94l-4.65-6.08-5.32 6.08H4.13l6.9-7.88L4 2.5h6.09l4.2 5.55 4.61-5.55Zm-1.04 16.84h1.64L9.22 4.55H7.46l10.4 14.79Z" />

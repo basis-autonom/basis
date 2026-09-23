@@ -287,19 +287,20 @@ export function MarketHoursView({ initialWeekHistory }: MarketHoursViewProps = {
 
             return (
               <div className="hours-day-info">
-                <div>
-                  <strong className="text-fg">{selectedDay} {dayObs?.dateLabel ? `(${dayObs.dateLabel})` : ""}</strong>:{" "}
+                <div className="flex items-center flex-wrap gap-2">
+                  <strong className="text-fg font-medium">{selectedDay} {dayObs?.dateLabel ? `(${dayObs.dateLabel})` : ""}</strong>
+                  <span className="text-fg3">:</span>
                   {isToday ? (
-                    <span className="text-stock font-medium">
+                    <span className="px-2.5 py-1 rounded-[3px] bg-stock/10 border border-stock/30 text-stock font-mono text-[10px] font-medium tracking-wide inline-flex items-center">
                       LATEST OBSERVATION · {aggregateState.toUpperCase()} ({feedRows.length ? `${liveCount}/${feedRows.length} feeds live` : "monitoring"})
                     </span>
                   ) : isPast && dayObs?.state === "live" ? (
-                    <span className="text-up font-medium">
-                      FEED LIVE · {dayObs.roundCount} Chainlink updates observed across {dayObs.activeFeedsCount} stock feeds.
+                    <span className="px-2.5 py-1 rounded-[3px] bg-up/10 border border-up/30 text-up font-mono text-[10px] font-medium tracking-wide inline-flex items-center">
+                      FEED LIVE · {dayObs.roundCount} Chainlink updates observed across {dayObs.activeFeedsCount} stock feeds
                     </span>
                   ) : isPast && dayObs?.state === "frozen" ? (
-                    <span className="text-down font-medium">
-                      FEED FROZEN · Outside liveness window on this day.
+                    <span className="px-2.5 py-1 rounded-[3px] bg-down/10 border border-down/30 text-down font-mono text-[10px] font-medium tracking-wide inline-flex items-center">
+                      FEED FROZEN · Outside liveness window on this day
                     </span>
                   ) : (
                     <span className="text-fg3">
@@ -408,16 +409,16 @@ export function MarketHoursView({ initialWeekHistory }: MarketHoursViewProps = {
               <span className="hours-mono">onchain inspection</span>
             </div>
             {selectedRow ? (
-              <div className="flex flex-col gap-2 font-mono text-[11px] pt-1">
-                <div className="flex justify-between items-center pb-2 border-b border-line">
-                  <span className="text-fg font-semibold text-[13px]">
+              <div className="flex flex-col gap-2.5 font-mono text-[11px] pt-1">
+                <div className="flex justify-between items-center pb-3 border-b border-line mb-1">
+                  <span className="text-fg font-semibold text-[13px] tracking-tight">
                     {selectedRow.coin} <span className="text-fg3 font-normal text-[11px]">quoted in</span> {selectedRow.quote}
                   </span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] ${selectedRowObservation?.feedLive ? "bg-up/10 text-up border border-up/30" : "bg-down/10 text-down border border-down/30"}`}>
+                  <span className={`px-2.5 py-1 rounded-[3px] text-[10px] font-mono tracking-wider leading-none inline-flex items-center font-medium ${selectedRowObservation?.feedLive ? "bg-up/10 text-up border border-up/30" : "bg-down/10 text-down border border-down/30"}`}>
                     {selectedRowObservation?.feedLive ? "FEED LIVE" : "FEED FROZEN"}
                   </span>
                 </div>
-                <div className="flex justify-between text-fg3 pt-1">
+                <div className="flex justify-between text-fg3 pt-0.5">
                   <span>Feed age:</span>
                   <span className="text-fg font-mono">{selectedRowObservation?.age != null ? formatAge(selectedRowObservation.age) : "—"}</span>
                 </div>
@@ -437,7 +438,7 @@ export function MarketHoursView({ initialWeekHistory }: MarketHoursViewProps = {
                   <span>Calculated pool price:</span>
                   <span className="text-fg font-mono font-medium">{formatPrice(selectedRow.priceUsd)}</span>
                 </div>
-                <div className="pt-3 border-t border-line mt-1">
+                <div className="pt-3 border-t border-line mt-2">
                   <Link
                     href={`/c/${selectedRow.ca || selectedRow.poolId}`}
                     className="inline-flex items-center gap-1.5 text-[11px] text-stock hover:underline font-mono"
